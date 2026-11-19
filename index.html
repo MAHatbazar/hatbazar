@@ -1040,6 +1040,58 @@
         </button>
       </div>
 
+      <!-- অ্যাডমিন পাসওয়ার্ড দিয়ে লগ ইন / লগ আউট ও পাসওয়ার্ড পরিবর্তনের কার্ড -->
+      <div class="bg-white rounded-3xl border border-amber-200 p-5 sm:p-6 shadow-xs space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-amber-100 pb-3">
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
+              🔑 অ্যাডমিন পাসওয়ার্ড লগ ইন
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              অ্যাডমিন পাসওয়ার্ড দিয়ে লগ ইন করলে ক্যাটাগরি বাড়ানো/কমানো (+ / −), ফোল্ডারের ছবি পরিবর্তন ও ডিসকাউন্ট সুবিধা সক্রিয় হবে।
+            </p>
+          </div>
+          <span id="adminPanelLoginBadge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-700 border border-slate-200">
+            🔒 লকড (অ্যাডমিন নয়)
+          </span>
+        </div>
+
+        <form id="adminPasswordLoginForm" onsubmit="handleAdminPasswordLogin(event)" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <input
+            id="adminPasswordInput"
+            type="password"
+            placeholder="আপনার অ্যাডমিন পাসওয়ার্ড লিখুন..."
+            class="flex-1 rounded-xl bg-slate-50 border border-slate-300 focus:border-violet-600 focus:bg-white px-4 py-2.5 text-sm text-slate-900 outline-none"
+          />
+          <button
+            type="submit"
+            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-violet-700 to-fuchsia-700 hover:from-violet-800 hover:to-fuchsia-800 text-white shadow-xs transition shrink-0"
+          >
+            🔓 অ্যাডমিন লগ ইন
+          </button>
+          <button
+            type="button"
+            onclick="handleAdminLogoutOnly()"
+            class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition shrink-0"
+          >
+            লগ আউট
+          </button>
+        </form>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600 pt-1">
+          <span>
+            ডিফল্ট অ্যাডমিন পাসওয়ার্ড: <code class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-950 font-bold">HatbazarAdmin2026</code>
+          </span>
+          <button
+            type="button"
+            onclick="handleChangeAdminPassword()"
+            class="font-extrabold text-violet-700 hover:underline"
+          >
+            ✏️ নিজের নতুন পাসওয়ার্ড সেট করুন
+          </button>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl border border-violet-100 p-4 shadow-2xs">
           <div class="text-xs font-bold text-slate-500">মোট ক্যাটাগরি ফোল্ডার</div>
@@ -1186,18 +1238,18 @@
   </main>
 
   <!-- =========================================================
-       সাইন আপ / লগ আউট মডাল
+       সাইন আপ / অ্যাডমিন পাসওয়ার্ড লগ ইন / লগ আউট মডাল
        ========================================================= -->
   <div id="authModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-white rounded-3xl overflow-hidden border border-violet-200 shadow-2xl">
       <div class="px-5 py-4 bg-gradient-to-r from-violet-700 to-fuchsia-700 flex items-center justify-between text-white">
-        <h3 class="text-base font-extrabold">🔐 সাইন আপ / অ্যাকাউন্ট</h3>
+        <h3 class="text-base font-extrabold">🔐 সাইন আপ / অ্যাডমিন লগ ইন</h3>
         <button type="button" onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 font-bold flex items-center justify-center transition">✕</button>
       </div>
       <form id="signUpAccountForm" onsubmit="handleSignUpSubmit(event)" class="p-5 space-y-3.5">
         <div>
           <label for="authUserName" class="block text-xs font-bold text-slate-700 mb-1">আপনার নাম *</label>
-          <input id="authUserName" type="text" required placeholder="যেমন: নাবিলা রহমান" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+          <input id="authUserName" type="text" required placeholder="যেমন: আসিফ মুন্সী" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
         </div>
         <div>
           <label for="authUserPhoneOrEmail" class="block text-xs font-bold text-slate-700 mb-1">মোবাইল বা ইমেইল *</label>
@@ -1205,15 +1257,19 @@
         </div>
         <div>
           <label for="authUserRole" class="block text-xs font-bold text-slate-700 mb-1">অ্যাকাউন্টের ধরন</label>
-          <select id="authUserRole" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600">
+          <select id="authUserRole" onchange="toggleModalAdminPasswordField()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600">
             <option value="গ্রাহক">গ্রাহক (সাইন আপ)</option>
             <option value="সেলার">সেলার</option>
             <option value="রিসেলার">রিসেলার</option>
-            <option value="অ্যাডমিন">অ্যাডমিন</option>
+            <option value="অ্যাডমিন">অ্যাডমিন (পাসওয়ার্ড প্রয়োজন)</option>
           </select>
         </div>
+        <div id="modalAdminPasswordWrap" class="hidden">
+          <label for="authModalAdminPassword" class="block text-xs font-bold text-amber-900 mb-1">অ্যাডমিন পাসওয়ার্ড *</label>
+          <input id="authModalAdminPassword" type="password" placeholder="অ্যাডমিন পাসওয়ার্ড দিন (HatbazarAdmin2026)" class="w-full rounded-xl bg-amber-50 border border-amber-300 px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-violet-600" />
+        </div>
         <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white transition">
-          সাইন আপ সম্পন্ন করুন
+          লগ ইন / সাইন আপ সম্পন্ন করুন
         </button>
       </form>
     </div>
@@ -1322,6 +1378,8 @@
       }
     };
 
+    const DEFAULT_ADMIN_PASSCODE = 'HatbazarAdmin2026';
+    let adminPasscode = DEFAULT_ADMIN_PASSCODE;
     let lastUploadedShareData = null;
 
     function formatNum(val) {
@@ -1469,6 +1527,17 @@
       }
     }
 
+    function toggleModalAdminPasswordField() {
+      const roleVal = document.getElementById('authUserRole')?.value;
+      const wrap = document.getElementById('modalAdminPasswordWrap');
+      if (!wrap) return;
+      if (roleVal === 'অ্যাডমিন') {
+        wrap.classList.remove('hidden');
+      } else {
+        wrap.classList.add('hidden');
+      }
+    }
+
     function handleAuthButtonClick() {
       if (currentSessionUser) {
         currentSessionUser = null;
@@ -1479,6 +1548,7 @@
         showToast(currentLang === 'en' ? 'Logged out successfully' : 'সফলভাবে লগ আউট করা হয়েছে');
         return;
       }
+      toggleModalAdminPasswordField();
       document.getElementById('authModal')?.classList.remove('hidden');
     }
 
@@ -1493,6 +1563,18 @@
       const role = document.getElementById('authUserRole')?.value || 'গ্রাহক';
       if (!name || !contact) return;
 
+      if (role === 'অ্যাডমিন') {
+        const typedPass = document.getElementById('authModalAdminPassword')?.value || '';
+        if (typedPass !== adminPasscode) {
+          showToast(
+            currentLang === 'en'
+              ? 'Incorrect Admin Password!'
+              : 'ভুল অ্যাডমিন পাসওয়ার্ড! সঠিক পাসওয়ার্ড দিন।'
+          );
+          return;
+        }
+      }
+
       currentSessionUser = { name, contact, role };
       persistAppState();
       closeAuthModal();
@@ -1500,10 +1582,95 @@
       refreshAdminStats();
       syncDiscountAdminPermission();
       e.target.reset();
+      toggleModalAdminPasswordField();
       showToast(
         currentLang === 'en'
           ? `Signed in as ${name} (${role})`
-          : `${name} (${role}) হিসেবে সাইন আপ সম্পন্ন হয়েছে`
+          : `${name} (${role}) হিসেবে লগ ইন সম্পন্ন হয়েছে`
+      );
+    }
+
+    function handleAdminPasswordLogin(e) {
+      e.preventDefault();
+      const inputEl = document.getElementById('adminPasswordInput');
+      const typedPass = inputEl?.value || '';
+      if (!typedPass) {
+        showToast(
+          currentLang === 'en'
+            ? 'Please enter your admin password'
+            : 'অনুগ্রহ করে অ্যাডমিন পাসওয়ার্ড লিখুন'
+        );
+        return;
+      }
+      if (typedPass !== adminPasscode) {
+        showToast(
+          currentLang === 'en'
+            ? 'Wrong password! Try again.'
+            : 'পাসওয়ার্ড মিলেনি! আবার চেষ্টা করুন।'
+        );
+        return;
+      }
+
+      currentSessionUser = {
+        name: currentSessionUser?.name || 'অ্যাডমিন',
+        contact: currentSessionUser?.contact || 'admin@hatbazar.com.bd',
+        role: 'অ্যাডমিন'
+      };
+      if (inputEl) inputEl.value = '';
+      persistAppState();
+      updateAuthButtonLabel();
+      refreshAdminStats();
+      syncDiscountAdminPermission();
+      showToast(
+        currentLang === 'en'
+          ? 'Admin login successful!'
+          : 'অ্যাডমিন পাসওয়ার্ড দিয়ে সফলভাবে লগ ইন হয়েছে!'
+      );
+    }
+
+    function handleAdminLogoutOnly() {
+      currentSessionUser = null;
+      persistAppState();
+      updateAuthButtonLabel();
+      refreshAdminStats();
+      syncDiscountAdminPermission();
+      showToast(
+        currentLang === 'en'
+          ? 'Logged out from Admin'
+          : 'অ্যাডমিন থেকে লগ আউট করা হয়েছে'
+      );
+    }
+
+    function handleChangeAdminPassword() {
+      if (!isAdminSession()) {
+        showToast(
+          currentLang === 'en'
+            ? 'Login as Admin first to change password'
+            : 'পাসওয়ার্ড বদলাতে আগে অ্যাডমিন পাসওয়ার্ড দিয়ে লগ ইন করুন'
+        );
+        return;
+      }
+      const nextPass = window.prompt(
+        currentLang === 'en'
+          ? 'Enter your new Admin Password (min 6 chars):'
+          : 'আপনার নতুন অ্যাডমিন পাসওয়ার্ড লিখুন (কমপক্ষে ৬ অক্ষর):'
+      );
+      if (!nextPass) return;
+      const trimmed = nextPass.trim();
+      if (trimmed.length < 6) {
+        showToast(
+          currentLang === 'en'
+            ? 'Password must be at least 6 characters'
+            : 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে'
+        );
+        return;
+      }
+      adminPasscode = trimmed;
+      persistAppState();
+      showToast(
+        currentLang === 'en'
+          ? 'New Admin Password saved!'
+          : 'নতুন অ্যাডমিন পাসওয়ার্ড সেভ হয়েছে!'
       );
     }
 
@@ -1849,12 +2016,14 @@
       const totalItemsEl = document.getElementById('adminTotalFolderItems');
       const cartCountEl = document.getElementById('adminCartItemsCount');
       const authStatusEl = document.getElementById('adminAuthStatusText');
+      const panelBadge = document.getElementById('adminPanelLoginBadge');
 
       const totalFolderItems = categoriesData.reduce(
         (acc, c) => acc + (Array.isArray(c.items) ? c.items.length : 0),
         0
       );
       const totalCartQty = cartItems.reduce((acc, i) => acc + (Number(i.qty) || 0), 0);
+      const adminActive = isAdminSession();
 
       if (totalCatsEl) totalCatsEl.textContent = formatNum(categoriesData.length);
       if (totalItemsEl) totalItemsEl.textContent = formatNum(totalFolderItems);
@@ -1864,6 +2033,19 @@
           authStatusEl.textContent = `${currentSessionUser.name} (${currentSessionUser.role})`;
         } else {
           authStatusEl.textContent = currentLang === 'en' ? 'Logged Out' : 'লগ আউট অবস্থায়';
+        }
+      }
+      if (panelBadge) {
+        if (adminActive) {
+          panelBadge.textContent =
+            currentLang === 'en' ? '🔓 Unlocked (Admin)' : '🔓 আনলকড (অ্যাডমিন)';
+          panelBadge.className =
+            'px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300';
+        } else {
+          panelBadge.textContent =
+            currentLang === 'en' ? '🔒 Locked (Not Admin)' : '🔒 লকড (অ্যাডমিন নয়)';
+          panelBadge.className =
+            'px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-700 border border-slate-200';
         }
       }
     }
@@ -2064,7 +2246,8 @@
       categories: 'hatbazar_categories_v1',
       cart: 'hatbazar_cart_v1',
       lang: 'hatbazar_lang_v1',
-      session: 'hatbazar_session_v1'
+      session: 'hatbazar_session_v1',
+      adminPass: 'hatbazar_admin_pass_v1'
     };
 
     function safeStorageGet(key) {
@@ -2133,6 +2316,7 @@
         safeStorageSet(STORAGE_KEYS.cart, JSON.stringify(cartItems));
         safeStorageSet(STORAGE_KEYS.lang, currentLang);
         safeStorageSet(STORAGE_KEYS.session, currentSessionUser ? JSON.stringify(currentSessionUser) : '');
+        safeStorageSet(STORAGE_KEYS.adminPass, adminPasscode);
       } catch (_err) {
         // নিরাপদ ব্যাকআপ
       }
@@ -2140,6 +2324,11 @@
 
     function restoreAppState() {
       try {
+        const savedPass = safeStorageGet(STORAGE_KEYS.adminPass);
+        if (savedPass && typeof savedPass === 'string' && savedPass.trim().length >= 4) {
+          adminPasscode = savedPass.trim();
+        }
+
         const savedLang = safeStorageGet(STORAGE_KEYS.lang);
         if (savedLang === 'bn' || savedLang === 'en') {
           currentLang = savedLang;
