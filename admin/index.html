@@ -46,15 +46,16 @@ button:disabled{opacity:.5}
 .badge.off{background:#fce9e7;color:#b42318}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .tab.active{background:#d9f36a;color:#173f35}
-.bulk-row{display:grid;grid-template-columns:38px 1.3fr 1.2fr .75fr .75fr .65fr 1.5fr auto;gap:7px;align-items:start;border-bottom:1px solid #e8eeeb;padding:8px 0}
+.bulk-row{display:grid;grid-template-columns:38px 1.3fr 1.2fr .75fr .75fr .65fr 1.5fr 1fr auto;gap:7px;align-items:start;border-bottom:1px solid #e8eeeb;padding:8px 0}
 .bulk-row input{margin:0;min-width:0;padding:10px;font-size:13px}
 .bulk-head{font-size:12px;font-weight:bold;color:#52645d}
 .row-number{padding:10px 0;font-weight:bold}
 .hint{font-size:13px;color:#687871}
 .upload-box{background:#f7faf8;border:1px dashed #9aafa5;padding:14px;border-radius:12px;margin:12px 0}
 .table-scroll{overflow-x:auto}
+.bulk-image-name{font-size:11px;color:#16804a;overflow-wrap:anywhere;padding:8px 2px}
 @media(max-width:760px){
- .bulk-row{min-width:850px}
+ .bulk-row{min-width:950px}
  .table-scroll{padding-bottom:8px}
  .wrap{padding:12px}
  .card{padding:16px}
@@ -125,35 +126,29 @@ button:disabled{opacity:.5}
 <h2 id="formTitle">নতুন Product যোগ করুন</h2>
 
 <form id="productForm">
-
 <div class="formgrid">
 <div>
 <label>Product Name (English) *</label>
 <input id="name" required maxlength="200">
 </div>
-
 <div>
 <label>Product Name (বাংলা)</label>
 <input id="name_bn" maxlength="200">
 </div>
-
 <div>
 <label>Category</label>
 <select id="category_id">
 <option value="">Category ছাড়া</option>
 </select>
 </div>
-
 <div>
 <label>Selling Price (৳) *</label>
 <input id="price" type="number" min="0" step="0.01" required>
 </div>
-
 <div>
 <label>Base Price (৳)</label>
 <input id="base_price" type="number" min="0" step="0.01">
 </div>
-
 <div>
 <label>Stock Quantity *</label>
 <input id="stock" type="number" min="0" step="1" value="0" required>
@@ -176,7 +171,6 @@ Product Active
 <button id="saveBtn" type="submit">Save Product</button>
 <button id="cancelBtn" class="secondary" type="button">Cancel</button>
 </div>
-
 </form>
 </div>
 
@@ -198,8 +192,19 @@ Product Name (English), Product Name (Bangla), Selling Price, Base Price, Stock 
 <button type="button" class="secondary" onclick="downloadTemplate()">Download Excel Template</button>
 <button type="button" class="secondary" onclick="importExcel()">Import Excel</button>
 </div>
-
 <div id="excelStatus" class="hint"></div>
+</div>
+
+<div class="upload-box">
+<label>একসঙ্গে সব Product Image নির্বাচন করুন</label>
+<input id="bulkImageFiles" type="file" accept="image/*" multiple>
+
+<p class="hint">
+Excel-এর পণ্যের সিরিয়াল অনুযায়ী ছবিগুলো নির্বাচন করুন।
+প্রথম ছবি প্রথম পণ্যে, দ্বিতীয় ছবি দ্বিতীয় পণ্যে যুক্ত হবে।
+প্রতিটি ছবি সর্বোচ্চ ৫ MB হতে পারবে।
+</p>
+<div id="bulkImageStatus" class="hint"></div>
 </div>
 
 <div class="top">
@@ -216,6 +221,7 @@ Product Name (English), Product Name (Bangla), Selling Price, Base Price, Stock 
 <span>Base ৳</span>
 <span>Stock *</span>
 <span>Description</span>
+<span>Product Image</span>
 <span></span>
 </div>
 <div id="bulkRows"></div>
@@ -225,15 +231,13 @@ Product Name (English), Product Name (Bangla), Selling Price, Base Price, Stock 
 <button id="saveBulkBtn" type="button" onclick="saveBulkProducts()">Save All Products</button>
 <button type="button" class="secondary" onclick="clearBulkRows()">Clear Rows</button>
 </div>
-
 <p class="hint">
-Bulk upload-এ পণ্যের ছবি এখনো অন্তর্ভুক্ত নয়। ছবি পরে Single Product/Edit থেকে যোগ করতে পারবেন।
+ছবি নির্বাচন না করলেও পণ্য Save করা যাবে। ছবি নির্বাচন করলে প্রতিটি সারির সঙ্গে তার নির্ধারিত ছবি যুক্ত হবে।
 </p>
 </div>
 
 <div id="status"></div>
 <div id="productList">Products লোড হচ্ছে...</div>
-
 </div>
 </section>
 </main>
@@ -248,6 +252,8 @@ const $=id=>document.getElementById(id);
 
 let editingProduct=null;
 let categories=[];
+let bulkCount=0;
+let bulkImageFiles=[];
 
 function escapeHTML(v){
  return String(v??'').replace(/[&<>"']/g,c=>({
@@ -284,13 +290,11 @@ async function verifyAdmin(user){
 
  await loadCategories();
  await loadProducts();
-
  return true;
 }
 
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();
-
  $('message').textContent='';
  $('loginBtn').disabled=true;
  $('loginBtn').textContent='যাচাই হচ্ছে...';
@@ -307,10 +311,7 @@ $('loginForm').addEventListener('submit',async e=>{
   }
 
   const ok=await verifyAdmin(data.user);
-
-  if(!ok){
-   $('message').textContent='এই অ্যাকাউন্টে Admin অনুমতি নেই।';
-  }
+  if(!ok)$('message').textContent='এই অ্যাকাউন্টে Admin অনুমতি নেই।';
 
  }catch(err){
   $('message').textContent='Login ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
@@ -339,7 +340,6 @@ async function loadCategories(){
  }
 
  categories=data||[];
-
  $('category_id').innerHTML=
   '<option value="">Category ছাড়া</option>'+
   categories.map(c=>
@@ -367,7 +367,6 @@ async function loadProducts(){
 
  $('productList').innerHTML=data.map(p=>{
   const c=categories.find(x=>x.id===p.category_id);
-
   const im=p.image_url
    ?`<img src="${escapeHTML(p.image_url)}" alt="Product">`
    :'<img src="https://placehold.co/100x100?text=No+Image" alt="No image">';
@@ -397,31 +396,24 @@ async function loadProducts(){
 
 function showProductMode(mode){
  const bulk=mode==='bulk';
-
  $('productFormPanel').classList.toggle('hidden',bulk);
  $('bulkPanel').classList.toggle('hidden',!bulk);
-
  $('singleTab').classList.toggle('active',!bulk);
  $('singleTab').classList.toggle('secondary',bulk);
-
  $('bulkTab').classList.toggle('active',bulk);
  $('bulkTab').classList.toggle('secondary',!bulk);
 }
 
 $('newProductBtn').addEventListener('click',()=>{
  editingProduct=null;
-
  $('productForm').reset();
  $('is_active').checked=true;
  $('stock').value=0;
-
  $('formTitle').textContent='নতুন Product যোগ করুন';
  $('saveBtn').textContent='Save Product';
  $('imageNote').textContent='নতুন Product Image নির্বাচন করুন।';
-
  $('productFormPanel').classList.remove('hidden');
  showProductMode('single');
-
  $('productFormPanel').scrollIntoView({behavior:'smooth'});
 });
 
@@ -443,7 +435,6 @@ async function editProduct(id){
  }
 
  editingProduct=data;
-
  $('name').value=data.name||'';
  $('name_bn').value=data.name_bn||'';
  $('description').value=data.description||'';
@@ -460,10 +451,8 @@ async function editProduct(id){
 
  $('formTitle').textContent='Product Edit করুন';
  $('saveBtn').textContent='Update Product';
-
  $('productFormPanel').classList.remove('hidden');
  showProductMode('single');
-
  $('productFormPanel').scrollIntoView({behavior:'smooth'});
 }
 
@@ -482,9 +471,7 @@ async function uploadImage(file){
    contentType:file.type||'image/jpeg'
   });
 
- if(error){
-  throw new Error('Image Upload ব্যর্থ: '+error.message);
- }
+ if(error)throw new Error('Image Upload ব্যর্থ: '+error.message);
 
  return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
@@ -494,10 +481,8 @@ $('productForm').addEventListener('submit',async e=>{
 
  const save=$('saveBtn');
  const wasEditing=!!editingProduct;
-
  save.disabled=true;
  save.textContent='সংরক্ষণ হচ্ছে...';
-
  showStatus('');
 
  try{
@@ -505,14 +490,8 @@ $('productForm').addEventListener('submit',async e=>{
   let imageUrl=editingProduct?.image_url||null;
 
   if(file){
-   if(!file.type.startsWith('image/')){
-    throw new Error('শুধু Image File নির্বাচন করুন।');
-   }
-
-   if(file.size>5*1024*1024){
-    throw new Error('ছবির সাইজ ৫ MB-এর কম হতে হবে।');
-   }
-
+   if(!file.type.startsWith('image/'))throw new Error('শুধু Image File নির্বাচন করুন।');
+   if(file.size>5*1024*1024)throw new Error('ছবির সাইজ ৫ MB-এর কম হতে হবে।');
    imageUrl=await uploadImage(file);
   }
 
@@ -528,32 +507,22 @@ $('productForm').addEventListener('submit',async e=>{
    is_active:$('is_active').checked
   };
 
-  if(!p.name){
-   throw new Error('Product Name দিতে হবে।');
-  }
+  if(!p.name)throw new Error('Product Name দিতে হবে।');
 
   let result;
-
   if(editingProduct){
-   result=await db
-    .from('products')
-    .update(p)
-    .eq('id',editingProduct.id);
+   result=await db.from('products').update(p).eq('id',editingProduct.id);
   }else{
    p.seller_id=null;
    result=await db.from('products').insert(p);
   }
 
-  if(result.error){
-   throw new Error(result.error.message);
-  }
+  if(result.error)throw new Error(result.error.message);
 
   showStatus(wasEditing?'Product Update হয়েছে।':'নতুন Product যোগ হয়েছে।');
-
   $('productFormPanel').classList.add('hidden');
   editingProduct=null;
   $('productForm').reset();
-
   await loadProducts();
 
  }catch(err){
@@ -567,10 +536,7 @@ $('productForm').addEventListener('submit',async e=>{
 async function deleteProduct(id){
  if(!confirm('আপনি কি নিশ্চিত এই Product মুছে ফেলতে চান?'))return;
 
- const {error}=await db
-  .from('products')
-  .delete()
-  .eq('id',id);
+ const {error}=await db.from('products').delete().eq('id',id);
 
  if(error){
   showStatus('Delete ব্যর্থ: '+error.message,true);
@@ -583,16 +549,11 @@ async function deleteProduct(id){
 
 /* BULK PRODUCT MANAGEMENT */
 
-let bulkCount=0;
-
 function addBulkRow(v={}){
  bulkCount++;
-
- const id='bulk_'+bulkCount;
  const d=document.createElement('div');
-
  d.className='bulk-row';
- d.dataset.row=id;
+ d.dataset.imageIndex='-1';
 
  d.innerHTML=`
   <span class="row-number">${bulkCount}</span>
@@ -602,17 +563,81 @@ function addBulkRow(v={}){
   <input data-field="base_price" type="number" min="0" step="0.01" placeholder="Base" value="${escapeHTML(v.base_price??'')}">
   <input data-field="stock" type="number" min="0" step="1" placeholder="Stock" value="${escapeHTML(v.stock??'')}">
   <input data-field="description" placeholder="Description" value="${escapeHTML(v.description||'')}">
-  <button type="button" class="danger" onclick="this.parentElement.remove()">×</button>
+  <span class="bulk-image-name" data-image-name>ছবি নেই</span>
+  <button type="button" class="danger" onclick="removeBulkRow(this)">×</button>
  `;
 
  $('bulkRows').appendChild(d);
 }
 
+function removeBulkRow(button){
+ button.parentElement.remove();
+ renumberBulkRows();
+}
+
+function renumberBulkRows(){
+ const rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
+ rows.forEach((row,index)=>{
+  row.querySelector('.row-number').textContent=index+1;
+ });
+}
+
 function clearBulkRows(){
  $('bulkRows').innerHTML='';
  bulkCount=0;
+ bulkImageFiles=[];
+ $('bulkImageFiles').value='';
+ $('bulkImageStatus').textContent='';
  addBulkRow();
 }
+
+/* BULK IMAGE SELECTION */
+
+$('bulkImageFiles').addEventListener('change',function(){
+ const files=Array.from(this.files||[]);
+ const rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
+
+ rows.forEach(row=>{
+  row.dataset.imageIndex='-1';
+  row.querySelector('[data-image-name]').textContent='ছবি নেই';
+ });
+
+ if(files.length>rows.length){
+  alert('ছবির সংখ্যা পণ্যের সারির চেয়ে বেশি হয়েছে।');
+  this.value='';
+  bulkImageFiles=[];
+  $('bulkImageStatus').textContent='';
+  return;
+ }
+
+ for(const file of files){
+  if(!file.type.startsWith('image/')){
+   alert('শুধু Image File নির্বাচন করুন।');
+   this.value='';
+   bulkImageFiles=[];
+   $('bulkImageStatus').textContent='';
+   return;
+  }
+
+  if(file.size>5*1024*1024){
+   alert(file.name+' ছবিটি ৫ MB-এর বেশি।');
+   this.value='';
+   bulkImageFiles=[];
+   $('bulkImageStatus').textContent='';
+   return;
+  }
+ }
+
+ bulkImageFiles=files;
+
+ files.forEach((file,index)=>{
+  rows[index].dataset.imageIndex=String(index);
+  rows[index].querySelector('[data-image-name]').textContent='📷 '+file.name;
+ });
+
+ $('bulkImageStatus').textContent=
+  files.length+'টি ছবি নির্বাচন হয়েছে। প্রথম '+files.length+'টি সারির সঙ্গে যুক্ত হয়েছে।';
+});
 
 /* EXCEL TEMPLATE */
 
@@ -627,27 +652,16 @@ function downloadTemplate(){
  ];
 
  const ws=XLSX.utils.aoa_to_sheet([headers]);
-
  ws['!cols']=[
-  {wch:25},
-  {wch:25},
-  {wch:16},
-  {wch:16},
-  {wch:16},
-  {wch:40}
+  {wch:25},{wch:25},{wch:16},{wch:16},{wch:16},{wch:40}
  ];
 
  const wb=XLSX.utils.book_new();
-
  XLSX.utils.book_append_sheet(wb,ws,'Products');
-
- XLSX.writeFile(
-  wb,
-  'hatbazar_marketplace_bulk_products.xlsx'
- );
+ XLSX.writeFile(wb,'hatbazar_marketplace_bulk_products.xlsx');
 }
 
-/* FIXED EXCEL IMPORT */
+/* EXCEL IMPORT */
 
 function importExcel(){
  const f=$('excelFile').files[0];
@@ -661,27 +675,15 @@ function importExcel(){
 
  reader.onload=e=>{
   try{
-   const wb=XLSX.read(
-    new Uint8Array(e.target.result),
-    {type:'array'}
-   );
+   const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
 
-   if(!wb.SheetNames.length){
-    throw new Error('Excel Sheet পাওয়া যায়নি।');
-   }
+   if(!wb.SheetNames.length)throw new Error('Excel Sheet পাওয়া যায়নি।');
 
    const ws=wb.Sheets[wb.SheetNames[0]];
+   const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
 
-   const data=XLSX.utils.sheet_to_json(
-    ws,
-    {header:1,defval:'',raw:true}
-   );
+   if(!data.length)throw new Error('Excel ফাইল খালি।');
 
-   if(!data.length){
-    throw new Error('Excel ফাইল খালি।');
-   }
-
-   // Header-এর বন্ধনী, স্পেস, underscore ও hyphen বাদ দিয়ে মিলানো হবে।
    const norm=s=>String(s??'')
     .replace(/[\u200B-\u200D\uFEFF]/g,'')
     .toLowerCase()
@@ -694,78 +696,23 @@ function importExcel(){
    const headers=data[0].map(norm);
 
    const findIndex=aliases=>{
-    const normalizedAliases=aliases.map(norm);
-    return headers.findIndex(h=>normalizedAliases.includes(h));
+    const a=aliases.map(norm);
+    return headers.findIndex(h=>a.includes(h));
    };
 
    const columns={
-    name:findIndex([
-     'Product Name (English)',
-     'Product Name English',
-     'Product Name EN',
-     'English Name',
-     'Name EN',
-     'Product Name',
-     'Name',
-     'name_en',
-     'product_name'
-    ]),
-
-    name_bn:findIndex([
-     'Product Name (Bangla)',
-     'Product Name Bangla',
-     'Product Name Bengali',
-     'Bangla Name',
-     'Bengali Name',
-     'Name BN',
-     'Name Bangla',
-     'name_bn',
-     'name_bangla',
-     'বাংলা নাম',
-     'পণ্যের নাম বাংলা'
-    ]),
-
-    price:findIndex([
-     'Selling Price',
-     'Selling',
-     'Price',
-     'selling_price'
-    ]),
-
-    base_price:findIndex([
-     'Base Price',
-     'Base',
-     'base_price'
-    ]),
-
-    stock:findIndex([
-     'Stock Quantity',
-     'Stock',
-     'Quantity',
-     'stock_quantity'
-    ]),
-
-    description:findIndex([
-     'Description',
-     'Product Description'
-    ])
+    name:findIndex(['Product Name (English)','Product Name English','Product Name EN','English Name','Name EN','Product Name','Name','name_en','product_name']),
+    name_bn:findIndex(['Product Name (Bangla)','Product Name Bangla','Product Name Bengali','Bangla Name','Bengali Name','Name BN','Name Bangla','name_bn','name_bangla','বাংলা নাম','পণ্যের নাম বাংলা']),
+    price:findIndex(['Selling Price','Selling','Price','selling_price']),
+    base_price:findIndex(['Base Price','Base','base_price']),
+    stock:findIndex(['Stock Quantity','Stock','Quantity','stock_quantity']),
+    description:findIndex(['Description','Product Description'])
    };
 
-   if(columns.name<0){
-    throw new Error('Product Name (English) কলাম পাওয়া যায়নি। Template-এর Header ঠিক রাখুন।');
-   }
-
-   if(columns.name_bn<0){
-    throw new Error('Product Name (Bangla) কলাম পাওয়া যায়নি। Template-এর Header ঠিক রাখুন।');
-   }
-
-   if(columns.price<0){
-    throw new Error('Selling Price কলাম পাওয়া যায়নি।');
-   }
-
-   if(columns.stock<0){
-    throw new Error('Stock Quantity কলাম পাওয়া যায়নি।');
-   }
+   if(columns.name<0)throw new Error('Product Name (English) কলাম পাওয়া যায়নি।');
+   if(columns.name_bn<0)throw new Error('Product Name (Bangla) কলাম পাওয়া যায়নি।');
+   if(columns.price<0)throw new Error('Selling Price কলাম পাওয়া যায়নি।');
+   if(columns.stock<0)throw new Error('Stock Quantity কলাম পাওয়া যায়নি।');
 
    const get=(row,key)=>{
     const index=columns[key];
@@ -778,29 +725,25 @@ function importExcel(){
     price:get(r,'price'),
     base_price:get(r,'base_price'),
     stock:get(r,'stock'),
-    description:String(get(r,'description')).trim(),
-    line:i+2
+    description:String(get(r,'description')).trim()
    })).filter(r=>
-    r.name!=='' ||
-    r.name_bn!=='' ||
-    r.price!=='' ||
-    r.stock!==''
+    r.name!==''||r.name_bn!==''||r.price!==''||r.stock!==''
    );
 
-   if(!mapped.length){
-    throw new Error('কোনো Product row পাওয়া যায়নি। Excel-এ পণ্যের তথ্য লিখুন।');
-   }
+   if(!mapped.length)throw new Error('কোনো Product row পাওয়া যায়নি।');
 
    $('bulkRows').innerHTML='';
    bulkCount=0;
+   bulkImageFiles=[];
+   $('bulkImageFiles').value='';
+   $('bulkImageStatus').textContent='';
 
    mapped.forEach(r=>addBulkRow(r));
 
    showProductMode('bulk');
 
    $('excelStatus').textContent=
-    mapped.length+
-    'টি পণ্যের তথ্য Import হয়েছে। English ও বাংলা নামসহ তথ্য যাচাই করে Save All Products চাপুন।';
+    mapped.length+'টি পণ্যের তথ্য Import হয়েছে। এবার ছবি নির্বাচন করতে পারেন।';
 
    showStatus('Excel থেকে পণ্যের তথ্য লোড হয়েছে। Save করার আগে যাচাই করুন।');
 
@@ -817,11 +760,10 @@ function importExcel(){
  reader.readAsArrayBuffer(f);
 }
 
-/* SAVE ALL BULK PRODUCTS */
+/* SAVE ALL BULK PRODUCTS WITH IMAGES */
 
 async function saveBulkProducts(){
  const rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
-
  const products=[];
  const errors=[];
 
@@ -834,13 +776,9 @@ async function saveBulkProducts(){
   const stock=get('stock');
   const base=get('base_price');
 
-  if(!name&&!price&&!stock&&!name_bn){
-   return;
-  }
+  if(!name&&!price&&!stock&&!name_bn)return;
 
-  if(!name){
-   errors.push('সারি '+(i+1)+': Product Name নেই।');
-  }
+  if(!name)errors.push('সারি '+(i+1)+': Product Name নেই।');
 
   if(price===''||!Number.isFinite(Number(price))||Number(price)<0){
    errors.push('সারি '+(i+1)+': Selling Price সঠিক নয়।');
@@ -855,12 +793,9 @@ async function saveBulkProducts(){
   }
 
   if(
-   name&&
-   price!==''&&
-   stock!==''&&
-   Number(price)>=0&&
-   Number.isInteger(Number(stock))&&
-   Number(stock)>=0&&
+   name&&price!==''&&stock!==''&&
+   Number.isFinite(Number(price))&&Number(price)>=0&&
+   Number.isInteger(Number(stock))&&Number(stock)>=0&&
    (base===''||(Number.isFinite(Number(base))&&Number(base)>=0))
   ){
    products.push({
@@ -871,7 +806,9 @@ async function saveBulkProducts(){
     base_price:base===''?null:Number(base),
     stock:Number(stock),
     description:get('description')||null,
-    is_active:true
+    is_active:true,
+    image_url:null,
+    _imageIndex:Number(row.dataset.imageIndex??-1)
    });
   }
  });
@@ -886,36 +823,49 @@ async function saveBulkProducts(){
   return;
  }
 
- if(!confirm(products.length+'টি Product একসঙ্গে Save করবেন?')){
+ const imageCount=products.filter(p=>p._imageIndex>=0).length;
+
+ if(!confirm(products.length+'টি Product এবং '+imageCount+'টি Image Save করবেন?')){
   return;
  }
 
  const btn=$('saveBulkBtn');
-
  btn.disabled=true;
- btn.textContent='সব পণ্য সংরক্ষণ হচ্ছে...';
 
  try{
-  const {error}=await db
-   .from('products')
-   .insert(products);
+  for(let i=0;i<products.length;i++){
+   const imageIndex=products[i]._imageIndex;
+
+   if(imageIndex>=0){
+    const file=bulkImageFiles[imageIndex];
+
+    if(!file)throw new Error('একটি ছবির ফাইল পাওয়া যাচ্ছে না। আবার ছবি নির্বাচন করুন।');
+
+    btn.textContent='ছবি আপলোড হচ্ছে '+(i+1)+'/'+products.length+'...';
+    showStatus('ছবি আপলোড হচ্ছে: '+file.name);
+
+    products[i].image_url=await uploadImage(file);
+   }
+
+   delete products[i]._imageIndex;
+  }
+
+  btn.textContent='পণ্য সংরক্ষণ হচ্ছে...';
+
+  const {error}=await db.from('products').insert(products);
 
   if(error)throw error;
 
-  showStatus('সফলভাবে '+products.length+'টি Product যোগ হয়েছে।');
+  showStatus('সফলভাবে '+products.length+'টি Product এবং '+imageCount+'টি Image যুক্ত হয়েছে।');
 
   clearBulkRows();
-
   $('excelFile').value='';
   $('excelStatus').textContent='';
 
   await loadProducts();
 
  }catch(err){
-  showStatus(
-   'Bulk Save ব্যর্থ: '+(err.message||'অজানা সমস্যা'),
-   true
-  );
+  showStatus('Bulk Save ব্যর্থ: '+(err.message||'অজানা সমস্যা'),true);
  }finally{
   btn.disabled=false;
   btn.textContent='Save All Products';
