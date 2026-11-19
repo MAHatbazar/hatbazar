@@ -1,48 +1,942 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hatbazar Marketplace | Admin</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3f6f5;color:#183b32;font-family:Arial,sans-serif}.wrap{max-width:1100px;margin:auto;padding:18px}.card,.tile{background:white;border-radius:16px;padding:20px;box-shadow:0 4px 18px #173f3510}.login{max-width:430px;margin:65px auto}h1{font-size:24px;margin:0 0 8px}h2{font-size:20px}p{color:#687871;line-height:1.5}input,select,textarea{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #d8e2dd;border-radius:9px;font-size:15px;background:white}textarea{min-height:85px;resize:vertical}label{font-size:14px;font-weight:bold}button{padding:12px 17px;border:0;border-radius:9px;background:#173f35;color:white;font-weight:bold;font-size:14px;cursor:pointer}button:disabled{opacity:.5}.secondary{background:#e9f0ed;color:#173f35}.danger{background:#b42318}.full{width:100%}.hidden{display:none!important}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:18px 0}.tile{padding:17px}.tile h3{margin:0 0 7px;font-size:17px}.tile p{margin:0;font-size:13px}.section{margin-top:18px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.actions{display:flex;gap:8px;flex-wrap:wrap}.product{display:flex;gap:13px;align-items:center;border-bottom:1px solid #e8eeeb;padding:13px 0}.product img{width:65px;height:65px;object-fit:cover;border-radius:9px;background:#edf1ef}.product-info{flex:1;min-width:0}.product-info strong{display:block;overflow-wrap:anywhere}.product-info small{color:#687871;line-height:1.7}#message{color:#b42318;font-size:14px;margin-top:12px}#status{font-size:14px;margin:12px 0;color:#16804a}.badge{font-size:12px;padding:4px 8px;border-radius:20px;background:#e5f5e9;color:#167342}.badge.off{background:#fce9e7;color:#b42318}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tab.active{background:#d9f36a;color:#173f35}.bulk-row{display:grid;grid-template-columns:38px 1.3fr 1.2fr .75fr .75fr .65fr 1.5fr auto;gap:7px;align-items:start;border-bottom:1px solid #e8eeeb;padding:8px 0}.bulk-row input{margin:0;min-width:0;padding:10px;font-size:13px}.bulk-head{font-size:12px;font-weight:bold;color:#52645d}.row-number{padding:10px 0;font-weight:bold}.hint{font-size:13px;color:#687871}.upload-box{background:#f7faf8;border:1px dashed #9aafa5;padding:14px;border-radius:12px;margin:12px 0}.table-scroll{overflow-x:auto}@media(max-width:760px){.bulk-row{min-width:850px}.table-scroll{padding-bottom:8px}.wrap{padding:12px}.card{padding:16px}.formgrid{grid-template-columns:1fr}.product{align-items:flex-start}.product img{width:55px;height:55px}button{padding:11px 13px}}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f6f5;color:#183b32;font-family:Arial,sans-serif}
+.wrap{max-width:1100px;margin:auto;padding:18px}
+.card,.tile{background:white;border-radius:16px;padding:20px;box-shadow:0 4px 18px #173f3510}
+.login{max-width:430px;margin:65px auto}
+h1{font-size:24px;margin:0 0 8px}
+h2{font-size:20px}
+p{color:#687871;line-height:1.5}
+input,select,textarea{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #d8e2dd;border-radius:9px;font-size:15px;background:white}
+textarea{min-height:85px;resize:vertical}
+label{font-size:14px;font-weight:bold}
+button{padding:12px 17px;border:0;border-radius:9px;background:#173f35;color:white;font-weight:bold;font-size:14px;cursor:pointer}
+button:disabled{opacity:.5}
+.secondary{background:#e9f0ed;color:#173f35}
+.danger{background:#b42318}
+.full{width:100%}
+.hidden{display:none!important}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:18px 0}
+.tile{padding:17px}
+.tile h3{margin:0 0 7px;font-size:17px}
+.tile p{margin:0;font-size:13px}
+.section{margin-top:18px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.product{display:flex;gap:13px;align-items:center;border-bottom:1px solid #e8eeeb;padding:13px 0}
+.product img{width:65px;height:65px;object-fit:cover;border-radius:9px;background:#edf1ef}
+.product-info{flex:1;min-width:0}
+.product-info strong{display:block;overflow-wrap:anywhere}
+.product-info small{color:#687871;line-height:1.7}
+#message{color:#b42318;font-size:14px;margin-top:12px}
+#status{font-size:14px;margin:12px 0;color:#16804a}
+.badge{font-size:12px;padding:4px 8px;border-radius:20px;background:#e5f5e9;color:#167342}
+.badge.off{background:#fce9e7;color:#b42318}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.tab.active{background:#d9f36a;color:#173f35}
+.bulk-row{display:grid;grid-template-columns:38px 1.3fr 1.2fr .75fr .75fr .65fr 1.5fr auto;gap:7px;align-items:start;border-bottom:1px solid #e8eeeb;padding:8px 0}
+.bulk-row input{margin:0;min-width:0;padding:10px;font-size:13px}
+.bulk-head{font-size:12px;font-weight:bold;color:#52645d}
+.row-number{padding:10px 0;font-weight:bold}
+.hint{font-size:13px;color:#687871}
+.upload-box{background:#f7faf8;border:1px dashed #9aafa5;padding:14px;border-radius:12px;margin:12px 0}
+.table-scroll{overflow-x:auto}
+@media(max-width:760px){
+ .bulk-row{min-width:850px}
+ .table-scroll{padding-bottom:8px}
+ .wrap{padding:12px}
+ .card{padding:16px}
+ .formgrid{grid-template-columns:1fr}
+ .product{align-items:flex-start}
+ .product img{width:55px;height:55px}
+ button{padding:11px 13px}
+}
 </style>
 </head>
-<body><main class="wrap">
-<section id="loginPanel" class="card login"><h1>Hatbazar Admin</h1><p>শুধু অনুমোদিত অ্যাডমিন প্রবেশ করতে পারবেন।</p><form id="loginForm"><label>Email Address</label><input id="email" type="email" placeholder="Admin email" required><label>Password</label><input id="password" type="password" placeholder="Admin password" required><button id="loginBtn" class="full">Admin Login</button></form><div id="message"></div></section>
-<section id="dashboard" class="hidden"><div class="top"><div><h1>Hatbazar Admin Dashboard</h1><p id="adminEmail"></p></div><button id="logoutBtn">Logout</button></div>
-<div class="grid"><div class="tile"><h3>📦 Products</h3><p>পণ্য ব্যবস্থাপনা</p></div><div class="tile"><h3>🛒 Orders</h3><p>অর্ডার ব্যবস্থাপনা</p></div><div class="tile"><h3>👥 Sellers</h3><p>Seller ব্যবস্থাপনা</p></div><div class="tile"><h3>🤝 Resellers</h3><p>Reseller ব্যবস্থাপনা</p></div><div class="tile"><h3>📊 Reports</h3><p>বিক্রয় ও রিপোর্ট</p></div><div class="tile"><h3>⚙️ Settings</h3><p>ওয়েবসাইট সেটিংস</p></div></div>
-<div class="card section"><div class="top"><div><h2>📦 Products Management</h2><p>একটি পণ্য অথবা একসঙ্গে অনেক পণ্য যোগ ও পরিচালনা করুন।</p></div><button id="newProductBtn">+ Add Product</button></div>
-<div class="tabs"><button class="tab active" id="singleTab" type="button" onclick="showProductMode('single')">Single Product</button><button class="tab secondary" id="bulkTab" type="button" onclick="showProductMode('bulk')">Bulk Upload</button></div>
-<div id="productFormPanel" class="hidden"><hr><h2 id="formTitle">নতুন Product যোগ করুন</h2><form id="productForm"><div class="formgrid"><div><label>Product Name (English) *</label><input id="name" required maxlength="200"></div><div><label>Product Name (বাংলা)</label><input id="name_bn" maxlength="200"></div><div><label>Category</label><select id="category_id"><option value="">Category ছাড়া</option></select></div><div><label>Selling Price (৳) *</label><input id="price" type="number" min="0" step="0.01" required></div><div><label>Base Price (৳)</label><input id="base_price" type="number" min="0" step="0.01"></div><div><label>Stock Quantity *</label><input id="stock" type="number" min="0" step="1" value="0" required></div></div><label>Description</label><textarea id="description"></textarea><label>Product Image</label><input id="imageFile" type="file" accept="image/*"><p id="imageNote">ছবি নির্বাচন করলে Supabase Storage-এ আপলোড হবে।</p><label><input id="is_active" type="checkbox" checked style="width:auto;margin-right:7px">Product Active</label><div class="actions"><button id="saveBtn" type="submit">Save Product</button><button id="cancelBtn" class="secondary" type="button">Cancel</button></div></form></div>
-<div id="bulkPanel" class="hidden"><hr><h2>Bulk Product Upload</h2><p>Excel ফাইল আপলোড করুন অথবা নিচে একাধিক সারিতে পণ্যের তথ্য লিখুন।</p><div class="upload-box"><label>Excel File (.xlsx, .xls, .csv)</label><input id="excelFile" type="file" accept=".xlsx,.xls,.csv"><p class="hint">Excel-এর প্রথম Sheet-এ এই ৬টি কলাম থাকতে হবে: Product Name (English), Product Name (Bangla), Selling Price, Base Price, Stock Quantity, Description।</p><div class="actions"><button type="button" class="secondary" onclick="downloadTemplate()">Download Excel Template</button><button type="button" class="secondary" onclick="importExcel()">Import Excel</button></div><div id="excelStatus" class="hint"></div></div>
-<div class="top"><strong>পণ্যের সারি</strong><button type="button" class="secondary" onclick="addBulkRow()">＋ Add Row</button></div><div class="table-scroll"><div class="bulk-row bulk-head"><span>#</span><span>English Name *</span><span>বাংলা নাম</span><span>Selling ৳ *</span><span>Base ৳</span><span>Stock *</span><span>Description</span><span></span></div><div id="bulkRows"></div></div><div class="actions" style="margin-top:14px"><button id="saveBulkBtn" type="button" onclick="saveBulkProducts()">Save All Products</button><button type="button" class="secondary" onclick="clearBulkRows()">Clear Rows</button></div><p class="hint">Bulk upload-এ পণ্যের ছবি এখনো অন্তর্ভুক্ত নয়। ছবি পরে Single Product/Edit থেকে যোগ করতে পারবেন।</p></div>
-<div id="status"></div><div id="productList">Products লোড হচ্ছে...</div></div></section></main>
+
+<body>
+<main class="wrap">
+
+<section id="loginPanel" class="card login">
+<h1>Hatbazar Admin</h1>
+<p>শুধু অনুমোদিত অ্যাডমিন প্রবেশ করতে পারবেন।</p>
+
+<form id="loginForm">
+<label>Email Address</label>
+<input id="email" type="email" placeholder="Admin email" required>
+
+<label>Password</label>
+<input id="password" type="password" placeholder="Admin password" required>
+
+<button id="loginBtn" class="full">Admin Login</button>
+</form>
+
+<div id="message"></div>
+</section>
+
+<section id="dashboard" class="hidden">
+
+<div class="top">
+<div>
+<h1>Hatbazar Admin Dashboard</h1>
+<p id="adminEmail"></p>
+</div>
+<button id="logoutBtn">Logout</button>
+</div>
+
+<div class="grid">
+<div class="tile"><h3>📦 Products</h3><p>পণ্য ব্যবস্থাপনা</p></div>
+<div class="tile"><h3>🛒 Orders</h3><p>অর্ডার ব্যবস্থাপনা</p></div>
+<div class="tile"><h3>👥 Sellers</h3><p>Seller ব্যবস্থাপনা</p></div>
+<div class="tile"><h3>🤝 Resellers</h3><p>Reseller ব্যবস্থাপনা</p></div>
+<div class="tile"><h3>📊 Reports</h3><p>বিক্রয় ও রিপোর্ট</p></div>
+<div class="tile"><h3>⚙️ Settings</h3><p>ওয়েবসাইট সেটিংস</p></div>
+</div>
+
+<div class="card section">
+
+<div class="top">
+<div>
+<h2>📦 Products Management</h2>
+<p>একটি পণ্য অথবা একসঙ্গে অনেক পণ্য যোগ ও পরিচালনা করুন।</p>
+</div>
+<button id="newProductBtn">+ Add Product</button>
+</div>
+
+<div class="tabs">
+<button class="tab active" id="singleTab" type="button" onclick="showProductMode('single')">Single Product</button>
+<button class="tab secondary" id="bulkTab" type="button" onclick="showProductMode('bulk')">Bulk Upload</button>
+</div>
+
+<div id="productFormPanel" class="hidden">
+<hr>
+<h2 id="formTitle">নতুন Product যোগ করুন</h2>
+
+<form id="productForm">
+
+<div class="formgrid">
+<div>
+<label>Product Name (English) *</label>
+<input id="name" required maxlength="200">
+</div>
+
+<div>
+<label>Product Name (বাংলা)</label>
+<input id="name_bn" maxlength="200">
+</div>
+
+<div>
+<label>Category</label>
+<select id="category_id">
+<option value="">Category ছাড়া</option>
+</select>
+</div>
+
+<div>
+<label>Selling Price (৳) *</label>
+<input id="price" type="number" min="0" step="0.01" required>
+</div>
+
+<div>
+<label>Base Price (৳)</label>
+<input id="base_price" type="number" min="0" step="0.01">
+</div>
+
+<div>
+<label>Stock Quantity *</label>
+<input id="stock" type="number" min="0" step="1" value="0" required>
+</div>
+</div>
+
+<label>Description</label>
+<textarea id="description"></textarea>
+
+<label>Product Image</label>
+<input id="imageFile" type="file" accept="image/*">
+<p id="imageNote">ছবি নির্বাচন করলে Supabase Storage-এ আপলোড হবে।</p>
+
+<label>
+<input id="is_active" type="checkbox" checked style="width:auto;margin-right:7px">
+Product Active
+</label>
+
+<div class="actions">
+<button id="saveBtn" type="submit">Save Product</button>
+<button id="cancelBtn" class="secondary" type="button">Cancel</button>
+</div>
+
+</form>
+</div>
+
+<div id="bulkPanel" class="hidden">
+<hr>
+<h2>Bulk Product Upload</h2>
+<p>Excel ফাইল আপলোড করুন অথবা নিচে একাধিক সারিতে পণ্যের তথ্য লিখুন।</p>
+
+<div class="upload-box">
+<label>Excel File (.xlsx, .xls, .csv)</label>
+<input id="excelFile" type="file" accept=".xlsx,.xls,.csv">
+
+<p class="hint">
+Excel-এর প্রথম Sheet-এ এই ৬টি কলাম থাকতে হবে:
+Product Name (English), Product Name (Bangla), Selling Price, Base Price, Stock Quantity, Description।
+</p>
+
+<div class="actions">
+<button type="button" class="secondary" onclick="downloadTemplate()">Download Excel Template</button>
+<button type="button" class="secondary" onclick="importExcel()">Import Excel</button>
+</div>
+
+<div id="excelStatus" class="hint"></div>
+</div>
+
+<div class="top">
+<strong>পণ্যের সারি</strong>
+<button type="button" class="secondary" onclick="addBulkRow()">＋ Add Row</button>
+</div>
+
+<div class="table-scroll">
+<div class="bulk-row bulk-head">
+<span>#</span>
+<span>English Name *</span>
+<span>বাংলা নাম</span>
+<span>Selling ৳ *</span>
+<span>Base ৳</span>
+<span>Stock *</span>
+<span>Description</span>
+<span></span>
+</div>
+<div id="bulkRows"></div>
+</div>
+
+<div class="actions" style="margin-top:14px">
+<button id="saveBulkBtn" type="button" onclick="saveBulkProducts()">Save All Products</button>
+<button type="button" class="secondary" onclick="clearBulkRows()">Clear Rows</button>
+</div>
+
+<p class="hint">
+Bulk upload-এ পণ্যের ছবি এখনো অন্তর্ভুক্ত নয়। ছবি পরে Single Product/Edit থেকে যোগ করতে পারবেন।
+</p>
+</div>
+
+<div id="status"></div>
+<div id="productList">Products লোড হচ্ছে...</div>
+
+</div>
+</section>
+</main>
+
 <script>
 const SUPABASE_URL='https://wagtpkukzutsxwhutznu.supabase.co';
 const SUPABASE_KEY='sb_publishable_5fqDO6y1eTWIM9BWrYo4tQ_02bO9SJj';
 const BUCKET='product-images';
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const $=id=>document.getElementById(id);let editingProduct=null,categories=[];
-function escapeHTML(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function showStatus(t,error=false){$('status').textContent=t;$('status').style.color=error?'#b42318':'#16804a';}
-async function verifyAdmin(user){if(!user)return false;const {data,error}=await db.from('profiles').select('role').eq('id',user.id).maybeSingle();if(error||!data||data.role!=='admin'){await db.auth.signOut();return false;}$('adminEmail').textContent=user.email||'';$('loginPanel').classList.add('hidden');$('dashboard').classList.remove('hidden');await loadCategories();await loadProducts();return true;}
-$('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('message').textContent='';$('loginBtn').disabled=true;$('loginBtn').textContent='যাচাই হচ্ছে...';try{const {data,error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error||!data.user){$('message').textContent='Email অথবা Password সঠিক নয়।';return;}const ok=await verifyAdmin(data.user);if(!ok)$('message').textContent='এই অ্যাকাউন্টে Admin অনুমতি নেই।';}catch(err){$('message').textContent='Login ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';}finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Admin Login';}});
-$('logoutBtn').addEventListener('click',async()=>{await db.auth.signOut();$('dashboard').classList.add('hidden');$('loginPanel').classList.remove('hidden');});
-async function loadCategories(){const {data,error}=await db.from('categories').select('id,name,name_bn').eq('is_active',true).order('name');if(error){showStatus('Category লোড হয়নি: '+error.message,true);return;}categories=data||[];$('category_id').innerHTML='<option value="">Category ছাড়া</option>'+categories.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name_bn||c.name)}</option>`).join('');}
-async function loadProducts(){$('productList').textContent='Products লোড হচ্ছে...';const {data,error}=await db.from('products').select('id,name,name_bn,description,price,base_price,stock,image_url,is_active,category_id,created_at').order('created_at',{ascending:false});if(error){$('productList').textContent='Products লোড হয়নি: '+error.message;return;}if(!data||!data.length){$('productList').textContent='এখনো কোনো Product যোগ করা হয়নি।';return;}$('productList').innerHTML=data.map(p=>{const c=categories.find(x=>x.id===p.category_id);const im=p.image_url?`<img src="${escapeHTML(p.image_url)}" alt="Product">`:'<img src="https://placehold.co/100x100?text=No+Image" alt="No image">';return `<div class="product">${im}<div class="product-info"><strong>${escapeHTML(p.name_bn||p.name)}</strong><small>${escapeHTML(p.name)}<br>৳${Number(p.price).toLocaleString('en-US')} | Stock: ${p.stock}<br>${escapeHTML(c?.name_bn||c?.name||'No category')}</small><span class="badge ${p.is_active?'':'off'}">${p.is_active?'Active':'Inactive'}</span></div><div class="actions"><button class="secondary" onclick="editProduct('${p.id}')">Edit</button><button class="danger" onclick="deleteProduct('${p.id}')">Delete</button></div></div>`;}).join('');}
-function showProductMode(mode){const bulk=mode==='bulk';$('productFormPanel').classList.toggle('hidden',bulk);$('bulkPanel').classList.toggle('hidden',!bulk);$('singleTab').classList.toggle('active',!bulk);$('singleTab').classList.toggle('secondary',bulk);$('bulkTab').classList.toggle('active',bulk);$('bulkTab').classList.toggle('secondary',!bulk);}
-$('newProductBtn').addEventListener('click',()=>{editingProduct=null;$('productForm').reset();$('is_active').checked=true;$('stock').value=0;$('formTitle').textContent='নতুন Product যোগ করুন';$('saveBtn').textContent='Save Product';$('imageNote').textContent='নতুন Product Image নির্বাচন করুন।';$('productFormPanel').classList.remove('hidden');showProductMode('single');$('productFormPanel').scrollIntoView({behavior:'smooth'});});
-$('cancelBtn').addEventListener('click',()=>{$('productFormPanel').classList.add('hidden');editingProduct=null;});
-async function editProduct(id){const {data,error}=await db.from('products').select('*').eq('id',id).single();if(error||!data){showStatus('Product পাওয়া যায়নি: '+(error?.message||''),true);return;}editingProduct=data;$('name').value=data.name||'';$('name_bn').value=data.name_bn||'';$('description').value=data.description||'';$('price').value=data.price??0;$('base_price').value=data.base_price??'';$('stock').value=data.stock??0;$('category_id').value=data.category_id||'';$('is_active').checked=data.is_active;$('imageFile').value='';$('imageNote').textContent=data.image_url?'বর্তমান ছবি আছে। নতুন ছবি দিলে সেটি পরিবর্তন হবে।':'এখনো কোনো ছবি নেই।';$('formTitle').textContent='Product Edit করুন';$('saveBtn').textContent='Update Product';$('productFormPanel').classList.remove('hidden');showProductMode('single');$('productFormPanel').scrollIntoView({behavior:'smooth'});}
-async function uploadImage(file){const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const path=Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+(ext||'jpg');const {error}=await db.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||'image/jpeg'});if(error)throw new Error('Image Upload ব্যর্থ: '+error.message);return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;}
-$('productForm').addEventListener('submit',async e=>{e.preventDefault();const save=$('saveBtn');save.disabled=true;save.textContent='সংরক্ষণ হচ্ছে...';showStatus('');try{const file=$('imageFile').files[0];let imageUrl=editingProduct?.image_url||null;if(file){if(!file.type.startsWith('image/'))throw new Error('শুধু Image File নির্বাচন করুন।');if(file.size>5*1024*1024)throw new Error('ছবির সাইজ ৫ MB-এর কম হতে হবে।');imageUrl=await uploadImage(file);}const p={name:$('name').value.trim(),name_bn:$('name_bn').value.trim()||null,description:$('description').value.trim()||null,category_id:$('category_id').value||null,price:Number($('price').value),base_price:$('base_price').value===''?null:Number($('base_price').value),stock:Math.max(0,Math.floor(Number($('stock').value))),image_url:imageUrl,is_active:$('is_active').checked};if(!p.name)throw new Error('Product Name দিতে হবে।');let result;if(editingProduct)result=await db.from('products').update(p).eq('id',editingProduct.id);else{p.seller_id=null;result=await db.from('products').insert(p);}if(result.error)throw new Error(result.error.message);showStatus(editingProduct?'Product Update হয়েছে।':'নতুন Product যোগ হয়েছে।');$('productFormPanel').classList.add('hidden');editingProduct=null;$('productForm').reset();await loadProducts();}catch(err){showStatus(err.message||'কাজটি সম্পন্ন হয়নি।',true);}finally{save.disabled=false;save.textContent=editingProduct?'Update Product':'Save Product';}});
-async function deleteProduct(id){if(!confirm('আপনি কি নিশ্চিত এই Product মুছে ফেলতে চান?'))return;const {error}=await db.from('products').delete().eq('id',id);if(error){showStatus('Delete ব্যর্থ: '+error.message,true);return;}showStatus('Product মুছে ফেলা হয়েছে।');await loadProducts();}
-let bulkCount=0;function addBulkRow(v={}){bulkCount++;const id='bulk_'+bulkCount;const d=document.createElement('div');d.className='bulk-row';d.dataset.row=id;d.innerHTML=`<span class="row-number">${bulkCount}</span><input data-field="name" placeholder="Product name" value="${escapeHTML(v.name||'')}"><input data-field="name_bn" placeholder="বাংলা নাম" value="${escapeHTML(v.name_bn||'')}"><input data-field="price" type="number" min="0" step="0.01" placeholder="Selling" value="${escapeHTML(v.price??'')}"><input data-field="base_price" type="number" min="0" step="0.01" placeholder="Base" value="${escapeHTML(v.base_price??'')}"><input data-field="stock" type="number" min="0" step="1" placeholder="Stock" value="${escapeHTML(v.stock??'')}"><input data-field="description" placeholder="Description" value="${escapeHTML(v.description||'')}"><button type="button" class="danger" onclick="this.parentElement.remove()">×</button>`;$('bulkRows').appendChild(d);}
-function clearBulkRows(){$('bulkRows').innerHTML='';bulkCount=0;addBulkRow();}
-function downloadTemplate(){const headers=['Product Name (English)','Product Name (Bangla)','Selling Price','Base Price','Stock Quantity','Description'];const rows=[headers,['Cotton T-Shirt','কটন টি-শার্ট',500,350,20,'Soft cotton everyday T-shirt.']];const ws=XLSX.utils.aoa_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Products');XLSX.writeFile(wb,'hatbazar_marketplace_bulk_products.xlsx');}
-function importExcel(){const f=$('excelFile').files[0];if(!f){$('excelStatus').textContent='আগে Excel ফাইল নির্বাচন করুন।';return;}const reader=new FileReader();reader.onload=e=>{try{const bytes=new Uint8Array(e.target.result);const wb=XLSX.read(bytes,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:''});if(!rows.length)throw new Error('ফাইলে কোনো পণ্যের সারি পাওয়া যায়নি।');const norm=s=>String(s||'').trim().toLowerCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ');const find=(obj,keys)=>{for(const k of Object.keys(obj)){if(keys.includes(norm(k)))return obj[k];}return '';};const mapped=rows.map((r,i)=>({name:String(find(r,['product name english','product name','name','english name'])).trim(),name_bn:String(find(r,['product name bangla','bangla name','name bn','name bangla'])).trim(),price:find(r,['selling price','price']),base_price:find(r,['base price']),stock:find(r,['stock quantity','stock','quantity']),description:String(find(r,['description','product description'])).trim(),line:i+2})).filter(r=>r.name||r.price!==''||r.stock!=='');if(!mapped.length)throw new Error('কোনো Product row পাওয়া যায়নি।');$('bulkRows').innerHTML='';bulkCount=0;mapped.forEach(r=>addBulkRow(r));$('excelStatus').textContent=mapped.length+'টি পণ্যের তথ্য লোড হয়েছে। এখন যাচাই করে Save All Products চাপুন।';showProductMode('bulk');}catch(err){$('excelStatus').textContent='Excel পড়া যায়নি: '+err.message;}};reader.readAsArrayBuffer(f);}
-async function saveBulkProducts(){const rows=[...$('bulkRows').querySelectorAll('.bulk-row')];const products=[];const errors=[];rows.forEach((row,i)=>{const get=k=>row.querySelector(`[data-field="${k}"]`).value.trim();const name=get('name'),price=get('price'),stock=get('stock'),base=get('base_price');if(!name&&!price&&!stock)return;if(!name)errors.push('সারি '+(i+1)+': Product Name নেই।');if(price===''||!Number.isFinite(Number(price))||Number(price)<0)errors.push('সারি '+(i+1)+': Selling Price সঠিক নয়।');if(stock===''||!Number.isInteger(Number(stock))||Number(stock)<0)errors.push('সারি '+(i+1)+': Stock Quantity পূর্ণসংখ্যা হতে হবে।');if(base!==''&&(!Number.isFinite(Number(base))||Number(base)<0))errors.push('সারি '+(i+1)+': Base Price সঠিক নয়।');if(name&&price!==''&&stock!==''&&Number(price)>=0&&Number.isInteger(Number(stock))&&Number(stock)>=0&&(base===''||(Number.isFinite(Number(base))&&Number(base)>=0)))products.push({seller_id:null,name,name_bn:get('name_bn')||null,price:Number(price),base_price:base===''?null:Number(base),stock:Number(stock),description:get('description')||null,is_active:true});});if(errors.length){showStatus(errors.join(' '),true);return;}if(!products.length){showStatus('অন্তত একটি পণ্যের তথ্য দিন।',true);return;}if(!confirm(products.length+'টি Product একসঙ্গে Save করবেন?'))return;const btn=$('saveBulkBtn');btn.disabled=true;btn.textContent='সব পণ্য সংরক্ষণ হচ্ছে...';try{const {error}=await db.from('products').insert(products);if(error)throw error;showStatus('সফলভাবে '+products.length+'টি Product যোগ হয়েছে।');clearBulkRows();$('excelFile').value='';$('excelStatus').textContent='';await loadProducts();}catch(err){showStatus('Bulk Save ব্যর্থ: '+(err.message||'অজানা সমস্যা'),true);}finally{btn.disabled=false;btn.textContent='Save All Products';}}
-async function checkExistingSession(){const {data}=await db.auth.getSession();if(data.session){const ok=await verifyAdmin(data.session.user);if(!ok)$('message').textContent='Admin অনুমতি যাচাই করা যায়নি। আবার Login করুন।';}}
-addBulkRow();checkExistingSession();
-</script></body></html>
+
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+
+let editingProduct=null;
+let categories=[];
+
+function escapeHTML(v){
+ return String(v??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;',
+  '<':'&lt;',
+  '>':'&gt;',
+  '"':'&quot;',
+  "'":'&#39;'
+ }[c]));
+}
+
+function showStatus(t,error=false){
+ $('status').textContent=t;
+ $('status').style.color=error?'#b42318':'#16804a';
+}
+
+async function verifyAdmin(user){
+ if(!user)return false;
+
+ const {data,error}=await db
+  .from('profiles')
+  .select('role')
+  .eq('id',user.id)
+  .maybeSingle();
+
+ if(error||!data||data.role!=='admin'){
+  await db.auth.signOut();
+  return false;
+ }
+
+ $('adminEmail').textContent=user.email||'';
+ $('loginPanel').classList.add('hidden');
+ $('dashboard').classList.remove('hidden');
+
+ await loadCategories();
+ await loadProducts();
+
+ return true;
+}
+
+$('loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+
+ $('message').textContent='';
+ $('loginBtn').disabled=true;
+ $('loginBtn').textContent='যাচাই হচ্ছে...';
+
+ try{
+  const {data,error}=await db.auth.signInWithPassword({
+   email:$('email').value.trim(),
+   password:$('password').value
+  });
+
+  if(error||!data.user){
+   $('message').textContent='Email অথবা Password সঠিক নয়।';
+   return;
+  }
+
+  const ok=await verifyAdmin(data.user);
+
+  if(!ok){
+   $('message').textContent='এই অ্যাকাউন্টে Admin অনুমতি নেই।';
+  }
+
+ }catch(err){
+  $('message').textContent='Login ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
+ }finally{
+  $('loginBtn').disabled=false;
+  $('loginBtn').textContent='Admin Login';
+ }
+});
+
+$('logoutBtn').addEventListener('click',async()=>{
+ await db.auth.signOut();
+ $('dashboard').classList.add('hidden');
+ $('loginPanel').classList.remove('hidden');
+});
+
+async function loadCategories(){
+ const {data,error}=await db
+  .from('categories')
+  .select('id,name,name_bn')
+  .eq('is_active',true)
+  .order('name');
+
+ if(error){
+  showStatus('Category লোড হয়নি: '+error.message,true);
+  return;
+ }
+
+ categories=data||[];
+
+ $('category_id').innerHTML=
+  '<option value="">Category ছাড়া</option>'+
+  categories.map(c=>
+   `<option value="${escapeHTML(c.id)}">${escapeHTML(c.name_bn||c.name)}</option>`
+  ).join('');
+}
+
+async function loadProducts(){
+ $('productList').textContent='Products লোড হচ্ছে...';
+
+ const {data,error}=await db
+  .from('products')
+  .select('id,name,name_bn,description,price,base_price,stock,image_url,is_active,category_id,created_at')
+  .order('created_at',{ascending:false});
+
+ if(error){
+  $('productList').textContent='Products লোড হয়নি: '+error.message;
+  return;
+ }
+
+ if(!data||!data.length){
+  $('productList').textContent='এখনো কোনো Product যোগ করা হয়নি।';
+  return;
+ }
+
+ $('productList').innerHTML=data.map(p=>{
+  const c=categories.find(x=>x.id===p.category_id);
+
+  const im=p.image_url
+   ?`<img src="${escapeHTML(p.image_url)}" alt="Product">`
+   :'<img src="https://placehold.co/100x100?text=No+Image" alt="No image">';
+
+  return `
+   <div class="product">
+    ${im}
+    <div class="product-info">
+     <strong>${escapeHTML(p.name_bn||p.name)}</strong>
+     <small>
+      ${escapeHTML(p.name)}<br>
+      ৳${Number(p.price).toLocaleString('en-US')} | Stock: ${p.stock}<br>
+      ${escapeHTML(c?.name_bn||c?.name||'No category')}
+     </small>
+     <span class="badge ${p.is_active?'':'off'}">
+      ${p.is_active?'Active':'Inactive'}
+     </span>
+    </div>
+    <div class="actions">
+     <button class="secondary" onclick="editProduct('${p.id}')">Edit</button>
+     <button class="danger" onclick="deleteProduct('${p.id}')">Delete</button>
+    </div>
+   </div>
+  `;
+ }).join('');
+}
+
+function showProductMode(mode){
+ const bulk=mode==='bulk';
+
+ $('productFormPanel').classList.toggle('hidden',bulk);
+ $('bulkPanel').classList.toggle('hidden',!bulk);
+
+ $('singleTab').classList.toggle('active',!bulk);
+ $('singleTab').classList.toggle('secondary',bulk);
+
+ $('bulkTab').classList.toggle('active',bulk);
+ $('bulkTab').classList.toggle('secondary',!bulk);
+}
+
+$('newProductBtn').addEventListener('click',()=>{
+ editingProduct=null;
+
+ $('productForm').reset();
+ $('is_active').checked=true;
+ $('stock').value=0;
+
+ $('formTitle').textContent='নতুন Product যোগ করুন';
+ $('saveBtn').textContent='Save Product';
+ $('imageNote').textContent='নতুন Product Image নির্বাচন করুন।';
+
+ $('productFormPanel').classList.remove('hidden');
+ showProductMode('single');
+
+ $('productFormPanel').scrollIntoView({behavior:'smooth'});
+});
+
+$('cancelBtn').addEventListener('click',()=>{
+ $('productFormPanel').classList.add('hidden');
+ editingProduct=null;
+});
+
+async function editProduct(id){
+ const {data,error}=await db
+  .from('products')
+  .select('*')
+  .eq('id',id)
+  .single();
+
+ if(error||!data){
+  showStatus('Product পাওয়া যায়নি: '+(error?.message||''),true);
+  return;
+ }
+
+ editingProduct=data;
+
+ $('name').value=data.name||'';
+ $('name_bn').value=data.name_bn||'';
+ $('description').value=data.description||'';
+ $('price').value=data.price??0;
+ $('base_price').value=data.base_price??'';
+ $('stock').value=data.stock??0;
+ $('category_id').value=data.category_id||'';
+ $('is_active').checked=data.is_active;
+ $('imageFile').value='';
+
+ $('imageNote').textContent=data.image_url
+  ?'বর্তমান ছবি আছে। নতুন ছবি দিলে সেটি পরিবর্তন হবে।'
+  :'এখনো কোনো ছবি নেই।';
+
+ $('formTitle').textContent='Product Edit করুন';
+ $('saveBtn').textContent='Update Product';
+
+ $('productFormPanel').classList.remove('hidden');
+ showProductMode('single');
+
+ $('productFormPanel').scrollIntoView({behavior:'smooth'});
+}
+
+async function uploadImage(file){
+ const ext=(file.name.split('.').pop()||'jpg')
+  .toLowerCase()
+  .replace(/[^a-z0-9]/g,'');
+
+ const path=Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+(ext||'jpg');
+
+ const {error}=await db.storage
+  .from(BUCKET)
+  .upload(path,file,{
+   cacheControl:'3600',
+   upsert:false,
+   contentType:file.type||'image/jpeg'
+  });
+
+ if(error){
+  throw new Error('Image Upload ব্যর্থ: '+error.message);
+ }
+
+ return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+$('productForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+
+ const save=$('saveBtn');
+ const wasEditing=!!editingProduct;
+
+ save.disabled=true;
+ save.textContent='সংরক্ষণ হচ্ছে...';
+
+ showStatus('');
+
+ try{
+  const file=$('imageFile').files[0];
+  let imageUrl=editingProduct?.image_url||null;
+
+  if(file){
+   if(!file.type.startsWith('image/')){
+    throw new Error('শুধু Image File নির্বাচন করুন।');
+   }
+
+   if(file.size>5*1024*1024){
+    throw new Error('ছবির সাইজ ৫ MB-এর কম হতে হবে।');
+   }
+
+   imageUrl=await uploadImage(file);
+  }
+
+  const p={
+   name:$('name').value.trim(),
+   name_bn:$('name_bn').value.trim()||null,
+   description:$('description').value.trim()||null,
+   category_id:$('category_id').value||null,
+   price:Number($('price').value),
+   base_price:$('base_price').value===''?null:Number($('base_price').value),
+   stock:Math.max(0,Math.floor(Number($('stock').value))),
+   image_url:imageUrl,
+   is_active:$('is_active').checked
+  };
+
+  if(!p.name){
+   throw new Error('Product Name দিতে হবে।');
+  }
+
+  let result;
+
+  if(editingProduct){
+   result=await db
+    .from('products')
+    .update(p)
+    .eq('id',editingProduct.id);
+  }else{
+   p.seller_id=null;
+   result=await db.from('products').insert(p);
+  }
+
+  if(result.error){
+   throw new Error(result.error.message);
+  }
+
+  showStatus(wasEditing?'Product Update হয়েছে।':'নতুন Product যোগ হয়েছে।');
+
+  $('productFormPanel').classList.add('hidden');
+  editingProduct=null;
+  $('productForm').reset();
+
+  await loadProducts();
+
+ }catch(err){
+  showStatus(err.message||'কাজটি সম্পন্ন হয়নি।',true);
+ }finally{
+  save.disabled=false;
+  save.textContent='Save Product';
+ }
+});
+
+async function deleteProduct(id){
+ if(!confirm('আপনি কি নিশ্চিত এই Product মুছে ফেলতে চান?'))return;
+
+ const {error}=await db
+  .from('products')
+  .delete()
+  .eq('id',id);
+
+ if(error){
+  showStatus('Delete ব্যর্থ: '+error.message,true);
+  return;
+ }
+
+ showStatus('Product মুছে ফেলা হয়েছে।');
+ await loadProducts();
+}
+
+/* BULK PRODUCT MANAGEMENT */
+
+let bulkCount=0;
+
+function addBulkRow(v={}){
+ bulkCount++;
+
+ const id='bulk_'+bulkCount;
+ const d=document.createElement('div');
+
+ d.className='bulk-row';
+ d.dataset.row=id;
+
+ d.innerHTML=`
+  <span class="row-number">${bulkCount}</span>
+  <input data-field="name" placeholder="Product name" value="${escapeHTML(v.name||'')}">
+  <input data-field="name_bn" placeholder="বাংলা নাম" value="${escapeHTML(v.name_bn||'')}">
+  <input data-field="price" type="number" min="0" step="0.01" placeholder="Selling" value="${escapeHTML(v.price??'')}">
+  <input data-field="base_price" type="number" min="0" step="0.01" placeholder="Base" value="${escapeHTML(v.base_price??'')}">
+  <input data-field="stock" type="number" min="0" step="1" placeholder="Stock" value="${escapeHTML(v.stock??'')}">
+  <input data-field="description" placeholder="Description" value="${escapeHTML(v.description||'')}">
+  <button type="button" class="danger" onclick="this.parentElement.remove()">×</button>
+ `;
+
+ $('bulkRows').appendChild(d);
+}
+
+function clearBulkRows(){
+ $('bulkRows').innerHTML='';
+ bulkCount=0;
+ addBulkRow();
+}
+
+/* EXCEL TEMPLATE */
+
+function downloadTemplate(){
+ const headers=[
+  'Product Name (English)',
+  'Product Name (Bangla)',
+  'Selling Price',
+  'Base Price',
+  'Stock Quantity',
+  'Description'
+ ];
+
+ const ws=XLSX.utils.aoa_to_sheet([headers]);
+
+ ws['!cols']=[
+  {wch:25},
+  {wch:25},
+  {wch:16},
+  {wch:16},
+  {wch:16},
+  {wch:40}
+ ];
+
+ const wb=XLSX.utils.book_new();
+
+ XLSX.utils.book_append_sheet(wb,ws,'Products');
+
+ XLSX.writeFile(
+  wb,
+  'hatbazar_marketplace_bulk_products.xlsx'
+ );
+}
+
+/* FIXED EXCEL IMPORT */
+
+function importExcel(){
+ const f=$('excelFile').files[0];
+
+ if(!f){
+  $('excelStatus').textContent='আগে Excel ফাইল নির্বাচন করুন।';
+  return;
+ }
+
+ const reader=new FileReader();
+
+ reader.onload=e=>{
+  try{
+   const wb=XLSX.read(
+    new Uint8Array(e.target.result),
+    {type:'array'}
+   );
+
+   if(!wb.SheetNames.length){
+    throw new Error('Excel Sheet পাওয়া যায়নি।');
+   }
+
+   const ws=wb.Sheets[wb.SheetNames[0]];
+
+   const data=XLSX.utils.sheet_to_json(
+    ws,
+    {header:1,defval:'',raw:true}
+   );
+
+   if(!data.length){
+    throw new Error('Excel ফাইল খালি।');
+   }
+
+   // Header-এর বন্ধনী, স্পেস, underscore ও hyphen বাদ দিয়ে মিলানো হবে।
+   const norm=s=>String(s??'')
+    .replace(/[\u200B-\u200D\uFEFF]/g,'')
+    .toLowerCase()
+    .replace(/[()（）]/g,' ')
+    .replace(/[_-]+/g,' ')
+    .replace(/[^\p{L}\p{N}]+/gu,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+   const headers=data[0].map(norm);
+
+   const findIndex=aliases=>{
+    const normalizedAliases=aliases.map(norm);
+    return headers.findIndex(h=>normalizedAliases.includes(h));
+   };
+
+   const columns={
+    name:findIndex([
+     'Product Name (English)',
+     'Product Name English',
+     'Product Name EN',
+     'English Name',
+     'Name EN',
+     'Product Name',
+     'Name',
+     'name_en',
+     'product_name'
+    ]),
+
+    name_bn:findIndex([
+     'Product Name (Bangla)',
+     'Product Name Bangla',
+     'Product Name Bengali',
+     'Bangla Name',
+     'Bengali Name',
+     'Name BN',
+     'Name Bangla',
+     'name_bn',
+     'name_bangla',
+     'বাংলা নাম',
+     'পণ্যের নাম বাংলা'
+    ]),
+
+    price:findIndex([
+     'Selling Price',
+     'Selling',
+     'Price',
+     'selling_price'
+    ]),
+
+    base_price:findIndex([
+     'Base Price',
+     'Base',
+     'base_price'
+    ]),
+
+    stock:findIndex([
+     'Stock Quantity',
+     'Stock',
+     'Quantity',
+     'stock_quantity'
+    ]),
+
+    description:findIndex([
+     'Description',
+     'Product Description'
+    ])
+   };
+
+   if(columns.name<0){
+    throw new Error('Product Name (English) কলাম পাওয়া যায়নি। Template-এর Header ঠিক রাখুন।');
+   }
+
+   if(columns.name_bn<0){
+    throw new Error('Product Name (Bangla) কলাম পাওয়া যায়নি। Template-এর Header ঠিক রাখুন।');
+   }
+
+   if(columns.price<0){
+    throw new Error('Selling Price কলাম পাওয়া যায়নি।');
+   }
+
+   if(columns.stock<0){
+    throw new Error('Stock Quantity কলাম পাওয়া যায়নি।');
+   }
+
+   const get=(row,key)=>{
+    const index=columns[key];
+    return index<0?'':(row[index]??'');
+   };
+
+   const mapped=data.slice(1).map((r,i)=>({
+    name:String(get(r,'name')).trim(),
+    name_bn:String(get(r,'name_bn')).trim(),
+    price:get(r,'price'),
+    base_price:get(r,'base_price'),
+    stock:get(r,'stock'),
+    description:String(get(r,'description')).trim(),
+    line:i+2
+   })).filter(r=>
+    r.name!=='' ||
+    r.name_bn!=='' ||
+    r.price!=='' ||
+    r.stock!==''
+   );
+
+   if(!mapped.length){
+    throw new Error('কোনো Product row পাওয়া যায়নি। Excel-এ পণ্যের তথ্য লিখুন।');
+   }
+
+   $('bulkRows').innerHTML='';
+   bulkCount=0;
+
+   mapped.forEach(r=>addBulkRow(r));
+
+   showProductMode('bulk');
+
+   $('excelStatus').textContent=
+    mapped.length+
+    'টি পণ্যের তথ্য Import হয়েছে। English ও বাংলা নামসহ তথ্য যাচাই করে Save All Products চাপুন।';
+
+   showStatus('Excel থেকে পণ্যের তথ্য লোড হয়েছে। Save করার আগে যাচাই করুন।');
+
+  }catch(err){
+   $('excelStatus').textContent='Excel Import ব্যর্থ: '+err.message;
+   showStatus(err.message,true);
+  }
+ };
+
+ reader.onerror=()=>{
+  $('excelStatus').textContent='Excel ফাইল পড়া যায়নি।';
+ };
+
+ reader.readAsArrayBuffer(f);
+}
+
+/* SAVE ALL BULK PRODUCTS */
+
+async function saveBulkProducts(){
+ const rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
+
+ const products=[];
+ const errors=[];
+
+ rows.forEach((row,i)=>{
+  const get=k=>row.querySelector(`[data-field="${k}"]`).value.trim();
+
+  const name=get('name');
+  const name_bn=get('name_bn');
+  const price=get('price');
+  const stock=get('stock');
+  const base=get('base_price');
+
+  if(!name&&!price&&!stock&&!name_bn){
+   return;
+  }
+
+  if(!name){
+   errors.push('সারি '+(i+1)+': Product Name নেই।');
+  }
+
+  if(price===''||!Number.isFinite(Number(price))||Number(price)<0){
+   errors.push('সারি '+(i+1)+': Selling Price সঠিক নয়।');
+  }
+
+  if(stock===''||!Number.isInteger(Number(stock))||Number(stock)<0){
+   errors.push('সারি '+(i+1)+': Stock Quantity পূর্ণসংখ্যা হতে হবে।');
+  }
+
+  if(base!==''&&(!Number.isFinite(Number(base))||Number(base)<0)){
+   errors.push('সারি '+(i+1)+': Base Price সঠিক নয়।');
+  }
+
+  if(
+   name&&
+   price!==''&&
+   stock!==''&&
+   Number(price)>=0&&
+   Number.isInteger(Number(stock))&&
+   Number(stock)>=0&&
+   (base===''||(Number.isFinite(Number(base))&&Number(base)>=0))
+  ){
+   products.push({
+    seller_id:null,
+    name:name,
+    name_bn:name_bn||null,
+    price:Number(price),
+    base_price:base===''?null:Number(base),
+    stock:Number(stock),
+    description:get('description')||null,
+    is_active:true
+   });
+  }
+ });
+
+ if(errors.length){
+  showStatus(errors.join(' '),true);
+  return;
+ }
+
+ if(!products.length){
+  showStatus('অন্তত একটি পণ্যের তথ্য দিন।',true);
+  return;
+ }
+
+ if(!confirm(products.length+'টি Product একসঙ্গে Save করবেন?')){
+  return;
+ }
+
+ const btn=$('saveBulkBtn');
+
+ btn.disabled=true;
+ btn.textContent='সব পণ্য সংরক্ষণ হচ্ছে...';
+
+ try{
+  const {error}=await db
+   .from('products')
+   .insert(products);
+
+  if(error)throw error;
+
+  showStatus('সফলভাবে '+products.length+'টি Product যোগ হয়েছে।');
+
+  clearBulkRows();
+
+  $('excelFile').value='';
+  $('excelStatus').textContent='';
+
+  await loadProducts();
+
+ }catch(err){
+  showStatus(
+   'Bulk Save ব্যর্থ: '+(err.message||'অজানা সমস্যা'),
+   true
+  );
+ }finally{
+  btn.disabled=false;
+  btn.textContent='Save All Products';
+ }
+}
+
+async function checkExistingSession(){
+ const {data}=await db.auth.getSession();
+
+ if(data.session){
+  const ok=await verifyAdmin(data.session.user);
+
+  if(!ok){
+   $('message').textContent='Admin অনুমতি যাচাই করা যায়নি। আবার Login করুন।';
+  }
+ }
+}
+
+addBulkRow();
+checkExistingSession();
+
+</script>
+</body>
+</html>
