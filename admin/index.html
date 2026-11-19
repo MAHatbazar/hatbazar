@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hatbazar | Admin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,sans-serif;background:#f3f6f5;color:#183b32}
+    .wrap{max-width:1050px;margin:auto;padding:22px}
+    .card{background:white;padding:25px;border-radius:18px;box-shadow:0 5px 25px #173f3510}
+    .login{max-width:430px;margin:65px auto}
+    h1{font-size:25px;margin:0 0 8px}
+    p{color:#64736d;line-height:1.6}
+    input{width:100%;padding:14px;margin:9px 0;border:1px solid #d8e2dd;border-radius:10px;font-size:15px}
+    button{padding:13px 20px;border:0;border-radius:10px;background:#173f35;color:white;font-weight:bold;cursor:pointer}
+    button:disabled{opacity:.6}
+    .full{width:100%;margin-top:12px}
+    .hidden{display:none!important}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:15px;margin-top:22px}
+    .tile{background:white;padding:22px;border-radius:15px}
+    .tile h3{margin:0 0 8px}
+    .notice{font-size:13px;margin-top:15px}
+    #message{font-size:14px;margin-top:12px;color:#b42318}
+    .green{color:#16804a}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section id="loginPanel" class="card login">
+      <h1>Hatbazar Admin</h1>
+      <p>শুধু অনুমোদিত অ্যাডমিন প্রবেশ করতে পারবেন।</p>
+      <form id="loginForm">
+        <label>Email Address</label>
+        <input id="email" type="email" placeholder="Admin email" required>
+        <label>Password</label>
+        <input id="password" type="password" placeholder="Admin password" required>
+        <button id="loginBtn" class="full" type="submit">Admin Login</button>
+      </form>
+      <div id="message"></div>
+      <p class="notice">আপনার Supabase অ্যাকাউন্টের Email ও Password ব্যবহার করুন।</p>
+    </section>
+
+    <section id="dashboard" class="hidden">
+      <div class="top">
+        <div>
+          <h1>Hatbazar Admin Dashboard</h1>
+          <p id="adminEmail"></p>
+        </div>
+        <button id="logoutBtn">Logout</button>
+      </div>
+      <div class="card">
+        <h2>স্বাগতম, Admin!</h2>
+        <p class="green">Supabase Admin পরিচয় যাচাই সফল হয়েছে।</p>
+        <p>এটি আপনার আলাদা Admin Dashboard-এর প্রাথমিক সংস্করণ।</p>
+      </div>
+      <div class="grid">
+        <div class="tile"><h3>📦 Products</h3><p>পণ্য ব্যবস্থাপনা</p></div>
+        <div class="tile"><h3>🛒 Orders</h3><p>অর্ডার ব্যবস্থাপনা</p></div>
+        <div class="tile"><h3>👥 Sellers</h3><p>Seller ব্যবস্থাপনা</p></div>
+        <div class="tile"><h3>🤝 Resellers</h3><p>Reseller ব্যবস্থাপনা</p></div>
+        <div class="tile"><h3>📊 Reports</h3><p>বিক্রয় ও রিপোর্ট</p></div>
+        <div class="tile"><h3>⚙️ Settings</h3><p>ওয়েবসাইট সেটিংস</p></div>
+      </div>
+    </section>
+  </main>
+
+<script>
+const SUPABASE_URL = 'https://wagtpkukzutsxwhutznu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5fqDO6y1eTWIM9BWrYo4tQ_02bO9SJj';
+
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const loginPanel = document.getElementById('loginPanel');
+const dashboard = document.getElementById('dashboard');
+const message = document.getElementById('message');
+const loginBtn = document.getElementById('loginBtn');
+
+function showLogin(text) {
+  dashboard.classList.add('hidden');
+  loginPanel.classList.remove('hidden');
+  message.textContent = text || '';
+}
+
+async function verifyAdmin(user) {
+  if (!user) return false;
+
+  const { data, error } = await db
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (error || !data || data.role !== 'admin') {
+    await db.auth.signOut();
+    return false;
+  }
+
+  document.getElementById('adminEmail').textContent = user.email || '';
+  loginPanel.classList.add('hidden');
+  dashboard.classList.remove('hidden');
+  return true;
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  message.textContent = '';
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'যাচাই হচ্ছে...';
+
+  try {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    const { data, error } = await db.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error || !data.user) {
+      showLogin('Email অথবা Password সঠিক নয়।');
+      return;
+    }
+
+    const success = await verifyAdmin(data.user);
+
+    if (!success) {
+      showLogin('এই অ্যাকাউন্টে Admin অনুমতি নেই।');
+    }
+  } catch (err) {
+    showLogin('Login ব্যর্থ হয়েছে। আবার চেষ্টা করুন।');
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Admin Login';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await db.auth.signOut();
+  showLogin('আপনি Logout করেছেন।');
+});
+
+async function checkExistingSession() {
+  const { data } = await db.auth.getSession();
+
+  if (data.session) {
+    const success = await verifyAdmin(data.session.user);
+    if (!success) {
+      showLogin('Admin অনুমতি যাচাই করা যায়নি। আবার Login করুন।');
+    }
+  }
+}
+
+checkExistingSession();
+</script>
+</body>
+</html>
