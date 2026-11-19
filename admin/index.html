@@ -2,159 +2,434 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hatbazar | Admin Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,sans-serif;background:#f3f6f5;color:#183b32}
-    .wrap{max-width:1050px;margin:auto;padding:22px}
-    .card{background:white;padding:25px;border-radius:18px;box-shadow:0 5px 25px #173f3510}
-    .login{max-width:430px;margin:65px auto}
-    h1{font-size:25px;margin:0 0 8px}
-    p{color:#64736d;line-height:1.6}
-    input{width:100%;padding:14px;margin:9px 0;border:1px solid #d8e2dd;border-radius:10px;font-size:15px}
-    button{padding:13px 20px;border:0;border-radius:10px;background:#173f35;color:white;font-weight:bold;cursor:pointer}
-    button:disabled{opacity:.6}
-    .full{width:100%;margin-top:12px}
-    .hidden{display:none!important}
-    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:15px;margin-top:22px}
-    .tile{background:white;padding:22px;border-radius:15px}
-    .tile h3{margin:0 0 8px}
-    .notice{font-size:13px;margin-top:15px}
-    #message{font-size:14px;margin-top:12px;color:#b42318}
-    .green{color:#16804a}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hatbazar Marketplace | Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f6f5;color:#183b32;font-family:Arial,sans-serif}
+.wrap{max-width:1100px;margin:auto;padding:18px}
+.card,.tile{background:white;border-radius:16px;padding:20px;box-shadow:0 4px 18px #173f3510}
+.login{max-width:430px;margin:65px auto}
+h1{font-size:24px;margin:0 0 8px}
+h2{font-size:20px}
+p{color:#687871;line-height:1.5}
+input,select,textarea{width:100%;padding:13px;margin:7px 0 14px;border:1px solid #d8e2dd;border-radius:9px;font-size:15px;background:white}
+textarea{min-height:85px;resize:vertical}
+label{font-size:14px;font-weight:bold}
+button{padding:12px 17px;border:0;border-radius:9px;background:#173f35;color:white;font-weight:bold;font-size:14px;cursor:pointer}
+button:disabled{opacity:.5}
+.secondary{background:#e9f0ed;color:#173f35}
+.danger{background:#b42318}
+.full{width:100%}
+.hidden{display:none!important}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:18px 0}
+.tile{padding:17px}
+.tile h3{margin:0 0 7px;font-size:17px}
+.tile p{margin:0;font-size:13px}
+.section{margin-top:18px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.product{display:flex;gap:13px;align-items:center;border-bottom:1px solid #e8eeeb;padding:13px 0}
+.product img{width:65px;height:65px;object-fit:cover;border-radius:9px;background:#edf1ef}
+.product-info{flex:1;min-width:0}
+.product-info strong{display:block;overflow-wrap:anywhere}
+.product-info small{color:#687871;line-height:1.7}
+#message{color:#b42318;font-size:14px;margin-top:12px}
+#status{font-size:14px;margin:12px 0;color:#16804a}
+.badge{font-size:12px;padding:4px 8px;border-radius:20px;background:#e5f5e9;color:#167342}
+.badge.off{background:#fce9e7;color:#b42318}
+@media(max-width:600px){
+ .wrap{padding:12px}
+ .card{padding:16px}
+ .formgrid{grid-template-columns:1fr}
+ .product{align-items:flex-start}
+ .product img{width:55px;height:55px}
+ button{padding:11px 13px}
+}
+</style>
 </head>
 <body>
-  <main class="wrap">
-    <section id="loginPanel" class="card login">
-      <h1>Hatbazar Admin</h1>
-      <p>শুধু অনুমোদিত অ্যাডমিন প্রবেশ করতে পারবেন।</p>
-      <form id="loginForm">
-        <label>Email Address</label>
-        <input id="email" type="email" placeholder="Admin email" required>
-        <label>Password</label>
-        <input id="password" type="password" placeholder="Admin password" required>
-        <button id="loginBtn" class="full" type="submit">Admin Login</button>
-      </form>
-      <div id="message"></div>
-      <p class="notice">আপনার Supabase অ্যাকাউন্টের Email ও Password ব্যবহার করুন।</p>
-    </section>
+<main class="wrap">
 
-    <section id="dashboard" class="hidden">
-      <div class="top">
-        <div>
-          <h1>Hatbazar Admin Dashboard</h1>
-          <p id="adminEmail"></p>
-        </div>
-        <button id="logoutBtn">Logout</button>
-      </div>
-      <div class="card">
-        <h2>স্বাগতম, Admin!</h2>
-        <p class="green">Supabase Admin পরিচয় যাচাই সফল হয়েছে।</p>
-        <p>এটি আপনার আলাদা Admin Dashboard-এর প্রাথমিক সংস্করণ।</p>
-      </div>
-      <div class="grid">
-        <div class="tile"><h3>📦 Products</h3><p>পণ্য ব্যবস্থাপনা</p></div>
-        <div class="tile"><h3>🛒 Orders</h3><p>অর্ডার ব্যবস্থাপনা</p></div>
-        <div class="tile"><h3>👥 Sellers</h3><p>Seller ব্যবস্থাপনা</p></div>
-        <div class="tile"><h3>🤝 Resellers</h3><p>Reseller ব্যবস্থাপনা</p></div>
-        <div class="tile"><h3>📊 Reports</h3><p>বিক্রয় ও রিপোর্ট</p></div>
-        <div class="tile"><h3>⚙️ Settings</h3><p>ওয়েবসাইট সেটিংস</p></div>
-      </div>
-    </section>
-  </main>
+<section id="loginPanel" class="card login">
+<h1>Hatbazar Admin</h1>
+<p>শুধু অনুমোদিত অ্যাডমিন প্রবেশ করতে পারবেন।</p>
+<form id="loginForm">
+<label>Email Address</label>
+<input id="email" type="email" placeholder="Admin email" required>
+<label>Password</label>
+<input id="password" type="password" placeholder="Admin password" required>
+<button id="loginBtn" class="full">Admin Login</button>
+</form>
+<div id="message"></div>
+</section>
+
+<section id="dashboard" class="hidden">
+<div class="top">
+<div>
+<h1>Hatbazar Admin Dashboard</h1>
+<p id="adminEmail"></p>
+</div>
+<button id="logoutBtn">Logout</button>
+</div>
+
+<div class="grid">
+<div class="tile"><h3>📦 Products</h3><p>পণ্য ব্যবস্থাপনা</p></div>
+<div class="tile"><h3>🛒 Orders</h3><p>অর্ডার ব্যবস্থাপনা</p></div>
+<div class="tile"><h3>👥 Sellers</h3><p>Seller ব্যবস্থাপনা</p></div>
+<div class="tile"><h3>🤝 Resellers</h3><p>Reseller ব্যবস্থাপনা</p></div>
+<div class="tile"><h3>📊 Reports</h3><p>বিক্রয় ও রিপোর্ট</p></div>
+<div class="tile"><h3>⚙️ Settings</h3><p>ওয়েবসাইট সেটিংস</p></div>
+</div>
+
+<div class="card section">
+<div class="top">
+<div>
+<h2>📦 Products Management</h2>
+<p>নতুন পণ্য যোগ করুন এবং বিদ্যমান পণ্য পরিচালনা করুন।</p>
+</div>
+<button id="newProductBtn">+ Add Product</button>
+</div>
+
+<div id="productFormPanel" class="hidden">
+<hr>
+<h2 id="formTitle">নতুন Product যোগ করুন</h2>
+<form id="productForm">
+<div class="formgrid">
+<div>
+<label>Product Name (English) *</label>
+<input id="name" required maxlength="200">
+</div>
+<div>
+<label>Product Name (বাংলা)</label>
+<input id="name_bn" maxlength="200">
+</div>
+<div>
+<label>Category</label>
+<select id="category_id">
+<option value="">Category ছাড়া</option>
+</select>
+</div>
+<div>
+<label>Selling Price (৳) *</label>
+<input id="price" type="number" min="0" step="0.01" required>
+</div>
+<div>
+<label>Base Price (৳)</label>
+<input id="base_price" type="number" min="0" step="0.01">
+</div>
+<div>
+<label>Stock Quantity *</label>
+<input id="stock" type="number" min="0" step="1" value="0" required>
+</div>
+</div>
+
+<label>Description</label>
+<textarea id="description"></textarea>
+
+<label>Product Image</label>
+<input id="imageFile" type="file" accept="image/*">
+<p id="imageNote">ছবি নির্বাচন করলে Supabase Storage-এ আপলোড হবে।</p>
+
+<label>
+<input id="is_active" type="checkbox" checked style="width:auto;margin-right:7px">
+Product Active
+</label>
+
+<div class="actions">
+<button id="saveBtn" type="submit">Save Product</button>
+<button id="cancelBtn" class="secondary" type="button">Cancel</button>
+</div>
+</form>
+</div>
+
+<div id="status"></div>
+<div id="productList">Products লোড হচ্ছে...</div>
+</div>
+</section>
+</main>
 
 <script>
-const SUPABASE_URL = 'https://wagtpkukzutsxwhutznu.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_5fqDO6y1eTWIM9BWrYo4tQ_02bO9SJj';
+const SUPABASE_URL='https://wagtpkukzutsxwhutznu.supabase.co';
+const SUPABASE_KEY='sb_publishable_5fqDO6y1eTWIM9BWrYo4tQ_02bO9SJj';
+const BUCKET='product-images';
 
-const db = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const loginPanel = document.getElementById('loginPanel');
-const dashboard = document.getElementById('dashboard');
-const message = document.getElementById('message');
-const loginBtn = document.getElementById('loginBtn');
+const $=id=>document.getElementById(id);
+let editingProduct=null;
+let categories=[];
 
-function showLogin(text) {
-  dashboard.classList.add('hidden');
-  loginPanel.classList.remove('hidden');
-  message.textContent = text || '';
+function escapeHTML(value){
+ return String(value??'').replace(/[&<>"']/g,c=>({
+ '&':'&amp;','<':'&lt;','>':'&gt;',
+ '"':'&quot;',"'":'&#39;'
+ })[c]);
 }
 
-async function verifyAdmin(user) {
-  if (!user) return false;
-
-  const { data, error } = await db
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (error || !data || data.role !== 'admin') {
-    await db.auth.signOut();
-    return false;
-  }
-
-  document.getElementById('adminEmail').textContent = user.email || '';
-  loginPanel.classList.add('hidden');
-  dashboard.classList.remove('hidden');
-  return true;
+function showStatus(text,error=false){
+ $('status').textContent=text;
+ $('status').style.color=error?'#b42318':'#16804a';
 }
 
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  message.textContent = '';
-  loginBtn.disabled = true;
-  loginBtn.textContent = 'যাচাই হচ্ছে...';
+async function verifyAdmin(user){
+ if(!user)return false;
 
-  try {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+ const {data,error}=await db.from('profiles')
+ .select('role').eq('id',user.id).maybeSingle();
 
-    const { data, error } = await db.auth.signInWithPassword({
-      email,
-      password
-    });
+ if(error||!data||data.role!=='admin'){
+ await db.auth.signOut();
+ return false;
+ }
 
-    if (error || !data.user) {
-      showLogin('Email অথবা Password সঠিক নয়।');
-      return;
-    }
+ $('adminEmail').textContent=user.email||'';
+ $('loginPanel').classList.add('hidden');
+ $('dashboard').classList.remove('hidden');
+ await loadCategories();
+ await loadProducts();
+ return true;
+}
 
-    const success = await verifyAdmin(data.user);
+$('loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ $('message').textContent='';
+ $('loginBtn').disabled=true;
+ $('loginBtn').textContent='যাচাই হচ্ছে...';
 
-    if (!success) {
-      showLogin('এই অ্যাকাউন্টে Admin অনুমতি নেই।');
-    }
-  } catch (err) {
-    showLogin('Login ব্যর্থ হয়েছে। আবার চেষ্টা করুন।');
-  } finally {
-    loginBtn.disabled = false;
-    loginBtn.textContent = 'Admin Login';
-  }
+ try{
+ const {data,error}=await db.auth.signInWithPassword({
+ email:$('email').value.trim(),
+ password:$('password').value
+ });
+
+ if(error||!data.user){
+ $('message').textContent='Email অথবা Password সঠিক নয়।';
+ return;
+ }
+
+ const ok=await verifyAdmin(data.user);
+ if(!ok)$('message').textContent='এই অ্যাকাউন্টে Admin অনুমতি নেই।';
+
+ }catch(err){
+ $('message').textContent='Login ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
+ }finally{
+ $('loginBtn').disabled=false;
+ $('loginBtn').textContent='Admin Login';
+ }
 });
 
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-  await db.auth.signOut();
-  showLogin('আপনি Logout করেছেন।');
+$('logoutBtn').addEventListener('click',async()=>{
+ await db.auth.signOut();
+ $('dashboard').classList.add('hidden');
+ $('loginPanel').classList.remove('hidden');
 });
 
-async function checkExistingSession() {
-  const { data } = await db.auth.getSession();
+async function loadCategories(){
+ const {data,error}=await db.from('categories')
+ .select('id,name,name_bn')
+ .eq('is_active',true)
+ .order('name');
 
-  if (data.session) {
-    const success = await verifyAdmin(data.session.user);
-    if (!success) {
-      showLogin('Admin অনুমতি যাচাই করা যায়নি। আবার Login করুন।');
-    }
-  }
+ if(error){
+ showStatus('Category লোড হয়নি: '+error.message,true);
+ return;
+ }
+
+ categories=data||[];
+ $('category_id').innerHTML='<option value="">Category ছাড়া</option>'+
+ categories.map(c=>
+ `<option value="${escapeHTML(c.id)}">${escapeHTML(c.name_bn||c.name)}</option>`
+ ).join('');
+}
+
+async function loadProducts(){
+ $('productList').textContent='Products লোড হচ্ছে...';
+
+ const {data,error}=await db.from('products')
+ .select('id,name,name_bn,description,price,base_price,stock,image_url,is_active,category_id,created_at')
+ .order('created_at',{ascending:false});
+
+ if(error){
+ $('productList').textContent='Products লোড হয়নি: '+error.message;
+ return;
+ }
+
+ if(!data||!data.length){
+ $('productList').textContent='এখনো কোনো Product যোগ করা হয়নি।';
+ return;
+ }
+
+ $('productList').innerHTML=data.map(p=>{
+ const category=categories.find(c=>c.id===p.category_id);
+ const image=p.image_url?
+ `<img src="${escapeHTML(p.image_url)}" alt="Product">`:
+ `<img src="https://placehold.co/100x100?text=No+Image" alt="No image">`;
+
+ return `<div class="product">
+ ${image}
+ <div class="product-info">
+ <strong>${escapeHTML(p.name_bn||p.name)}</strong>
+ <small>
+ ${escapeHTML(p.name)}<br>
+ ৳${Number(p.price).toLocaleString('en-US')}
+ | Stock: ${p.stock}<br>
+ ${escapeHTML(category?.name_bn||category?.name||'No category')}
+ </small>
+ <span class="badge ${p.is_active?'':'off'}">
+ ${p.is_active?'Active':'Inactive'}
+ </span>
+ </div>
+ <div class="actions">
+ <button class="secondary" onclick="editProduct('${p.id}')">Edit</button>
+ <button class="danger" onclick="deleteProduct('${p.id}')">Delete</button>
+ </div>
+ </div>`;
+ }).join('');
+}
+
+$('newProductBtn').addEventListener('click',()=>{
+ editingProduct=null;
+ $('productForm').reset();
+ $('is_active').checked=true;
+ $('stock').value=0;
+ $('formTitle').textContent='নতুন Product যোগ করুন';
+ $('saveBtn').textContent='Save Product';
+ $('imageNote').textContent='নতুন Product Image নির্বাচন করুন।';
+ $('productFormPanel').classList.remove('hidden');
+ $('productFormPanel').scrollIntoView({behavior:'smooth'});
+});
+
+$('cancelBtn').addEventListener('click',()=>{
+ $('productFormPanel').classList.add('hidden');
+ editingProduct=null;
+});
+
+async function editProduct(id){
+ const {data,error}=await db.from('products')
+ .select('*').eq('id',id).single();
+
+ if(error||!data){
+ showStatus('Product পাওয়া যায়নি: '+(error?.message||''),true);
+ return;
+ }
+
+ editingProduct=data;
+ $('name').value=data.name||'';
+ $('name_bn').value=data.name_bn||'';
+ $('description').value=data.description||'';
+ $('price').value=data.price??0;
+ $('base_price').value=data.base_price??'';
+ $('stock').value=data.stock??0;
+ $('category_id').value=data.category_id||'';
+ $('is_active').checked=data.is_active;
+ $('imageFile').value='';
+ $('imageNote').textContent=data.image_url?'বর্তমান ছবি আছে। নতুন ছবি দিলে সেটি পরিবর্তন হবে।':'এখনো কোনো ছবি নেই।';
+ $('formTitle').textContent='Product Edit করুন';
+ $('saveBtn').textContent='Update Product';
+ $('productFormPanel').classList.remove('hidden');
+ $('productFormPanel').scrollIntoView({behavior:'smooth'});
+}
+
+async function uploadImage(file){
+ const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const path=Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+(ext||'jpg');
+
+ const {error}=await db.storage.from(BUCKET).upload(path,file,{
+ cacheControl:'3600',
+ upsert:false,
+ contentType:file.type||'image/jpeg'
+ });
+
+ if(error)throw new Error('Image Upload ব্যর্থ: '+error.message);
+
+ const {data}=db.storage.from(BUCKET).getPublicUrl(path);
+ return data.publicUrl;
+}
+
+$('productForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+
+ const save=$('saveBtn');
+ save.disabled=true;
+ save.textContent='সংরক্ষণ হচ্ছে...';
+ showStatus('');
+
+ try{
+ const file=$('imageFile').files[0];
+ let imageUrl=editingProduct?.image_url||null;
+
+ if(file){
+ if(!file.type.startsWith('image/'))throw new Error('শুধু Image File নির্বাচন করুন।');
+ if(file.size>5*1024*1024)throw new Error('ছবির সাইজ ৫ MB-এর কম হতে হবে।');
+ imageUrl=await uploadImage(file);
+ }
+
+ const product={
+ name:$('name').value.trim(),
+ name_bn:$('name_bn').value.trim()||null,
+ description:$('description').value.trim()||null,
+ category_id:$('category_id').value||null,
+ price:Number($('price').value),
+ base_price:$('base_price').value===''?null:Number($('base_price').value),
+ stock:Math.max(0,Math.floor(Number($('stock').value))),
+ image_url:imageUrl,
+ is_active:$('is_active').checked
+ };
+
+ if(!product.name)throw new Error('Product Name দিতে হবে।');
+
+ let result;
+
+ if(editingProduct){
+ result=await db.from('products')
+ .update(product).eq('id',editingProduct.id);
+ }else{
+ product.seller_id=null;
+ result=await db.from('products').insert(product);
+ }
+
+ if(result.error)throw new Error(result.error.message);
+
+ showStatus(editingProduct?'Product Update হয়েছে।':'নতুন Product যোগ হয়েছে।');
+ $('productFormPanel').classList.add('hidden');
+ editingProduct=null;
+ $('productForm').reset();
+ await loadProducts();
+
+ }catch(err){
+ showStatus(err.message||'কাজটি সম্পন্ন হয়নি।',true);
+ }finally{
+ save.disabled=false;
+ save.textContent=editingProduct?'Update Product':'Save Product';
+ }
+});
+
+async function deleteProduct(id){
+ if(!confirm('আপনি কি নিশ্চিত এই Product মুছে ফেলতে চান?'))return;
+
+ const {error}=await db.from('products').delete().eq('id',id);
+
+ if(error){
+ showStatus('Delete ব্যর্থ: '+error.message,true);
+ return;
+ }
+
+ showStatus('Product মুছে ফেলা হয়েছে।');
+ await loadProducts();
+}
+
+async function checkExistingSession(){
+ const {data}=await db.auth.getSession();
+ if(data.session){
+ const ok=await verifyAdmin(data.session.user);
+ if(!ok){
+ $('message').textContent='Admin অনুমতি যাচাই করা যায়নি। আবার Login করুন।';
+ }
+ }
 }
 
 checkExistingSession();
