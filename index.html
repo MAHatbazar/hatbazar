@@ -1,0 +1,2909 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hatbazar — আভিজাত্য ও আস্থার ঠিকানা</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- বাংলা ও ইংরেজি আধুনিক প্রিমিয়াম ফন্ট -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    html {
+      scroll-behavior: smooth;
+      font-family: 'Anek Bangla', 'Hind Siliguri', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .stylish-heading {
+      font-family: 'Anek Bangla', 'Playfair Display', 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.015em;
+    }
+
+    .stylish-script-accent {
+      font-family: 'Playfair Display', 'Anek Bangla', serif;
+      font-style: italic;
+    }
+
+    body {
+      background: linear-gradient(180deg, #f5f3ff 0%, #fdf2f8 50%, #f8fafc 100%);
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+
+    /* সব বাটনের জন্য স্মুথ হালকা কাঁপা ও ক্লিক বাউন্স এফেক্ট */
+    @keyframes btnTremor {
+      0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+      25% { transform: translate(-1.5px, -1px) rotate(-1deg) scale(1.02); }
+      50% { transform: translate(1.5px, 1px) rotate(1deg) scale(1.02); }
+      75% { transform: translate(-1px, 0.5px) rotate(-0.6deg) scale(1.01); }
+    }
+
+    @keyframes btnClickBounce {
+      0% { transform: scale(1) rotate(0deg); }
+      30% { transform: scale(0.94) rotate(-1.8deg); }
+      65% { transform: scale(1.04) rotate(1.8deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .btn-tremor {
+      animation: btnTremor 0.36s ease-in-out;
+    }
+
+    .btn-clicked {
+      animation: btnClickBounce 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* একদম সর্বোচ্চ উপরে সংবাদ টিকারের মতো স্লোলি চলা লাইভ লাইন */
+    @keyframes topLiveMarquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .live-ticker-track {
+      display: flex;
+      width: max-content;
+      animation: topLiveMarquee 42s linear infinite;
+    }
+
+    .live-ticker-track:hover {
+      animation-play-state: paused;
+    }
+
+    /* ফোল্ডার থেকে ব্যাক করলে নির্বাচিত ফোল্ডারে সবুজ চিহ্নসহ উপর-নিচে জার্কিং এফেক্ট */
+    @keyframes activeFolderGreenJerk {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      18% { transform: translateY(-7px) scale(1.03); }
+      36% { transform: translateY(5px) scale(0.99); }
+      54% { transform: translateY(-5px) scale(1.02); }
+      72% { transform: translateY(3px) scale(1); }
+      88% { transform: translateY(-2px) scale(1.01); }
+    }
+
+    .folder-green-jerk-active {
+      animation: activeFolderGreenJerk 0.9s ease-in-out infinite;
+      border-color: #10b981 !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25), 0 12px 24px -8px rgba(16, 185, 129, 0.35) !important;
+    }
+
+    /* কাস্টম স্ক্রলবার */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #ede9fe;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #6d28d9;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-900 selection:bg-violet-600 selection:text-white">
+
+  <!-- =========================================================
+       ০. একদম সর্বোচ্চ উপরে স্লোলি চলা লাইভ নিউজ/অফার টিকার বার
+       ========================================================= -->
+  <div class="bg-[#09071d] text-amber-200 text-[11px] sm:text-xs border-b border-amber-400/25 overflow-hidden select-none">
+    <div class="max-w-7xl mx-auto flex items-center">
+      <span class="shrink-0 z-10 px-3 py-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white font-extrabold tracking-wide flex items-center gap-1.5 shadow-sm">
+        <span class="inline-block w-2 h-2 rounded-full bg-white animate-pulse"></span>
+        LIVE
+      </span>
+      <div class="flex-1 overflow-hidden py-1.5">
+        <div class="live-ticker-track whitespace-nowrap font-medium">
+          <div class="flex items-center gap-8 pr-8">
+            <span>✨ Hatbazar — আভিজাত্য ও আস্থার ঠিকানা • ২৪টি প্রিমিয়াম ক্যাটাগরি ফোল্ডারে নতুন কালেকশন চলছে</span>
+            <span>🚚 সারাদেশের ৬৪ জেলায় দ্রুত ডেলিভারি • ঢাকায় ৳৮০ এবং ঢাকার বাইরে ৳১৩০ কুরিয়ার চার্জ</span>
+            <span>🤝 সেলার ও রিসেলার রেজিস্ট্রেশন খোলা আছে • আজই যুক্ত হয়ে ব্যবসা শুরু করুন</span>
+            <span>🛡️ ১০০% অরিজিনাল পণ্য, ক্যাশ অন ডেলিভারি ও ২৪/৭ AI অ্যাসিস্ট সাপোর্ট</span>
+          </div>
+          <div class="flex items-center gap-8 pr-8" aria-hidden="true">
+            <span>✨ Hatbazar — আভিজাত্য ও আস্থার ঠিকানা • ২৪টি প্রিমিয়াম ক্যাটাগরি ফোল্ডারে নতুন কালেকশন চলছে</span>
+            <span>🚚 সারাদেশের ৬৪ জেলায় দ্রুত ডেলিভারি • ঢাকায় ৳৮০ এবং ঢাকার বাইরে ৳১৩০ কুরিয়ার চার্জ</span>
+            <span>🤝 সেলার ও রিসেলার রেজিস্ট্রেশন খোলা আছে • আজই যুক্ত হয়ে ব্যবসা শুরু করুন</span>
+            <span>🛡️ ১০০% অরিজিনাল পণ্য, ক্যাশ অন ডেলিভারি ও ২৪/৭ AI অ্যাসিস্ট সাপোর্ট</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       ১. টপ ইউটিলিটি ও ট্রাস্ট বার (বাংলাদেশের শীর্ষ ই-কমার্স স্টাইল)
+       ========================================================= -->
+  <div class="bg-gradient-to-r from-[#1e1b4b] via-[#3b0764] to-[#4c0519] text-violet-50 text-[11px] sm:text-xs border-b border-violet-900/60">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-1.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-3 sm:gap-5 flex-wrap font-medium">
+        <span class="inline-flex items-center gap-1">🚚 সারাদেশে দ্রুত হোম ডেলিভারি</span>
+        <span class="hidden sm:inline text-violet-400">|</span>
+        <span class="inline-flex items-center gap-1">🛡️ ১০০% অরিজিনাল পণ্য গ্যারান্টি</span>
+        <span class="hidden md:inline text-violet-400">|</span>
+        <span class="hidden md:inline-flex items-center gap-1">🎧 ২৪/৭ কাস্টমার সাপোর্ট</span>
+      </div>
+      <div class="flex items-center gap-3 font-semibold">
+        <button type="button" onclick="navigateTo('partner')" class="hover:text-amber-300 transition">
+          🤝 সেলার / রিসেলার জয়েন করুন
+        </button>
+        <span class="text-violet-500">|</span>
+        <button type="button" onclick="openAiAssistantModal()" class="text-amber-300 hover:text-amber-200 transition">
+          💬 হেল্প ডেস্ক
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       ২. মেইন ব্র্যান্ড হেডার, স্মার্ট সার্চ ও অ্যাকশন বাটনসমূহ
+       ========================================================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-violet-100">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#1e1b4b] via-[#6d28d9] to-[#be185d] p-0.5 shadow-lg shadow-violet-600/25 flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 80 80" class="w-full h-full rounded-[14px]" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="hbLogoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#1e1b4b"/>
+                  <stop offset="50%" stop-color="#701a75"/>
+                  <stop offset="100%" stop-color="#be185d"/>
+                </linearGradient>
+                <linearGradient id="hbGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fef9c3"/>
+                  <stop offset="45%" stop-color="#fbbf24"/>
+                  <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+              </defs>
+              <rect width="80" height="80" fill="url(#hbLogoBg)"/>
+              <!-- স্টাইলিশ ক্রাউন ও শপিং ব্যাগ আইকন -->
+              <path d="M27 16 L32 23 L40 13 L48 23 L53 16 L50 26 L30 26 Z" fill="url(#hbGoldGrad)"/>
+              <path d="M31 28 C31 21, 49 21, 49 28" stroke="#fde047" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+              <path d="M21 28 H59 L63 63 C63.3 65.8 61.2 68 58.4 68 H21.6 C18.8 68 16.7 65.8 17 63 Z" fill="#ffffff" fill-opacity="0.1" stroke="url(#hbGoldGrad)" stroke-width="2.2"/>
+              <!-- স্টাইলিশ ক্যালিগ্রাফিক HB মনোগ্রাম ও আন্ডারলাইন সোয়াশ -->
+              <path d="M26 39 V55 M38 39 V55 M26 47 H38" stroke="url(#hbGoldGrad)" stroke-width="3.2" stroke-linecap="round"/>
+              <path d="M45 39 V55 M45 39 H52.5 C55.5 39 57 40.6 57 43 C57 45.2 55.5 46.8 52.5 46.8 H45 M45 46.8 H53.5 C56.5 46.8 58.2 48.5 58.2 51 C58.2 53.6 56.5 55 53.5 55 H45" stroke="url(#hbGoldGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <path d="M24 60 Q40 65 56 59" stroke="#fde047" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.85"/>
+            </svg>
+          </div>
+          <div>
+            <div class="relative inline-block">
+              <span class="text-xl sm:text-2xl font-black italic tracking-tight bg-gradient-to-r from-violet-800 via-fuchsia-600 to-amber-500 bg-clip-text text-transparent pr-1">
+                Hatbazar
+              </span>
+              <svg viewBox="0 0 140 12" class="w-full h-2.5 -mt-1 block overflow-visible" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 6 Q70 12 136 3" stroke="url(#hbGoldGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="text-[11px] font-semibold text-amber-600 mt-0.5">
+              — আভিজাত্য ও আস্থার ঠিকানা
+            </div>
+          </div>
+
+        <!-- সেন্টার স্মার্ট সার্চ বার -->
+        <form onsubmit="handleTopSearch(event)" class="order-3 lg:order-2 w-full lg:w-auto lg:flex-1 lg:max-w-xl flex items-center bg-violet-50/70 border border-violet-200 focus-within:border-violet-600 focus-within:bg-white rounded-full px-3.5 py-1.5 transition">
+          <span class="text-violet-400 mr-2">🔍</span>
+          <input
+            id="topSearchInput"
+            type="text"
+            placeholder="পণ্য বা ২৪টি ক্যাটাগরির নাম লিখে খুঁজুন..."
+            class="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 outline-none"
+          />
+          <button
+            type="submit"
+            class="ml-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white text-xs font-bold transition shrink-0"
+          >
+            খুঁজুন
+          </button>
+        </form>
+
+        <!-- ডান পাশের AI অ্যাসিস্ট ও কার্ট বাটন -->
+        <div class="order-2 lg:order-3 flex items-center gap-2 sm:gap-2.5 flex-wrap">
+          <!-- বাংলা / English ভাষা পরিবর্তন বাটন -->
+          <button
+            type="button"
+            id="langToggleBtn"
+            onclick="toggleLanguage()"
+            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-violet-100 hover:bg-violet-200 text-violet-900 border border-violet-300 text-xs sm:text-sm font-extrabold shadow-2xs transition"
+          >
+            <span>🌐</span>
+            <span id="langToggleLabel">বাংলা / English</span>
+          </button>
+
+          <!-- সাইন আপ / লগ আউট বাটন -->
+          <button
+            type="button"
+            id="authActionBtn"
+            onclick="handleAuthButtonClick()"
+            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 text-xs sm:text-sm font-extrabold shadow-2xs transition"
+          >
+            <span id="authActionLabel">🔐 সাইন আপ / লগ ইন</span>
+          </button>
+
+          <!-- মেসেঞ্জারের মতো AI অ্যাসিস্ট বাটন -->
+          <button
+            type="button"
+            onclick="openAiAssistantModal()"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white text-xs sm:text-sm font-bold shadow-sm shadow-blue-500/25 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+              <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.42 3.13 7.17.16.15.26.35.27.57l.05 1.78c.02.57.61.94 1.13.71l1.99-.88c.17-.07.36-.1.54-.06.95.26 1.96.4 2.84.4 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm1.04 13.06l-2.54-2.71-4.96 2.71 5.46-5.79 2.6 2.71 4.9-2.71-5.46 5.79z"/>
+            </svg>
+            <span data-bn="AI অ্যাসিস্ট" data-en="AI Assist">AI অ্যাসিস্ট</span>
+          </button>
+
+          <!-- কার্ট বাটন -->
+          <button
+            type="button"
+            onclick="navigateTo('cart')"
+            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-gradient-to-r from-[#1e1b4b] to-[#3b0764] hover:from-[#312e81] hover:to-[#581c87] text-white text-xs sm:text-sm font-bold shadow-sm transition"
+          >
+            <span data-bn="🛒 কার্ট" data-en="🛒 Cart">🛒 কার্ট</span>
+            <span id="cartCountBadge" class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950">
+              0
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- গোছানো প্রাইমারি নেভিগেশন বাটন বার -->
+      <nav class="mt-3 pt-2.5 border-t border-violet-100 flex items-center gap-2 overflow-x-auto pb-1">
+        <button
+          type="button"
+          onclick="navigateTo('home')"
+          data-nav="home"
+          data-bn="🏠 হোম পেজ"
+          data-en="🏠 Home"
+          class="nav-pill shrink-0 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold border transition"
+        >
+          🏠 হোম পেজ
+        </button>
+        <button
+          type="button"
+          onclick="navigateTo('shop')"
+          data-nav="shop"
+          data-bn="📂 সকল ক্যাটাগরি"
+          data-en="📂 All Categories"
+          class="nav-pill shrink-0 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold border transition"
+        >
+          📂 সকল ক্যাটাগরি
+        </button>
+        <button
+          type="button"
+          onclick="navigateTo('partner')"
+          data-nav="partner"
+          data-bn="🤝 সেলার / রিসেলার"
+          data-en="🤝 Seller / Reseller"
+          class="nav-pill shrink-0 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold border transition"
+        >
+          🤝 সেলার / রিসেলার
+        </button>
+        <button
+          type="button"
+          onclick="navigateTo('admin')"
+          data-nav="admin"
+          data-bn="🛡️ অ্যাডমিন প্যানেল"
+          data-en="🛡️ Admin Panel"
+          class="nav-pill shrink-0 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold border transition"
+        >
+          🛡️ অ্যাডমিন প্যানেল
+        </button>
+        <button
+          type="button"
+          onclick="navigateTo('cart')"
+          data-nav="cart"
+          data-bn="🛍️ চেকআউট ও অর্ডার"
+          data-en="🛍️ Checkout & Order"
+          class="nav-pill shrink-0 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold border transition"
+        >
+          🛍️ চেকআউট ও অর্ডার
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- টোস্ট নোটিফিকেশন -->
+  <div id="toastBanner" class="hidden fixed bottom-5 right-5 z-50 max-w-sm rounded-2xl px-4 py-3 text-sm font-bold shadow-xl border border-emerald-200 bg-slate-900 text-white">
+    <span id="toastMessage"></span>
+  </div>
+
+  <!-- =========================================================
+       ৩. মেইন কন্টেন্ট এরিয়া
+       ========================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-7">
+
+    <!-- *********************************************************
+         ভিউ ১: হোম পেজ (#homeView) — টপ ই-কমার্স লেআউট
+         ********************************************************* -->
+    <section id="homeView" class="space-y-8">
+      <!-- বাম পাশে ২৪ ক্যাটাগরি সাইডবার + ডান পাশে প্রিমিয়াম হিরো স্লাইডার ও অফার কার্ড -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        <!-- বাম পাশের কুইক ক্যাটাগরি মেনু (ডেস্কটপে দৃশ্যমান) -->
+        <aside class="hidden lg:flex lg:col-span-3 flex-col bg-white rounded-2xl border border-violet-200/80 shadow-sm overflow-hidden">
+          <div class="px-4 py-3 bg-gradient-to-r from-violet-700 to-fuchsia-700 text-white font-bold text-sm flex items-center justify-between">
+            <span>☰ জনপ্রিয় ক্যাটাগরি</span>
+            <span class="text-[11px] bg-white/20 px-2 py-0.5 rounded-full">২৪টি</span>
+          </div>
+          <div id="sidebarQuickCategories" class="flex-1 divide-y divide-violet-50 overflow-y-auto max-h-[360px]">
+            <!-- JS দিয়ে কুইক ক্যাটাগরি লিস্ট রেন্ডার হবে -->
+          </div>
+          <button
+            type="button"
+            onclick="navigateTo('shop')"
+            class="w-full py-2.5 bg-violet-50/70 hover:bg-violet-100 text-violet-700 font-bold text-xs border-t border-violet-100 transition"
+          >
+            সব ২৪টি ক্যাটাগরি দেখুন →
+          </button>
+        </aside>
+
+        <!-- ডান পাশের ড্যাশিং ই-কমার্স হিরো স্লাইডার + ৩টি সার্ভিস গ্যারান্টি কার্ড -->
+        <div class="lg:col-span-9 flex flex-col gap-4">
+          <!-- মেইন হিরো ব্যানার কার্ড -->
+          <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1e1b4b] via-[#581c87] to-[#9d174d] text-white p-6 sm:p-9 shadow-xl shadow-violet-900/15">
+            <div class="pointer-events-none absolute -right-16 -top-16 w-64 h-64 rounded-full bg-amber-400/25 blur-2xl"></div>
+            <div class="pointer-events-none absolute -left-16 -bottom-16 w-64 h-64 rounded-full bg-fuchsia-400/20 blur-2xl"></div>
+
+            <div class="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              <div class="md:col-span-7 space-y-3.5">
+                <span data-bn="👑 এক্সক্লুসিভ কালেকশন ২০২৬ • সেরা অফার" data-en="👑 Exclusive Collection 2026 • Best Offers" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-300 to-amber-400 text-slate-950 shadow-sm">
+                  👑 এক্সক্লুসিভ কালেকশন ২০২৬ • সেরা অফার
+                </span>
+                <h1 class="stylish-heading text-2xl sm:text-4xl font-extrabold leading-tight tracking-tight">
+                  <span class="stylish-script-accent text-3xl sm:text-5xl text-white drop-shadow">Hatbazar</span>
+                  <span data-bn="— আভিজাত্য ও আস্থার ঠিকানা" data-en="— Destination of Elegance & Trust" class="block bg-gradient-to-r from-amber-200 via-amber-300 to-yellow-200 bg-clip-text text-transparent text-lg sm:text-2xl font-extrabold mt-1">
+                    — আভিজাত্য ও আস্থার ঠিকানা
+                  </span>
+                </h1>
+                <p data-bn="ফ্যাশন, স্মার্ট গ্যাজেট, হোম ডেকর ও নিত্যপ্রয়োজনীয় সব প্রিমিয়াম পণ্য এখন ২৪টি সাজানো ক্যাটাগরি ফোল্ডারে। সারাদেশের ৬৪ জেলায় দ্রুত হোম ডেলিভারি।" data-en="Fashion, smart gadgets, home decor, and daily essentials organized into 24 premium category folders. Fast home delivery across all 64 districts." class="text-violet-100/95 text-xs sm:text-sm leading-relaxed max-w-lg font-medium">
+                  ফ্যাশন, স্মার্ট গ্যাজেট, হোম ডেকর ও নিত্যপ্রয়োজনীয় সব প্রিমিয়াম পণ্য এখন ২৪টি সাজানো ক্যাটাগরি ফোল্ডারে। সারাদেশের ৬৪ জেলায় দ্রুত হোম ডেলিভারি।
+                </p>
+                <div class="flex flex-wrap items-center gap-3 pt-1">
+                  <button
+                    type="button"
+                    onclick="navigateTo('shop')"
+                    data-bn="🛍️ এখনই শপিং করুন"
+                    data-en="🛍️ Shop Now"
+                    class="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-300 to-amber-400 hover:from-amber-200 hover:to-amber-300 text-slate-950 text-xs sm:text-sm font-extrabold shadow-md transition"
+                  >
+                    🛍️ এখনই শপিং করুন
+                  </button>
+                  <button
+                    type="button"
+                    onclick="navigateTo('partner')"
+                    data-bn="🤝 সেলার / রিসেলার"
+                    data-en="🤝 Seller / Reseller"
+                    class="px-5 py-3 rounded-2xl bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs sm:text-sm font-bold transition"
+                  >
+                    🤝 সেলার / রিসেলার
+                  </button>
+                </div>
+
+                <!-- ব্যানারের ভেতরের সুন্দর ভিজ্যুয়াল ছবি কার্ড -->
+                <div class="pt-2">
+                  <div class="relative rounded-2xl overflow-hidden border border-white/25 bg-indigo-950/50 shadow-lg">
+                    <svg viewBox="0 0 760 220" class="w-full h-36 sm:h-44 object-cover block" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="heroShowcaseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#312e81"/>
+                          <stop offset="50%" stop-color="#701a75"/>
+                          <stop offset="100%" stop-color="#be185d"/>
+                        </linearGradient>
+                        <linearGradient id="goldBag" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#fde047"/>
+                          <stop offset="100%" stop-color="#f59e0b"/>
+                        </linearGradient>
+                        <linearGradient id="cyanBag" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#67e8f9"/>
+                          <stop offset="100%" stop-color="#0284c7"/>
+                        </linearGradient>
+                      </defs>
+                      <rect width="760" height="220" fill="url(#heroShowcaseGrad)"/>
+                      <circle cx="660" cy="40" r="85" fill="#fbbf24" fill-opacity="0.18"/>
+                      <circle cx="90" cy="195" r="95" fill="#f472b6" fill-opacity="0.2"/>
+                      <!-- প্রিমিয়াম শপিং ব্যাগ ও গিফট ভিজ্যুয়াল -->
+                      <g transform="translate(520, 26)">
+                        <path d="M48 45 C48 20, 92 20, 92 45" stroke="#fde047" stroke-width="6" fill="none" stroke-linecap="round"/>
+                        <rect x="26" y="45" width="88" height="108" rx="14" fill="url(#goldBag)"/>
+                        <text x="70" y="108" text-anchor="middle" fill="#1e1b4b" font-family="Inter, sans-serif" font-size="34" font-weight="900">H</text>
+                        <path d="M126 68 C126 48, 160 48, 160 68" stroke="#67e8f9" stroke-width="5" fill="none" stroke-linecap="round"/>
+                        <rect x="108" y="68" width="70" height="85" rx="12" fill="url(#cyanBag)"/>
+                        <text x="143" y="118" text-anchor="middle" fill="#ffffff" font-size="26">🛍️</text>
+                      </g>
+                      <!-- বাম পাশের ভিজ্যুয়াল ব্যাজ ও প্রোডাক্ট শোকেস -->
+                      <g transform="translate(28, 28)">
+                        <rect x="0" y="0" width="450" height="164" rx="18" fill="#ffffff" fill-opacity="0.1" stroke="#ffffff" stroke-opacity="0.2"/>
+                        <text x="22" y="42" fill="#fde047" font-family="Hind Siliguri, sans-serif" font-size="22" font-weight="800">✨ প্রিমিয়াম শপিং অভিজ্ঞতা</text>
+                        <text x="22" y="72" fill="#f5d0fe" font-family="Hind Siliguri, sans-serif" font-size="15" font-weight="600">ফ্যাশন • গ্যাজেট • হোম ডেকর • কসমেটিক্স</text>
+                        <g transform="translate(22, 92)">
+                          <rect x="0" y="0" width="92" height="52" rx="12" fill="#1e1b4b" fill-opacity="0.7"/>
+                          <text x="46" y="33" text-anchor="middle" font-size="24">👔 👗</text>
+                          <rect x="104" y="0" width="92" height="52" rx="12" fill="#1e1b4b" fill-opacity="0.7"/>
+                          <text x="150" y="33" text-anchor="middle" font-size="24">⌚ 🎧</text>
+                          <rect x="208" y="0" width="92" height="52" rx="12" fill="#1e1b4b" fill-opacity="0.7"/>
+                          <text x="254" y="33" text-anchor="middle" font-size="24">👜 💍</text>
+                          <rect x="312" y="0" width="92" height="52" rx="12" fill="#1e1b4b" fill-opacity="0.7"/>
+                          <text x="358" y="33" text-anchor="middle" font-size="24">🎁 ✨</text>
+                        </g>
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ডান পাশের হাইলাইট ব্যাজ বক্স -->
+              <div class="md:col-span-5">
+                <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-4 sm:p-5 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-200 uppercase">স্টোর হাইলাইট</span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-950/70 text-violet-200">৬৪ জেলা</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2.5 text-xs">
+                    <div class="rounded-xl bg-indigo-950/50 p-3 border border-white/10">
+                      <div class="text-base mb-0.5">📂</div>
+                      <div class="font-bold text-white">২৪ ক্যাটাগরি</div>
+                      <div class="text-violet-200/80 text-[11px]">ফোল্ডার সিস্টেম</div>
+                    </div>
+                    <div class="rounded-xl bg-indigo-950/50 p-3 border border-white/10">
+                      <div class="text-base mb-0.5">⚡</div>
+                      <div class="font-bold text-white">ফ্ল্যাশ ডিল</div>
+                      <div class="text-violet-200/80 text-[11px]">স্পেশাল ডিসকাউন্ট</div>
+                    </div>
+                    <div class="rounded-xl bg-indigo-950/50 p-3 border border-white/10">
+                      <div class="text-base mb-0.5">💵</div>
+                      <div class="font-bold text-white">ক্যাশ অন ডেলিভারি</div>
+                      <div class="text-violet-200/80 text-[11px]">পণ্য হাতে পেয়ে পেমেন্ট</div>
+                    </div>
+                    <div class="rounded-xl bg-indigo-950/50 p-3 border border-white/10">
+                      <div class="text-base mb-0.5">🔄</div>
+                      <div class="font-bold text-white">সহজ রিটার্ন</div>
+                      <div class="text-violet-200/80 text-[11px]">ঝামেলাহীন এক্সচেঞ্জ</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ব্যানারের নিচে সুন্দর ছবির শোকেস -->
+          <div id="belowBannerPhotoStrip" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="relative rounded-2xl overflow-hidden border border-violet-200 bg-white shadow-2xs group">
+              <img
+                src="https://images.pexels.com/photos/4393668/pexels-photo-4393668.jpeg?auto=compress&cs=tinysrgb&w=800"
+                alt="দ্রুত ডেলিভারি"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='https://placehold.co/600x400/312e81/fde047?text=Fast+Delivery';"
+                class="w-full h-24 sm:h-28 object-cover group-hover:scale-105 transition duration-300"
+              />
+              <div class="px-2.5 py-1.5 text-[11px] font-extrabold text-slate-800 bg-white truncate">
+                🚚 দ্রুত ডেলিভারি
+              </div>
+            </div>
+
+            <div class="relative rounded-2xl overflow-hidden border border-violet-200 bg-white shadow-2xs group">
+              <img
+                src="https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg?auto=compress&cs=tinysrgb&w=800"
+                alt="নিরাপদ পেমেন্ট"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='https://placehold.co/600x400/312e81/fde047?text=Safe+Payment';"
+                class="w-full h-24 sm:h-28 object-cover group-hover:scale-105 transition duration-300"
+              />
+              <div class="px-2.5 py-1.5 text-[11px] font-extrabold text-slate-800 bg-white truncate">
+                🛡️ নিরাপদ পেমেন্ট
+              </div>
+            </div>
+
+            <div class="relative rounded-2xl overflow-hidden border border-violet-200 bg-white shadow-2xs group">
+              <img
+                src="https://images.pexels.com/photos/4391470/pexels-photo-4391470.jpeg?auto=compress&cs=tinysrgb&w=800"
+                alt="সহজ রিটার্ন"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='https://placehold.co/600x400/312e81/fde047?text=Easy+Return';"
+                class="w-full h-24 sm:h-28 object-cover group-hover:scale-105 transition duration-300"
+              />
+              <div class="px-2.5 py-1.5 text-[11px] font-extrabold text-slate-800 bg-white truncate">
+                🔄 সহজ রিটার্ন
+              </div>
+            </div>
+
+            <div class="relative rounded-2xl overflow-hidden border border-violet-200 bg-white shadow-2xs group">
+              <img
+                src="https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=800"
+                alt="২৪ ঘণ্টা সাপোর্ট"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='https://placehold.co/600x400/312e81/fde047?text=24x7+Support';"
+                class="w-full h-24 sm:h-28 object-cover group-hover:scale-105 transition duration-300"
+              />
+              <div class="px-2.5 py-1.5 text-[11px] font-extrabold text-slate-800 bg-white truncate">
+                💬 ২৪ ঘণ্টা সাপোর্ট
+              </div>
+            </div>
+          </div>
+
+          <!-- হিরোর নিচে ৪টি ট্রাস্ট ব্যাজ কার্ড -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white rounded-2xl border border-violet-100 p-3.5 flex items-center gap-3 shadow-xs">
+              <span class="w-9 h-9 rounded-xl bg-violet-50 text-violet-700 flex items-center justify-center text-lg shrink-0">🚚</span>
+              <div>
+                <div class="text-xs font-extrabold text-slate-900">দ্রুত ডেলিভারি</div>
+                <div class="text-[11px] text-slate-500">ঢাকা ৳৮০ • বাইরে ৳১৩০</div>
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl border border-violet-100 p-3.5 flex items-center gap-3 shadow-xs">
+              <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">🛡️</span>
+              <div>
+                <div class="text-xs font-extrabold text-slate-900">নিরাপদ পেমেন্ট</div>
+                <div class="text-[11px] text-slate-500">COD, বিকাশ ও নগদ</div>
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl border border-violet-100 p-3.5 flex items-center gap-3 shadow-xs">
+              <span class="w-9 h-9 rounded-xl bg-fuchsia-50 text-fuchsia-600 flex items-center justify-center text-lg shrink-0">🔄</span>
+              <div>
+                <div class="text-xs font-extrabold text-slate-900">সহজ রিটার্ন</div>
+                <div class="text-[11px] text-slate-500">৭২ ঘণ্টার মধ্যে সুবিধা</div>
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl border border-violet-100 p-3.5 flex items-center gap-3 shadow-xs">
+              <span class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg shrink-0">💬</span>
+              <div>
+                <div class="text-xs font-extrabold text-slate-900">২৪ ঘণ্টা সাপোর্ট</div>
+                <div class="text-[11px] text-slate-500">AI ও হেল্প ডেস্ক</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- জনপ্রিয় ক্যাটাগরি শর্টকাট গ্রিড (হোম পেজে) -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="stylish-heading text-lg sm:text-2xl font-extrabold bg-gradient-to-r from-violet-900 via-fuchsia-800 to-amber-600 bg-clip-text text-transparent">
+              ⭐ জনপ্রিয় ক্যাটাগরি ফোল্ডার
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 font-medium">পছন্দের ক্যাটাগরিতে ক্লিক করে সরাসরি ভেতরের পণ্য দেখুন</p>
+          </div>
+          <button
+            type="button"
+            onclick="navigateTo('shop')"
+            class="px-4 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs sm:text-sm font-bold border border-violet-200 transition"
+          >
+            সব ২৪ ক্যাটাগরি →
+          </button>
+        </div>
+
+        <div id="homeTopCategoriesGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+          <!-- JS দিয়ে প্রথম ৮টি ক্যাটাগরি কার্ড রেন্ডার হবে -->
+        </div>
+      </section>
+
+      <!-- ফ্ল্যাশ ডিল সেকশন -->
+      <section aria-labelledby="flashDealsHeading" class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-xs font-extrabold">
+              ⚡ FLASH SALE
+            </span>
+            <h2 id="flashDealsHeading" class="stylish-heading text-base sm:text-xl font-extrabold text-slate-900">
+              আজকের সেরা ফ্ল্যাশ ডিল
+            </h2>
+          </div>
+          <button
+            type="button"
+            onclick="navigateTo('shop')"
+            class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition"
+          >
+            আরও দেখুন →
+          </button>
+        </div>
+
+        <div id="flashDealsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- JS দিয়ে ফ্ল্যাশ ডিল কার্ড রেন্ডার হবে -->
+        </div>
+      </section>
+
+      <!-- পেজের নিচে সুন্দর, ছোট ও গোছানো নীতিমালা ও তথ্য -->
+      <footer id="homePoliciesSection" class="bg-white rounded-2xl border border-violet-200/70 px-4 py-3.5 sm:px-5 sm:py-4 shadow-2xs space-y-2.5">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+          <h2 class="text-xs sm:text-sm font-extrabold text-slate-800">
+            📜 শর্তাবলি, রিটার্ন ও রিফান্ড, আমাদের গল্প, ২৪ ঘণ্টা সার্ভিস এবং কুরিয়ার সার্ভিস চার্জ
+          </h2>
+          <span class="text-[10px] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full">
+            Hatbazar
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-[11px] leading-snug">
+          <div class="rounded-xl bg-slate-50/90 border border-slate-200/75 p-2.5 space-y-0.5">
+            <h3 class="font-extrabold text-slate-900 text-[11px]">১. শর্তাবলি</h3>
+            <p class="text-slate-600 line-clamp-2">সঠিক নাম, নম্বর ও ঠিকানায় স্টক সাপেক্ষে অর্ডার কনফার্ম হয়।</p>
+          </div>
+
+          <div class="rounded-xl bg-slate-50/90 border border-slate-200/75 p-2.5 space-y-0.5">
+            <h3 class="font-extrabold text-slate-900 text-[11px]">২. রিটার্ন পলিসি</h3>
+            <p class="text-slate-600 line-clamp-2">২৪-৭২ ঘণ্টার মধ্যে ত্রুটিপূর্ণ বা ভুল পণ্যে সহজ রিটার্ন সুবিধা।</p>
+          </div>
+
+          <div class="rounded-xl bg-slate-50/90 border border-slate-200/75 p-2.5 space-y-0.5">
+            <h3 class="font-extrabold text-slate-900 text-[11px]">৩. রিফান্ড পলিসি</h3>
+            <p class="text-slate-600 line-clamp-2">যাচাই শেষে বিকাশ, নগদ বা ব্যাংকে দ্রুত রিফান্ড দেওয়া হয়।</p>
+          </div>
+
+          <div class="rounded-xl bg-slate-50/90 border border-slate-200/75 p-2.5 space-y-0.5">
+            <h3 class="font-extrabold text-slate-900 text-[11px]">৪. আমাদের গল্প</h3>
+            <p class="text-slate-600 line-clamp-2">২৪ ক্যাটাগরিতে মানসম্মত পণ্য ও আস্থার শপিং অভিজ্ঞতা।</p>
+          </div>
+
+          <div class="rounded-xl bg-slate-50/90 border border-slate-200/75 p-2.5 space-y-0.5">
+            <h3 class="font-extrabold text-slate-900 text-[11px]">৫. ২৪ ঘণ্টা সার্ভিস</h3>
+            <p class="text-slate-600 line-clamp-2">অর্ডার, রিসেলার ও AI অ্যাসিস্ট্যান্টে ২৪ ঘণ্টা সেবা চালু।</p>
+          </div>
+
+          <div class="rounded-xl bg-violet-50/70 border border-violet-200/80 p-2.5 space-y-0.5">
+            <h3 class="font-extrabold text-violet-950 text-[11px]">৬. কুরিয়ার সার্ভিস চার্জ</h3>
+            <p class="text-violet-800 line-clamp-2">ঢাকায় <strong class="font-black">৳৮০</strong> এবং বাইরে <strong class="font-black">৳১৩০</strong> কুরিয়ার চার্জ।</p>
+          </div>
+        </div>
+
+        <!-- পেজের একদম নিচে যোগাযোগ, ইমেইল, রিটার্ন ও রিফান্ড কুইক লিংক এবং কপিরাইট স্ট্রিপ -->
+        <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-600">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold">
+            <span>📧 ইমেইল: <a href="mailto:support@hatbazar.com.bd" class="text-violet-700 hover:underline font-bold">support@hatbazar.com.bd</a></span>
+            <span>📞 সাপোর্ট: <strong class="text-slate-800">+880 1700-000000</strong></span>
+            <span>↩️ রিটার্ন ও রিফান্ড সাপোর্ট সক্রিয়</span>
+          </div>
+          <div class="font-bold text-slate-800">
+            © All rights reserved to <span class="text-violet-700">Hatbazar</span>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+    <!-- *********************************************************
+         ভিউ ২: ২৪ ক্যাটাগরি ফোল্ডার পেজ (#shopView)
+         ********************************************************* -->
+    <section id="shopView" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-200 mb-1">
+            📁 ২৪টি বিশেষ ক্যাটাগরি ফোল্ডার
+          </span>
+          <h2 class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-violet-900 via-fuchsia-700 to-rose-600 bg-clip-text text-transparent">
+            সকল প্রোডাক্ট ক্যাটাগরি
+          </h2>
+          <p class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
+            যেকোনো ক্যাটাগরি ফোল্ডারে ক্লিক করে ভেতরের পণ্য দেখুন, কার্টে যোগ করুন অথবা নতুন পণ্য যুক্ত করুন।
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="navigateTo('home')"
+          class="self-start sm:self-auto px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition"
+        >
+          ← হোমে ফিরুন
+        </button>
+      </div>
+
+      <!-- ২৪ ক্যাটাগরি গ্রিড -->
+      <div id="categoriesGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+        <!-- JS দিয়ে রেন্ডার হবে -->
+      </div>
+
+      <!-- শুধুমাত্র অ্যাডমিনের জন্য ক্যাটাগরি বাড়ানো (+) ও কমানো (−) অপশন -->
+      <div id="adminCategoryAdjustBox" class="bg-white rounded-3xl border border-amber-200 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div id="adminCategoryAdjustTitle" class="text-xs sm:text-sm font-extrabold text-amber-950">
+            ➕ / − ক্যাটাগরি বাড়ানো বা কমানো (শুধুমাত্র অ্যাডমিন)
+          </div>
+          <div id="adminCategoryAdjustHint" class="text-[11px] font-semibold text-amber-800 mt-0.5">
+            🔒 অ্যাডমিন হিসেবে লগ ইন করলে + বাটন দিয়ে নতুন ক্যাটাগরি যোগ করতে এবং − বাটন দিয়ে শেষ ক্যাটাগরি কমাতে পারবেন।
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            id="adminAddCategoryBtn"
+            onclick="handleAdminAddCategory()"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition"
+          >
+            + ক্যাটাগরি বাড়ান
+          </button>
+          <button
+            type="button"
+            id="adminRemoveCategoryBtn"
+            onclick="handleAdminRemoveCategory()"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-rose-600 hover:bg-rose-700 text-white shadow-2xs transition"
+          >
+            − ক্যাটাগরি কমান
+          </button>
+        </div>
+      </div>
+
+      <!-- নির্বাচিত ফোল্ডারের ভেতরের প্যানেল -->
+      <div id="activeFolderPanel" class="hidden bg-white rounded-3xl p-5 sm:p-7 space-y-6 border-2 border-violet-500 shadow-lg">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+          <div class="flex items-center gap-3.5">
+            <img
+              id="activeFolderCoverImg"
+              src=""
+              alt=""
+              class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover object-top border border-violet-200 shadow-xs shrink-0"
+            />
+            <div>
+              <span id="folderBadge" class="text-xs font-extrabold text-violet-700 uppercase"></span>
+              <h3 id="activeFolderTitle" class="stylish-heading text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5"></h3>
+              <p id="activeFolderDesc" class="text-xs sm:text-sm text-slate-500 mt-1"></p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="closeActiveFolder()"
+            class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition"
+          >
+            ← ব্যাক টু দ্য ফোল্ডার
+          </button>
+        </div>
+
+        <!-- ফোল্ডারের কভার ছবি অ্যাড/পরিবর্তন করার অপশন (শুধুমাত্র অ্যাডমিনের জন্য) -->
+        <div id="adminFolderCoverBox" class="rounded-2xl bg-amber-50/70 border border-amber-200 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div id="adminFolderCoverTitle" class="text-xs sm:text-sm font-extrabold text-amber-950">
+              🖼️ ফোল্ডারের ছবি পরিবর্তন করুন (শুধুমাত্র অ্যাডমিন)
+            </div>
+            <div id="adminFolderCoverHint" class="text-[11px] font-semibold text-amber-800 mt-0.5">
+              🔒 অ্যাডমিন হিসেবে লগ ইন করলে এই ফোল্ডারের ছবি নিজের মতো করে আপলোড করতে পারবেন।
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <input
+              id="adminFolderCoverInput"
+              type="file"
+              accept="image/*"
+              disabled
+              onchange="handleAdminFolderCoverChange(event)"
+              class="rounded-xl bg-white border border-amber-300 px-3 py-1.5 text-xs text-slate-700 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-200 file:text-amber-950 hover:file:bg-amber-300 disabled:opacity-50 disabled:cursor-not-allowed outline-none"
+            />
+          </div>
+        </div>
+
+        <!-- ফোল্ডারের ভেতরে নতুন পণ্য ও ছবি অ্যাড করার ফর্ম -->
+        <form id="addFolderItemForm" class="rounded-2xl bg-violet-50/60 border border-violet-200/80 p-4 sm:p-5 space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <h4 class="text-sm sm:text-base font-extrabold text-violet-950">
+              ➕ এই ফোল্ডারে নতুন পণ্য ও ছবি অ্যাড করুন
+            </h4>
+            <span class="text-[11px] font-bold text-violet-700 bg-white px-2.5 py-0.5 rounded-full border border-violet-200">
+              ছবি আপলোড অপশন
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label for="newItemTitle" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের নাম *</label>
+              <input
+                id="newItemTitle"
+                type="text"
+                required
+                placeholder="যেমন: প্রিমিয়াম কটন শার্ট"
+                class="w-full rounded-xl bg-white border border-slate-300 focus:border-violet-600 px-3.5 py-2 text-xs sm:text-sm text-slate-900 outline-none"
+              />
+            </div>
+
+            <div>
+              <label for="newItemPrice" class="block text-xs font-bold text-slate-700 mb-1">মূল্য (৳) *</label>
+              <div class="flex items-center gap-2">
+                <input
+                  id="newItemPrice"
+                  type="number"
+                  min="1"
+                  required
+                  placeholder="যেমন: 10"
+                  class="w-full rounded-xl bg-white border border-slate-300 focus:border-violet-600 px-3.5 py-2 text-xs sm:text-sm text-slate-900 outline-none"
+                />
+                <input
+                  id="newItemDiscount"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="any"
+                  disabled
+                  placeholder="ডিসকাউন্ট % (অ্যাডমিন)"
+                  title="শুধুমাত্র অ্যাডমিন ডিসকাউন্ট দিতে পারবেন"
+                  class="w-28 sm:w-32 shrink-0 rounded-xl bg-slate-100 border border-slate-300 px-3 py-2 text-xs sm:text-sm font-bold text-slate-400 cursor-not-allowed outline-none"
+                />
+              </div>
+              <p id="discountAdminLockNote" class="text-[11px] font-bold text-rose-600 mt-1">
+                🔒 ডিসকাউন্ট শুধুমাত্র অ্যাডমিন দিতে পারবেন (অন্যদের জন্য লক)
+              </p>
+            </div>
+
+            <div>
+              <label for="newItemImageFile" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের ছবি অ্যাড করুন</label>
+              <input
+                id="newItemImageFile"
+                type="file"
+                accept="image/*"
+                class="w-full rounded-xl bg-white border border-slate-300 focus:border-violet-600 px-3 py-1.5 text-xs text-slate-700 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-violet-100 file:text-violet-800 hover:file:bg-violet-200 outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div class="sm:col-span-8">
+              <label for="newItemDesc" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের বিবরণ</label>
+              <input
+                id="newItemDesc"
+                type="text"
+                placeholder="পণ্যের সংক্ষিপ্ত বিবরণ (ঐচ্ছিক)..."
+                class="w-full rounded-xl bg-white border border-slate-300 focus:border-violet-600 px-3.5 py-2 text-xs sm:text-sm text-slate-900 outline-none"
+              />
+            </div>
+            <div class="sm:col-span-4">
+              <button
+                type="submit"
+                class="w-full px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-sm transition shrink-0"
+              >
+                + ফোল্ডারে ছবি ও পণ্য অ্যাড করুন
+              </button>
+            </div>
+          </div>
+
+          <!-- ফোল্ডারে পণ্য/ছবি অ্যাড করার পর অটো ফেসবুক লিংক শেয়ার বার -->
+          <div id="folderLastUploadFbBar" class="hidden rounded-2xl bg-sky-50 border border-sky-200 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div class="text-xs text-sky-950 font-bold truncate">
+              <span id="lastUploadedFbLabel"></span>
+              <span id="lastUploadedFbLinkPreview" class="block text-[11px] font-medium text-sky-700 truncate mt-0.5"></span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onclick="shareLastUploadedToFacebook()"
+                class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white transition"
+              >
+                📘 ফেসবুকে শেয়ার করুন
+              </button>
+              <button
+                type="button"
+                onclick="copyLastUploadedShareLink()"
+                class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-white hover:bg-sky-100 text-sky-900 border border-sky-300 transition"
+              >
+                🔗 লিংক কপি
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- ফোল্ডারের ভেতরের পণ্যসমূহ -->
+        <div id="folderItemsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- JS দিয়ে ফোল্ডারের ভেতরের পণ্য রেন্ডার হবে -->
+        </div>
+      </div>
+    </section>
+
+    <!-- *********************************************************
+         ভিউ ৩: সেলার / রিসেলার ড্রপডাউন ও রেজিস্ট্রেশন ফর্ম (#partnerView)
+         ********************************************************* -->
+    <section id="partnerView" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span data-bn="🤝 পার্টনার রেজিস্ট্রেশন" data-en="🤝 Partner Registration" class="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-200 mb-1">
+            🤝 পার্টনার রেজিস্ট্রেশন
+          </span>
+          <h2 data-bn="সেলার ও রিসেলার রেজিস্ট্রেশন ফর্ম" data-en="Seller & Reseller Registration Form" class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-violet-900 via-fuchsia-700 to-rose-600 bg-clip-text text-transparent">
+            সেলার ও রিসেলার রেজিস্ট্রেশন ফর্ম
+          </h2>
+          <p data-bn="নিচের ড্রপডাউন থেকে সেলার বা রিসেলার নির্বাচন করে রেজিস্ট্রেশন ফর্ম পূরণ করুন।" data-en="Select Seller or Reseller from the dropdown below and fill out the registration form." class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
+            নিচের ড্রপডাউন থেকে সেলার বা রিসেলার নির্বাচন করে রেজিস্ট্রেশন ফর্ম পূরণ করুন।
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="navigateTo('home')"
+          data-bn="← হোমে ফিরুন"
+          data-en="← Back to Home"
+          class="self-start sm:self-auto px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition"
+        >
+          ← হোমে ফিরুন
+        </button>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-7 shadow-xs max-w-3xl mx-auto">
+        <form id="partnerRegistrationForm" class="space-y-4">
+          <div>
+            <label for="partnerRoleSelect" data-bn="অ্যাকাউন্টের ধরন নির্বাচন করুন (ড্রপডাউন) *" data-en="Select Account Type (Dropdown) *" class="block text-xs sm:text-sm font-extrabold text-slate-800 mb-1.5">
+              অ্যাকাউন্টের ধরন নির্বাচন করুন (ড্রপডাউন) *
+            </label>
+            <select
+              id="partnerRoleSelect"
+              onchange="updatePartnerRoleInfo()"
+              class="w-full rounded-2xl bg-violet-50/70 border border-violet-300 focus:border-violet-600 focus:bg-white px-4 py-3 text-sm font-bold text-slate-900 outline-none"
+            >
+              <option value="seller" data-bn="🏪 সেলার (নিজের পণ্য বিক্রি করতে চাই)" data-en="🏪 Seller (I want to sell my own products)">🏪 সেলার (নিজের পণ্য বিক্রি করতে চাই)</option>
+              <option value="reseller" data-bn="📦 রিসেলার (Hatbazar-এর পণ্য রিসেল করতে চাই)" data-en="📦 Reseller (I want to resell Hatbazar products)">📦 রিসেলার (Hatbazar-এর পণ্য রিসেল করতে চাই)</option>
+            </select>
+            <p id="partnerRoleHint" class="text-xs text-violet-700 font-semibold mt-1.5">
+              সেলার হিসেবে নিজের পণ্য লিস্ট করে সারাদেশে বিক্রি করতে পারবেন।
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="partnerName" data-bn="আপনার পূর্ণ নাম *" data-en="Your Full Name *" class="block text-xs font-bold text-slate-700 mb-1">আপনার পূর্ণ নাম *</label>
+              <input
+                id="partnerName"
+                type="text"
+                required
+                placeholder="যেমন: তানভীর আহমেদ"
+                class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-violet-600 focus:bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none"
+              />
+            </div>
+            <div>
+              <label for="partnerPhone" data-bn="মোবাইল নম্বর *" data-en="Mobile Number *" class="block text-xs font-bold text-slate-700 mb-1">মোবাইল নম্বর *</label>
+              <input
+                id="partnerPhone"
+                type="tel"
+                required
+                placeholder="017XXXXXXXX"
+                class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-violet-600 focus:bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="partnerShopName" data-bn="শপ / পেজ বা ব্যবসার নাম *" data-en="Shop / Page or Business Name *" class="block text-xs font-bold text-slate-700 mb-1">শপ / পেজ বা ব্যবসার নাম *</label>
+              <input
+                id="partnerShopName"
+                type="text"
+                required
+                placeholder="যেমন: রয়্যাল কালেকশন BD"
+                class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-violet-600 focus:bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none"
+              />
+            </div>
+            <div>
+              <label for="partnerDistrict" data-bn="জেলা *" data-en="District *" class="block text-xs font-bold text-slate-700 mb-1">জেলা *</label>
+              <select
+                id="partnerDistrict"
+                class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-violet-600 focus:bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none"
+              ></select>
+            </div>
+          </div>
+
+          <div>
+            <label for="partnerNotes" data-bn="পণ্যের ধরন বা অতিরিক্ত তথ্য" data-en="Product Category or Additional Info" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের ধরন বা অতিরিক্ত তথ্য</label>
+            <textarea
+              id="partnerNotes"
+              rows="2"
+              placeholder="আপনি কোন ধরনের পণ্য নিয়ে কাজ করতে চান তা লিখুন..."
+              class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-violet-600 focus:bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            data-bn="✅ রেজিস্ট্রেশন আবেদন জমা দিন"
+            data-en="✅ Submit Registration Request"
+            class="w-full py-3 rounded-2xl text-sm font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-md transition"
+          >
+            ✅ রেজিস্ট্রেশন আবেদন জমা দিন
+          </button>
+        </form>
+
+        <div id="partnerConfirmationBox" class="hidden mt-4 rounded-2xl bg-emerald-50 border border-emerald-300 p-4 text-xs sm:text-sm text-slate-800"></div>
+      </div>
+    </section>
+
+    <!-- *********************************************************
+         ভিউ ৪: অ্যাডমিন প্যানেল (#adminView)
+         ********************************************************* -->
+    <section id="adminView" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 mb-1">
+            🛡️ কন্ট্রোল ও মনিটরিং
+          </span>
+          <h2 class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-indigo-900 via-violet-800 to-fuchsia-700 bg-clip-text text-transparent">
+            Hatbazar অ্যাডমিন প্যানেল
+          </h2>
+          <p class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
+            ২৪ ক্যাটাগরি ফোল্ডার, কার্ট অবস্থা, সেশন অ্যাকাউন্ট ও কুইক অ্যাকশন পরিচালনা করুন।
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="navigateTo('home')"
+          class="self-start sm:self-auto px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition"
+        >
+          ← হোমে ফিরুন
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl border border-violet-100 p-4 shadow-2xs">
+          <div class="text-xs font-bold text-slate-500">মোট ক্যাটাগরি ফোল্ডার</div>
+          <div id="adminTotalCategories" class="text-2xl font-black text-violet-700 mt-1">২৪</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-violet-100 p-4 shadow-2xs">
+          <div class="text-xs font-bold text-slate-500">ফোল্ডারে যুক্ত পণ্য</div>
+          <div id="adminTotalFolderItems" class="text-2xl font-black text-fuchsia-700 mt-1">০</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-violet-100 p-4 shadow-2xs">
+          <div class="text-xs font-bold text-slate-500">বর্তমান কার্ট আইটেম</div>
+          <div id="adminCartItemsCount" class="text-2xl font-black text-amber-600 mt-1">০</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-violet-100 p-4 shadow-2xs">
+          <div class="text-xs font-bold text-slate-500">অ্যাকাউন্ট স্ট্যাটাস</div>
+          <div id="adminAuthStatusText" class="text-base font-extrabold text-emerald-700 mt-2">লগ আউট অবস্থায়</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-6 shadow-xs flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onclick="navigateTo('shop')"
+          class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-violet-600 hover:bg-violet-700 text-white transition"
+        >
+          📂 ক্যাটাগরি ফোল্ডার ম্যানেজ করুন
+        </button>
+        <button
+          type="button"
+          onclick="navigateTo('partner')"
+          class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-fuchsia-600 hover:bg-fuchsia-700 text-white transition"
+        >
+          🤝 সেলার / রিসেলার ফর্ম দেখুন
+        </button>
+        <button
+          type="button"
+          onclick="handleAuthButtonClick()"
+          class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-amber-400 hover:bg-amber-300 text-slate-950 transition"
+        >
+          🔐 সাইন আপ / লগ আউট
+        </button>
+      </div>
+    </section>
+
+    <!-- *********************************************************
+         ভিউ ৫: চেকআউট ও অর্ডার (#cartView)
+         ********************************************************* -->
+    <section id="cartView" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-200 mb-1">
+            🛍️ অর্ডার সম্পন্ন করুন
+          </span>
+          <h2 class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-violet-900 via-fuchsia-700 to-rose-600 bg-clip-text text-transparent">
+            কার্ট ও চেকআউট
+          </h2>
+        </div>
+        <button
+          type="button"
+          onclick="navigateTo('shop')"
+          class="self-start sm:self-auto px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition"
+        >
+          ← শপিং চালিয়ে যান
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div id="cartItemsContainer" class="lg:col-span-7 space-y-3"></div>
+
+        <div class="lg:col-span-5 bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-6 shadow-xs space-y-4 h-fit">
+          <h3 class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
+            ডেলিভারি ও অর্ডার ফর্ম
+          </h3>
+
+          <form id="checkoutOrderForm" class="space-y-3">
+            <div>
+              <label for="customerName" class="block text-xs font-bold text-slate-700 mb-1">আপনার নাম *</label>
+              <input id="customerName" type="text" required placeholder="পূর্ণ নাম" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+            </div>
+            <div>
+              <label for="customerPhone" class="block text-xs font-bold text-slate-700 mb-1">মোবাইল নম্বর *</label>
+              <input id="customerPhone" type="tel" required placeholder="01XXXXXXXXX" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label for="customerDistrict" class="block text-xs font-bold text-slate-700 mb-1">জেলা</label>
+                <select id="customerDistrict" onchange="populateUpazilas()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs sm:text-sm outline-none focus:border-violet-600"></select>
+              </div>
+              <div>
+                <label for="customerUpazila" class="block text-xs font-bold text-slate-700 mb-1">উপজেলা / থানা</label>
+                <select id="customerUpazila" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs sm:text-sm outline-none focus:border-violet-600"></select>
+              </div>
+            </div>
+            <div>
+              <label for="customerAddress" class="block text-xs font-bold text-slate-700 mb-1">বিস্তারিত ঠিকানা *</label>
+              <input id="customerAddress" type="text" required placeholder="বাড়ি/রোড/এলাকা" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label for="deliveryZone" class="block text-xs font-bold text-slate-700 mb-1">ডেলিভারি এলাকা</label>
+                <select id="deliveryZone" onchange="updateCartSummary()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs sm:text-sm outline-none focus:border-violet-600">
+                  <option value="inside">ঢাকার ভেতরে (৳৮০)</option>
+                  <option value="outside">ঢাকার বাইরে (৳১৩০)</option>
+                </select>
+              </div>
+              <div>
+                <label for="paymentMethod" class="block text-xs font-bold text-slate-700 mb-1">পেমেন্ট মাধ্যম</label>
+                <select id="paymentMethod" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3 py-2 text-xs sm:text-sm outline-none focus:border-violet-600">
+                  <option value="ক্যাশ অন ডেলিভারি">ক্যাশ অন ডেলিভারি</option>
+                  <option value="বিকাশ">বিকাশ</option>
+                  <option value="নগদ">নগদ</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="rounded-2xl bg-violet-50/70 border border-violet-100 p-3.5 space-y-1.5 text-xs sm:text-sm">
+              <div class="flex justify-between text-slate-600">
+                <span>পণ্যের মূল্য:</span>
+                <span id="cartSubtotal" class="font-bold text-slate-900">৳০</span>
+              </div>
+              <div class="flex justify-between text-slate-600">
+                <span>ডেলিভারি চার্জ:</span>
+                <span id="cartDeliveryFee" class="font-bold text-slate-900">৳৮০</span>
+              </div>
+              <div class="flex justify-between text-sm sm:text-base font-black text-violet-900 pt-1.5 border-t border-violet-200/70">
+                <span>সর্বমোট:</span>
+                <span id="cartGrandTotal">৳৮০</span>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="w-full py-3 rounded-2xl text-sm font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-md transition"
+            >
+              অর্ডার কনফার্ম করুন
+            </button>
+          </form>
+
+          <div id="orderSuccessBox" class="hidden rounded-2xl bg-emerald-50 border border-emerald-300 p-4 text-xs sm:text-sm text-slate-800"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================
+       সাইন আপ / লগ আউট মডাল
+       ========================================================= -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl overflow-hidden border border-violet-200 shadow-2xl">
+      <div class="px-5 py-4 bg-gradient-to-r from-violet-700 to-fuchsia-700 flex items-center justify-between text-white">
+        <h3 class="text-base font-extrabold">🔐 সাইন আপ / অ্যাকাউন্ট</h3>
+        <button type="button" onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 font-bold flex items-center justify-center transition">✕</button>
+      </div>
+      <form id="signUpAccountForm" onsubmit="handleSignUpSubmit(event)" class="p-5 space-y-3.5">
+        <div>
+          <label for="authUserName" class="block text-xs font-bold text-slate-700 mb-1">আপনার নাম *</label>
+          <input id="authUserName" type="text" required placeholder="যেমন: নাবিলা রহমান" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+        </div>
+        <div>
+          <label for="authUserPhoneOrEmail" class="block text-xs font-bold text-slate-700 mb-1">মোবাইল বা ইমেইল *</label>
+          <input id="authUserPhoneOrEmail" type="text" required placeholder="01XXXXXXXXX বা name@email.com" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+        </div>
+        <div>
+          <label for="authUserRole" class="block text-xs font-bold text-slate-700 mb-1">অ্যাকাউন্টের ধরন</label>
+          <select id="authUserRole" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600">
+            <option value="গ্রাহক">গ্রাহক (সাইন আপ)</option>
+            <option value="সেলার">সেলার</option>
+            <option value="রিসেলার">রিসেলার</option>
+            <option value="অ্যাডমিন">অ্যাডমিন</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white transition">
+          সাইন আপ সম্পন্ন করুন
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       মেসেঞ্জার স্টাইল AI অ্যাসিস্ট্যান্ট মডাল
+       ========================================================= -->
+  <div id="aiAssistantModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-6">
+    <div class="w-full max-w-lg bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-2xl">
+      <div class="px-5 py-4 bg-gradient-to-r from-sky-600 to-blue-700 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl text-white">
+            💬
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-white">Hatbazar AI অ্যাসিস্ট</h3>
+            <p class="text-xs text-sky-100">দ্রুত সাহায্য, ক্যাটাগরি, ডেলিভারি ও অফার তথ্য</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="closeAiAssistantModal()"
+          class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 text-white font-bold flex items-center justify-center transition"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="px-4 pt-3 flex flex-wrap gap-1.5 bg-slate-50 pb-2 border-b border-slate-100">
+        <button type="button" onclick="sendAiPrompt('ক্যাটাগরি কোথায় পাব?')" class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-100 hover:bg-sky-200 text-sky-800 transition">
+          ক্যাটাগরি কোথায় পাব?
+        </button>
+        <button type="button" onclick="sendAiPrompt('কুরিয়ার চার্জ কত?')" class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-100 hover:bg-sky-200 text-sky-800 transition">
+          কুরিয়ার চার্জ কত?
+        </button>
+        <button type="button" onclick="sendAiPrompt('সেলার বা রিসেলার হব কীভাবে?')" class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-100 hover:bg-sky-200 text-sky-800 transition">
+          সেলার/রিসেলার হব কীভাবে?
+        </button>
+      </div>
+
+      <div id="aiChatMessages" class="p-4 h-72 overflow-y-auto space-y-3 text-sm bg-slate-50/50">
+        <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-slate-700 max-w-[85%] shadow-2xs">
+          স্বাগতম! আমি Hatbazar AI অ্যাসিস্ট। পণ্য, ২৪টি ক্যাটাগরি, ৬৪ জেলা ডেলিভারি চার্জ, রিটার্ন বা সেলার/রিসেলার রেজিস্ট্রেশন নিয়ে যেকোনো প্রশ্ন করতে পারেন।
+        </div>
+      </div>
+
+      <form id="aiChatForm" class="p-3.5 border-t border-slate-200 bg-white flex items-center gap-2">
+        <input
+          id="aiChatInput"
+          type="text"
+          required
+          placeholder="আপনার প্রশ্ন লিখুন..."
+          class="flex-1 rounded-2xl bg-slate-100 border border-slate-200 focus:border-blue-500 focus:bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none"
+        />
+        <button
+          type="submit"
+          class="px-4 py-2.5 rounded-2xl text-sm font-extrabold bg-blue-600 hover:bg-blue-700 text-white transition"
+        >
+          পাঠান
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /* =====================================================================
+       ০. ভাষা অভিধান, রেন্ডারিং ও নেভিগেশন ফাংশনসমূহ
+       ===================================================================== */
+    const LANG_TEXT_MAP = {
+      bn: {
+        emptyCartTitle: 'আপনার কার্টটি বর্তমানে খালি',
+        emptyCartSub: 'ক্যাটাগরি ফোল্ডার বা ফ্ল্যাশ ডিল থেকে পছন্দের পণ্য যোগ করুন।',
+        emptyCartBtn: 'ক্যাটাগরি ফোল্ডারে যান',
+        clearAllCartBtn: 'সব মুছে ফেলুন',
+        removeItemBtn: 'মুছে ফেলুন',
+        discountAdminLockText: '🔒 ডিসকাউন্ট শুধুমাত্র অ্যাডমিন দিতে পারবেন (অন্যদের জন্য লক)',
+        discountAdminUnlockedText: '🔓 অ্যাডমিন অনুমোদিত: ডিসকাউন্ট (%) দিতে পারবেন',
+        discountAdminOnlyToast: 'শুধুমাত্র অ্যাডমিন ডিসকাউন্ট দিতে পারবেন!',
+        lastUploadedFbPrefix: 'আপলোড হয়েছে:',
+        lastUploadedFbShareBtn: '📘 ফেসবুকে শেয়ার করুন',
+        lastUploadedCopyBtn: '🔗 লিংক কপি',
+        folderBadgePrefix: 'ক্যাটাগরি ফোল্ডার',
+        addToCartLabel: 'কার্টে অ্যাড করুন',
+        orderNowLabel: 'অর্ডার করুন',
+        fbShareCardBtn: '📘 ফেসবুক লিংক',
+        noFolderItemsMsg: 'এই ফোল্ডারে এখনো আলাদা কোনো পণ্য যোগ করা হয়নি। উপরের ফর্ম থেকে নতুন পণ্য ও ছবি অ্যাড করুন।'
+      },
+      en: {
+        emptyCartTitle: 'Your cart is currently empty',
+        emptyCartSub: 'Add products from category folders or flash deals.',
+        emptyCartBtn: 'Go to Category Folders',
+        clearAllCartBtn: 'Clear All',
+        removeItemBtn: 'Delete',
+        discountAdminLockText: '🔒 Discounts can be set by Admin only (locked for others)',
+        discountAdminUnlockedText: '🔓 Admin authorized: You can set discount (%)',
+        discountAdminOnlyToast: 'Only Admin can apply discounts!',
+        lastUploadedFbPrefix: 'Uploaded:',
+        lastUploadedFbShareBtn: '📘 Share on Facebook',
+        lastUploadedCopyBtn: '🔗 Copy Link',
+        folderBadgePrefix: 'Category Folder',
+        addToCartLabel: 'Add to Cart',
+        orderNowLabel: 'Order Now',
+        fbShareCardBtn: '📘 FB Link',
+        noFolderItemsMsg: 'No custom items added to this folder yet. Use the form above to add products & photos.'
+      }
+    };
+
+    let lastUploadedShareData = null;
+
+    function formatNum(val) {
+      const str = String(val);
+      if (currentLang === 'en') return str;
+      const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+      return str.replace(/\d/g, (d) => bnDigits[Number(d)]);
+    }
+
+    function showToast(message) {
+      const banner = document.getElementById('toastBanner');
+      const msgEl = document.getElementById('toastMessage');
+      if (!banner || !msgEl) return;
+      msgEl.textContent = message;
+      banner.classList.remove('hidden');
+      clearTimeout(window.__hatbazarToastTimer);
+      window.__hatbazarToastTimer = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 2800);
+    }
+
+    function getCategoryDisplayName(cat) {
+      if (!cat) return '';
+      return cat.name;
+    }
+
+    function buildProductShareUrl(itemId, title, price, catId) {
+      try {
+        const base = window.location.href.split('#')[0].split('?')[0];
+        const params = new URLSearchParams({
+          cat: catId || '',
+          item: itemId || '',
+          title: title || '',
+          price: String(price ?? '')
+        });
+        return `${base}?${params.toString()}#shop`;
+      } catch (_err) {
+        return `https://hatbazar.com.bd/?item=${encodeURIComponent(itemId || '')}`;
+      }
+    }
+
+    function openFacebookShareWithUrl(shareUrl, quoteText) {
+      const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(quoteText || 'Hatbazar')}`;
+      window.open(fbUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    function shareFolderProductToFacebook(catId, itemId) {
+      const cat = categoriesData.find((c) => c.id === catId);
+      const item = cat?.items?.find((i) => i.id === itemId);
+      if (!cat || !item) return;
+      const price = item.finalPrice ?? item.price;
+      const shareUrl = buildProductShareUrl(item.id, item.title, price, cat.id);
+      openFacebookShareWithUrl(shareUrl, `Hatbazar — ${item.title} (৳${price})`);
+    }
+
+    function navigateTo(viewName) {
+      const allowedViews = ['home', 'shop', 'partner', 'admin', 'cart'];
+      currentView = allowedViews.includes(viewName) ? viewName : 'home';
+
+      const viewMap = {
+        home: document.getElementById('homeView'),
+        shop: document.getElementById('shopView'),
+        partner: document.getElementById('partnerView'),
+        admin: document.getElementById('adminView'),
+        cart: document.getElementById('cartView')
+      };
+
+      Object.entries(viewMap).forEach(([key, el]) => {
+        if (!el) return;
+        if (key === currentView) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+
+      syncNavButtons();
+      renderHomeSections();
+      renderCategoriesGrid();
+      renderCartItems();
+      refreshAdminStats();
+      syncDiscountAdminPermission();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function syncNavButtons() {
+      document.querySelectorAll('.nav-pill').forEach((btn) => {
+        const isActive = btn.getAttribute('data-nav') === currentView;
+        btn.className = isActive
+          ? 'nav-pill shrink-0 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white border border-violet-700 shadow-xs transition'
+          : 'nav-pill shrink-0 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-violet-50/70 hover:bg-violet-100 text-slate-800 border border-violet-200/80 transition';
+      });
+    }
+
+    function handleTopSearch(e) {
+      e.preventDefault();
+      const q = (document.getElementById('topSearchInput')?.value || '').trim().toLowerCase();
+      navigateTo('shop');
+      if (!q) {
+        closeActiveFolder();
+        return;
+      }
+      const matchedCat = categoriesData.find(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          (c.itemName && c.itemName.toLowerCase().includes(q)) ||
+          (Array.isArray(c.items) && c.items.some((it) => it.title.toLowerCase().includes(q)))
+      );
+      if (matchedCat) {
+        openCategoryFolder(matchedCat.id);
+        showToast(currentLang === 'en' ? `Opened "${matchedCat.name}" folder` : `“${matchedCat.name}” ফোল্ডার খোলা হয়েছে`);
+      } else {
+        showToast(currentLang === 'en' ? 'No matching category found' : 'মিলিয়ে কোনো ক্যাটাগরি পাওয়া যায়নি');
+      }
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'bn' ? 'en' : 'bn';
+      applyFullPageLanguage();
+      persistAppState();
+    }
+
+    function applyFullPageLanguage() {
+      const langBtnLabel = document.getElementById('langToggleLabel');
+      if (langBtnLabel) {
+        langBtnLabel.textContent = currentLang === 'bn' ? 'English / বাংলা' : 'বাংলা / English';
+      }
+
+      document.querySelectorAll('[data-bn][data-en]').forEach((el) => {
+        const txt = el.getAttribute(currentLang === 'en' ? 'data-en' : 'data-bn');
+        if (txt !== null) el.textContent = txt;
+      });
+
+      updateAuthButtonLabel();
+      updatePartnerRoleInfo();
+      renderHomeSections();
+      renderCategoriesGrid();
+      renderCartItems();
+      renderLastUploadedFbBar();
+      refreshAdminStats();
+      syncDiscountAdminPermission();
+      if (activeFolderId) {
+        const cat = categoriesData.find((c) => c.id === activeFolderId);
+        if (cat) renderFolderItems(cat);
+      }
+    }
+
+    function handleAuthButtonClick() {
+      if (currentSessionUser) {
+        currentSessionUser = null;
+        persistAppState();
+        updateAuthButtonLabel();
+        refreshAdminStats();
+        syncDiscountAdminPermission();
+        showToast(currentLang === 'en' ? 'Logged out successfully' : 'সফলভাবে লগ আউট করা হয়েছে');
+        return;
+      }
+      document.getElementById('authModal')?.classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal')?.classList.add('hidden');
+    }
+
+    function handleSignUpSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('authUserName')?.value.trim() || '';
+      const contact = document.getElementById('authUserPhoneOrEmail')?.value.trim() || '';
+      const role = document.getElementById('authUserRole')?.value || 'গ্রাহক';
+      if (!name || !contact) return;
+
+      currentSessionUser = { name, contact, role };
+      persistAppState();
+      closeAuthModal();
+      updateAuthButtonLabel();
+      refreshAdminStats();
+      syncDiscountAdminPermission();
+      e.target.reset();
+      showToast(
+        currentLang === 'en'
+          ? `Signed in as ${name} (${role})`
+          : `${name} (${role}) হিসেবে সাইন আপ সম্পন্ন হয়েছে`
+      );
+    }
+
+    function updateAuthButtonLabel() {
+      const labelEl = document.getElementById('authActionLabel');
+      if (!labelEl) return;
+      if (currentSessionUser) {
+        labelEl.textContent =
+          currentLang === 'en'
+            ? `🚪 Logout (${currentSessionUser.name})`
+            : `🚪 লগ আউট (${currentSessionUser.name})`;
+      } else {
+        labelEl.textContent =
+          currentLang === 'en' ? '🔐 Sign Up / Login' : '🔐 সাইন আপ / লগ ইন';
+      }
+    }
+
+    function updatePartnerRoleInfo() {
+      const selectEl = document.getElementById('partnerRoleSelect');
+      const hintEl = document.getElementById('partnerRoleHint');
+      if (!selectEl || !hintEl) return;
+      const isReseller = selectEl.value === 'reseller';
+      if (currentLang === 'en') {
+        hintEl.textContent = isReseller
+          ? 'As a Reseller, you can resell Hatbazar products and earn commission.'
+          : 'As a Seller, you can list your own products and sell nationwide.';
+      } else {
+        hintEl.textContent = isReseller
+          ? 'রিসেলার হিসেবে Hatbazar-এর পণ্য রিসেল করে কমিশন আয় করতে পারবেন।'
+          : 'সেলার হিসেবে নিজের পণ্য লিস্ট করে সারাদেশে বিক্রি করতে পারবেন।';
+      }
+    }
+
+    function populateDistrictsAndUpazilas() {
+      const distSelects = [
+        document.getElementById('customerDistrict'),
+        document.getElementById('partnerDistrict')
+      ];
+      const districts = Object.keys(BD_DISTRICTS_UPAZILAS);
+      distSelects.forEach((sel) => {
+        if (!sel) return;
+        const prev = sel.value;
+        sel.innerHTML = districts
+          .map((d) => `<option value="${d}">${formatDistrictLabel(d)}</option>`)
+          .join('');
+        if (prev && BD_DISTRICTS_UPAZILAS[prev]) {
+          sel.value = prev;
+        } else if (BD_DISTRICTS_UPAZILAS['ঢাকা']) {
+          sel.value = 'ঢাকা';
+        }
+      });
+      populateUpazilas();
+    }
+
+    function formatDistrictLabel(d) {
+      return d || '';
+    }
+
+    function formatUpazilaLabel(u) {
+      return u || '';
+    }
+
+    function populateUpazilas() {
+      const distVal = document.getElementById('customerDistrict')?.value || 'ঢাকা';
+      const upaSel = document.getElementById('customerUpazila');
+      if (!upaSel) return;
+      const list = BD_DISTRICTS_UPAZILAS[distVal] || ['সদর'];
+      upaSel.innerHTML = list.map((u) => `<option value="${u}">${formatUpazilaLabel(u)}</option>`).join('');
+    }
+
+    function renderHomeSections() {
+      const sidebar = document.getElementById('sidebarQuickCategories');
+      if (sidebar) {
+        sidebar.innerHTML = categoriesData
+          .slice(0, 10)
+          .map(
+            (cat) => `
+          <button
+            type="button"
+            onclick="navigateTo('shop'); openCategoryFolder('${cat.id}');"
+            class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-800 flex items-center justify-between transition"
+          >
+            <span class="truncate">${cat.emoji || '📁'} ${cat.name}</span>
+            <span class="text-slate-400">›</span>
+          </button>
+        `
+          )
+          .join('');
+      }
+
+      const topGrid = document.getElementById('homeTopCategoriesGrid');
+      if (topGrid) {
+        topGrid.innerHTML = categoriesData
+          .slice(0, 8)
+          .map(
+            (cat) => `
+          <button
+            type="button"
+            onclick="navigateTo('shop'); openCategoryFolder('${cat.id}');"
+            class="bg-white rounded-2xl border border-violet-100 hover:border-violet-400 p-2.5 text-center shadow-2xs hover:shadow-md transition group"
+          >
+            <img
+              src="${cat.image || getCategoryPhotoFallback(cat.name)}"
+              alt="${cat.name}"
+              loading="lazy"
+              onerror="this.onerror=null;this.src='${getCategoryPhotoFallback(cat.name)}';"
+              class="w-full h-20 rounded-xl object-cover object-top mb-2 group-hover:scale-105 transition"
+            />
+            <div class="text-xs font-extrabold text-slate-800 truncate">${cat.emoji || '📁'} ${cat.name}</div>
+          </button>
+        `
+          )
+          .join('');
+      }
+
+      const flashContainer = document.getElementById('flashDealsContainer');
+      if (flashContainer) {
+        const t = LANG_TEXT_MAP[currentLang];
+        flashContainer.innerHTML = FLASH_DEALS_DATA.map((deal) => {
+          const safeTitle = deal.title.replace(/'/g, "\\'");
+          const safeImg = deal.image.replace(/'/g, "\\'");
+          return `
+            <div class="bg-white rounded-2xl border border-violet-100 overflow-hidden shadow-xs flex flex-col justify-between">
+              <div>
+                <img
+                  src="${deal.image}"
+                  alt="${deal.title}"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.src='${getCategoryPhotoFallback(deal.title)}';"
+                  class="w-full h-44 object-cover"
+                />
+                <div class="p-4 space-y-1.5">
+                  <h3 class="text-sm sm:text-base font-extrabold text-slate-900 line-clamp-1">${deal.title}</h3>
+                  <p class="text-xs text-slate-500 line-clamp-2">${deal.desc}</p>
+                  <div class="flex items-center gap-2 pt-1">
+                    <span class="text-base font-black text-violet-800">৳${formatNum(deal.price)}</span>
+                    <span class="text-xs line-through text-slate-400 font-bold">৳${formatNum(deal.oldPrice)}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="px-4 pb-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onclick="addToCart('${deal.id}', '${safeTitle}', ${deal.price}, '${safeImg}')"
+                  class="py-2 px-3 rounded-xl text-xs font-extrabold bg-violet-100 hover:bg-violet-200 text-violet-900 transition"
+                >
+                  ${t.addToCartLabel}
+                </button>
+                <button
+                  type="button"
+                  onclick="orderNowItem('${deal.id}', '${safeTitle}', ${deal.price}, '${safeImg}')"
+                  class="py-2 px-3 rounded-xl text-xs font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white transition"
+                >
+                  ${t.orderNowLabel}
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderCategoriesGrid() {
+      const grid = document.getElementById('categoriesGrid');
+      if (!grid) return;
+      grid.innerHTML = categoriesData
+        .map((cat, idx) => {
+          const jerkClass = lastVisitedFolderId === cat.id ? 'folder-green-jerk-active' : '';
+          const itemCount = Array.isArray(cat.items) ? cat.items.length : 0;
+          return `
+            <button
+              type="button"
+              onclick="openCategoryFolder('${cat.id}')"
+              class="bg-white rounded-2xl border border-violet-200/80 hover:border-violet-500 p-3 text-left shadow-2xs hover:shadow-md transition flex flex-col justify-between ${jerkClass}"
+            >
+              <div>
+                <div class="flex items-center justify-between text-[11px] font-extrabold text-violet-700 mb-1.5">
+                  <span>#${formatNum(idx + 1)}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-violet-50 text-violet-800">${formatNum(itemCount)}</span>
+                </div>
+                <img
+                  src="${cat.image || getCategoryPhotoFallback(cat.name)}"
+                  alt="${cat.name}"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.src='${getCategoryPhotoFallback(cat.name)}';"
+                  class="w-full h-24 rounded-xl object-cover object-top mb-2"
+                />
+                <div class="text-xs sm:text-sm font-extrabold text-slate-900 line-clamp-1">${cat.emoji || '📁'} ${cat.name}</div>
+              </div>
+              <div class="mt-2 text-[11px] font-bold text-fuchsia-700">
+                ${currentLang === 'en' ? 'Open Folder →' : 'ফোল্ডার খুলুন →'}
+              </div>
+            </button>
+          `;
+        })
+        .join('');
+    }
+
+    function openCategoryFolder(catId) {
+      const cat = categoriesData.find((c) => c.id === catId);
+      if (!cat) return;
+      activeFolderId = cat.id;
+      lastVisitedFolderId = cat.id;
+
+      const t = LANG_TEXT_MAP[currentLang];
+      const grid = document.getElementById('categoriesGrid');
+      const panel = document.getElementById('activeFolderPanel');
+      const badge = document.getElementById('folderBadge');
+      const titleEl = document.getElementById('activeFolderTitle');
+      const descEl = document.getElementById('activeFolderDesc');
+      const coverImg = document.getElementById('activeFolderCoverImg');
+
+      if (grid) grid.classList.add('hidden');
+      if (panel) panel.classList.remove('hidden');
+      if (badge) badge.textContent = `${t.folderBadgePrefix} • ${cat.emoji || '📁'}`;
+      if (titleEl) titleEl.textContent = cat.name;
+      if (descEl) descEl.textContent = cat.desc;
+      if (coverImg) {
+        coverImg.src = cat.image || getCategoryPhotoFallback(cat.name);
+        coverImg.alt = cat.name;
+      }
+
+      renderFolderItems(cat);
+      renderLastUploadedFbBar();
+      syncDiscountAdminPermission();
+    }
+
+    function closeActiveFolder() {
+      activeFolderId = null;
+      const panel = document.getElementById('activeFolderPanel');
+      const grid = document.getElementById('categoriesGrid');
+      if (panel) panel.classList.add('hidden');
+      if (grid) grid.classList.remove('hidden');
+      renderCategoriesGrid();
+    }
+
+    function handleAdminFolderCoverChange(event) {
+      if (!isAdminSession() || !activeFolderId) return;
+      const cat = categoriesData.find((c) => c.id === activeFolderId);
+      const file = event?.target?.files?.[0];
+      if (!cat || !file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        cat.image = reader.result;
+        cat.customCover = true;
+        const coverImg = document.getElementById('activeFolderCoverImg');
+        if (coverImg) coverImg.src = cat.image;
+        renderCategoriesGrid();
+        renderHomeSections();
+        persistAppState();
+        showToast(currentLang === 'en' ? 'Folder photo updated!' : 'ফোল্ডারের ছবি আপডেট হয়েছে!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderFolderItems(cat) {
+      const container = document.getElementById('folderItemsGrid');
+      if (!container) return;
+      const t = LANG_TEXT_MAP[currentLang];
+      const items = Array.isArray(cat.items) ? cat.items : [];
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full rounded-2xl bg-slate-50 border border-dashed border-slate-300 p-6 text-center text-xs sm:text-sm font-semibold text-slate-500">
+            ${t.noFolderItemsMsg}
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = items
+        .map((item) => {
+          const finalPrice = item.finalPrice ?? item.price;
+          const discAmt = Number(item.discountAmount || 0);
+          const safeTitle = String(item.title).replace(/'/g, "\\'");
+          const safeImg = String(item.image || getCategoryPhotoFallback(item.title)).replace(/'/g, "\\'");
+          return `
+            <div class="bg-white rounded-2xl border border-violet-100 overflow-hidden shadow-2xs flex flex-col justify-between">
+              <div>
+                <img
+                  src="${item.image || getCategoryPhotoFallback(item.title)}"
+                  alt="${item.title}"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.src='${getCategoryPhotoFallback(item.title)}';"
+                  class="w-full h-40 object-cover"
+                />
+                <div class="p-3.5 space-y-1">
+                  <h4 class="text-sm font-extrabold text-slate-900 line-clamp-1">${item.title}</h4>
+                  <p class="text-xs text-slate-500 line-clamp-2">${item.desc || ''}</p>
+                  <div class="flex items-center gap-2 pt-1">
+                    <span class="text-base font-black text-violet-800">৳${formatNum(finalPrice)}</span>
+                    ${
+                      discAmt > 0
+                        ? `<span class="text-xs line-through text-slate-400 font-bold">৳${formatNum(item.price)}</span>`
+                        : ''
+                    }
+                  </div>
+                  ${
+                    discAmt > 0
+                      ? `<div class="text-[11px] font-extrabold text-emerald-700">${
+                          currentLang === 'en'
+                            ? `Discount: -৳${formatNum(discAmt)}`
+                            : `ডিসকাউন্ট: -৳${formatNum(discAmt)}`
+                        }</div>`
+                      : ''
+                  }
+                </div>
+              </div>
+              <div class="px-3.5 pb-3.5 space-y-2">
+                <div class="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onclick="addToCart('${item.id}', '${safeTitle}', ${finalPrice}, '${safeImg}', ${discAmt}, ${Number(item.discountPercent || 0)})"
+                    class="py-2 px-2.5 rounded-xl text-xs font-extrabold bg-violet-100 hover:bg-violet-200 text-violet-900 transition"
+                  >
+                    ${t.addToCartLabel}
+                  </button>
+                  <button
+                    type="button"
+                    onclick="orderNowItem('${item.id}', '${safeTitle}', ${finalPrice}, '${safeImg}', ${discAmt}, ${Number(item.discountPercent || 0)})"
+                    class="py-2 px-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white transition"
+                  >
+                    ${t.orderNowLabel}
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onclick="shareFolderProductToFacebook('${cat.id}', '${item.id}')"
+                  class="w-full py-1.5 px-3 rounded-xl text-xs font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition"
+                >
+                  ${t.fbShareCardBtn}
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    function refreshAdminStats() {
+      const totalCatsEl = document.getElementById('adminTotalCategories');
+      const totalItemsEl = document.getElementById('adminTotalFolderItems');
+      const cartCountEl = document.getElementById('adminCartItemsCount');
+      const authStatusEl = document.getElementById('adminAuthStatusText');
+
+      const totalFolderItems = categoriesData.reduce(
+        (acc, c) => acc + (Array.isArray(c.items) ? c.items.length : 0),
+        0
+      );
+      const totalCartQty = cartItems.reduce((acc, i) => acc + (Number(i.qty) || 0), 0);
+
+      if (totalCatsEl) totalCatsEl.textContent = formatNum(categoriesData.length);
+      if (totalItemsEl) totalItemsEl.textContent = formatNum(totalFolderItems);
+      if (cartCountEl) cartCountEl.textContent = formatNum(totalCartQty);
+      if (authStatusEl) {
+        if (currentSessionUser) {
+          authStatusEl.textContent = `${currentSessionUser.name} (${currentSessionUser.role})`;
+        } else {
+          authStatusEl.textContent = currentLang === 'en' ? 'Logged Out' : 'লগ আউট অবস্থায়';
+        }
+      }
+    }
+
+    /* =====================================================================
+       ১. বাস্তব ফটোগ্রাফিক ভিজ্যুয়াল হেল্পার ও ২৪ ক্যাটাগরি ডেটা
+       ===================================================================== */
+    const CATEGORY_REAL_PHOTOS = {
+      'cat-01': 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-02': 'https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-03': 'https://images.pexels.com/photos/1648377/pexels-photo-1648377.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-04': 'https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-05': 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-06': 'https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-07': 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-08': 'https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-09': 'https://images.pexels.com/photos/3685530/pexels-photo-3685530.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-10': 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-11': 'https://images.pexels.com/photos/965989/pexels-photo-965989.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-12': 'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-13': 'https://images.pexels.com/photos/1454171/pexels-photo-1454171.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-14': 'https://images.pexels.com/photos/2294361/pexels-photo-2294361.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-15': 'https://images.pexels.com/photos/256450/pexels-photo-256450.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-16': 'https://images.pexels.com/photos/3683074/pexels-photo-3683074.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-17': 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-18': 'https://images.pexels.com/photos/3662847/pexels-photo-3662847.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-19': 'https://images.pexels.com/photos/699122/pexels-photo-699122.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-20': 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-21': 'https://images.pexels.com/photos/1008155/pexels-photo-1008155.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-22': 'https://images.pexels.com/photos/264787/pexels-photo-264787.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-23': 'https://images.pexels.com/photos/4112236/pexels-photo-4112236.jpeg?auto=compress&cs=tinysrgb&w=800',
+      'cat-24': 'https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg?auto=compress&cs=tinysrgb&w=800'
+    };
+
+    function getCategoryPhotoFallback(title) {
+      const safeText = encodeURIComponent(title || 'Hatbazar');
+      return `https://placehold.co/800x500/312e81/fde047?text=${safeText}`;
+    }
+
+    function makeCategoryVisual(title, _emoji, _c1, _c2, _accent, catObj = null) {
+      if (catObj && catObj.id && CATEGORY_REAL_PHOTOS[catObj.id]) {
+        return CATEGORY_REAL_PHOTOS[catObj.id];
+      }
+      if (typeof title === 'string' && (title.includes('জামদানি') || title.includes('শাড়ি') || title.toLowerCase().includes('saree') || title.toLowerCase().includes('jamdani'))) {
+        return CATEGORY_REAL_PHOTOS['cat-02'];
+      }
+      if (typeof title === 'string' && (title.includes('জুতা') || title.includes('স্যান্ডেল') || title.toLowerCase().includes('shoe') || title.toLowerCase().includes('loafer'))) {
+        return CATEGORY_REAL_PHOTOS['cat-04'];
+      }
+      if (typeof title === 'string' && (title.includes('গ্যাজেট') || title.includes('স্মার্টওয়াচ') || title.toLowerCase().includes('watch') || title.toLowerCase().includes('gadget'))) {
+        return CATEGORY_REAL_PHOTOS['cat-05'];
+      }
+      return getCategoryPhotoFallback(title);
+    }
+
+    const RAW_24_CATEGORIES = [
+      { id: 'cat-01', name: 'মেন্স ফ্যাশন', emoji: '👔', c1: '#047857', c2: '#064e3b', accent: '#6ee7b7', itemName: 'রয়্যাল কটন পাঞ্জাবি', price: 1450 },
+      { id: 'cat-02', name: 'ওমেন্স ফ্যাশন', emoji: '👗', c1: '#be185d', c2: '#831843', accent: '#f9a8d4', itemName: 'ডিজাইনার থ্রি-পিস', price: 2250 },
+      { id: 'cat-03', name: 'কিডস কালেকশন', emoji: '🧸', c1: '#0f766e', c2: '#134e4a', accent: '#5eead4', itemName: 'কিডস কম্ফোর্ট সেট', price: 980 },
+      { id: 'cat-04', name: 'জুতা ও স্যান্ডেল', emoji: '👞', c1: '#b45309', c2: '#78350f', accent: '#fde68a', itemName: 'প্রিমিয়াম লেদার সু', price: 1890 },
+      { id: 'cat-05', name: 'স্মার্ট গ্যাজেট', emoji: '⌚', c1: '#0369a1', c2: '#0c4a6e', accent: '#7dd3fc', itemName: 'স্মার্টওয়াচ প্রো', price: 2450 },
+      { id: 'cat-06', name: 'অডিও ও হেডফোন', emoji: '🎧', c1: '#4338ca', c2: '#312e81', accent: '#a5b4fc', itemName: 'ওয়্যারলেস ইয়ারবাডস', price: 1390 },
+      { id: 'cat-07', name: 'হোম ডেকর', emoji: '🛋️', c1: '#a16207', c2: '#713f12', accent: '#fef08a', itemName: 'রয়্যাল কুশন সেট', price: 1150 },
+      { id: 'cat-08', name: 'কিচেন ডাইনিং', emoji: '🍽️', c1: '#059669', c2: '#065f46', accent: '#a7f3d0', itemName: 'প্রিমিয়াম ডিনার সেট', price: 2650 },
+      { id: 'cat-09', name: 'স্কিন কেয়ার', emoji: '✨', c1: '#db2777', c2: '#9d174d', accent: '#fbcfe8', itemName: 'গ্লো সিরাম প্যাক', price: 890 },
+      { id: 'cat-10', name: 'হেয়ার কেয়ার', emoji: '🪮', c1: '#7c3aed', c2: '#4c1d95', accent: '#ddd6fe', itemName: 'হার্বাল হেয়ার অয়েল', price: 650 },
+      { id: 'cat-11', name: 'পারফিউম ও বডি স্প্রে', emoji: '🧴', c1: '#d97706', c2: '#92400e', accent: '#fde68a', itemName: 'উড রয়্যাল পারফিউম', price: 1550 },
+      { id: 'cat-12', name: 'ব্যাগ ও লাগেজ', emoji: '👜', c1: '#334155', c2: '#0f172a', accent: '#cbd5e1', itemName: 'লাক্সারি হ্যান্ডব্যাগ', price: 1750 },
+      { id: 'cat-13', name: 'ওয়াচ ও জুয়েলারি', emoji: '💍', c1: '#ca8a04', c2: '#854d0e', accent: '#fef08a', itemName: 'গোল্ড প্লেটেড সেট', price: 1320 },
+      { id: 'cat-14', name: 'স্পোর্টস ও ফিটনেস', emoji: '🏋️', c1: '#15803d', c2: '#14532d', accent: '#86efac', itemName: 'ফিটনেস কিট ব্যাগ', price: 1490 },
+      { id: 'cat-15', name: 'বই ও স্টেশনারি', emoji: '📚', c1: '#1d4ed8', c2: '#1e3a8a', accent: '#93c5fd', itemName: 'রয়্যাল নোটবুক প্যাক', price: 540 },
+      { id: 'cat-16', name: 'হেলথ ও ওয়েলনেস', emoji: '🌿', c1: '#0d9488', c2: '#115e59', accent: '#99f6e4', itemName: 'অর্গানিক হেলথ টনিক', price: 790 },
+      { id: 'cat-17', name: 'অর্গানিক গ্রোসারি', emoji: '🍯', c1: '#b45309', c2: '#78350f', accent: '#fde68a', itemName: 'সুন্দরবনের খাঁটি মধু', price: 950 },
+      { id: 'cat-18', name: 'বেবি কেয়ার', emoji: '🍼', c1: '#e11d48', c2: '#9f1239', accent: '#fecdd3', itemName: 'বেবি সফট ব্ল্যাঙ্কেট', price: 1120 },
+      { id: 'cat-19', name: 'মোবাইল অ্যাক্সেসরিজ', emoji: '📱', c1: '#2563eb', c2: '#1e40af', accent: '#bfdbfe', itemName: 'ফাস্ট চার্জার কিট', price: 850 },
+      { id: 'cat-20', name: 'ল্যাপটপ ও অফিস', emoji: '💼', c1: '#475569', c2: '#1e293b', accent: '#cbd5e1', itemName: 'ল্যাপটপ স্লিভ ব্যাগ', price: 1290 },
+      { id: 'cat-21', name: 'ট্রাভেল গিয়ার', emoji: '🧳', c1: '#0284c7', c2: '#075985', accent: '#bae6fd', itemName: 'ট্রাভেল অর্গানাইজার', price: 1050 },
+      { id: 'cat-22', name: 'উৎসব ও গিফট বক্স', emoji: '🎁', c1: '#e11d48', c2: '#881337', accent: '#fda4af', itemName: 'রয়্যাল গিফট হ্যাম্পার', price: 1990 },
+      { id: 'cat-23', name: 'ইলেকট্রনিক অ্যাপ্লায়েন্স', emoji: '🔌', c1: '#4f46e5', c2: '#312e81', accent: '#c7d2fe', itemName: 'পোর্টেবল মিনি ব্লেন্ডার', price: 1680 },
+      { id: 'cat-24', name: 'গার্ডেন ও আউটডোর', emoji: '🪴', c1: '#16a34a', c2: '#14532d', accent: '#bbf7d0', itemName: 'ডেকোরেটিভ প্ল্যান্টার', price: 720 }
+    ];
+
+    let categoriesData = RAW_24_CATEGORIES.map((cat) => {
+      const folderImg = makeCategoryVisual(cat.name, cat.emoji, cat.c1, cat.c2, cat.accent, cat);
+      return {
+        ...cat,
+        desc: `${cat.name} ফোল্ডারে ঢুকে পণ্য দেখুন এবং নিচের অপশন থেকে নতুন পণ্য ও ছবি অ্যাড করুন।`,
+        image: folderImg,
+        items: []
+      };
+    });
+
+    const FLASH_DEALS_DATA = [
+      {
+        id: 'fd-1',
+        title: 'রয়্যাল জামদানি শাড়ি + ম্যাচিং ব্লাউজ কম্বো',
+        price: 2650,
+        oldPrice: 3600,
+        desc: 'উৎসব ও বিশেষ আয়োজনের জন্য এক্সক্লুসিভ কালেকশন।',
+        image: 'https://images.pexels.com/photos/291759/pexels-photo-291759.jpeg?auto=compress&cs=tinysrgb&w=800'
+      },
+      {
+        id: 'fd-2',
+        title: 'প্রিমিয়াম লেদার লোফার ও স্যান্ডেল পেয়ার',
+        price: 2190,
+        oldPrice: 2950,
+        desc: 'আরামদায়ক সোল ও টেকসই ফিনিশিংয়ে দৈনন্দিন ও পার্টি লুক।',
+        image: makeCategoryVisual('জুতা ও স্যান্ডেল ডিল', '👞', '#b45309', '#451a03', '#fdba74')
+      },
+      {
+        id: 'fd-3',
+        title: 'স্মার্টওয়াচ আল্ট্রা + ওয়্যারলেস অডিও প্যাক',
+        price: 2790,
+        oldPrice: 3500,
+        desc: 'হেলথ ট্র্যাকিং, কল নোটিফিকেশন ও লং ব্যাটারি ব্যাকআপ।',
+        image: makeCategoryVisual('গ্যাজেট ফ্ল্যাশ ডিল', '⌚', '#0369a1', '#082f49', '#7dd3fc')
+      }
+    ];
+
+    /* =====================================================================
+       ২. বাংলাদেশের সম্পূর্ণ ৬৪ জেলা ও উপজেলা তালিকা
+       ===================================================================== */
+    const BD_DISTRICTS_UPAZILAS = {
+      'বাগেরহাট': ['বাগেরহাট সদর', 'চিতলমারী', 'ফকিরহাট', 'কচুয়া', 'মোল্লাহাট', 'মোংলা', 'মোড়েলগঞ্জ', 'রামপাল', 'শরণখোলা'],
+      'বান্দরবান': ['বান্দরবান সদর', 'আলীকদম', 'লামা', 'নাইক্ষ্যংছড়ি', 'রোয়াংছড়ি', 'রুমা', 'থানচি'],
+      'বরগুনা': ['বরগুনা সদর', 'আমতলী', 'বামনা', 'বেতাগী', 'পাথরঘাটা', 'তালতলী'],
+      'বরিশাল': ['বরিশাল সদর', 'আগৈলঝাড়া', 'বাবুগঞ্জ', 'বাকেরগঞ্জ', 'বানারীপাড়া', 'গৌরনদী', 'হিজলা', 'মেহেন্দীগঞ্জ', 'মুলাদী', 'উজিরপুর'],
+      'ভোলা': ['ভোলা সদর', 'বোরহানউদ্দিন', 'চরফ্যাশন', 'দৌলতখান', 'লালমোহন', 'মনপুরা', 'তজুমদ্দিন'],
+      'বগুড়া': ['বগুড়া সদর', 'আদমদীঘি', 'ধুনট', 'দুপচাঁচিয়া', 'গাবতলী', 'কাহালু', 'নন্দীগ্রাম', 'সারিয়াকান্দি', 'শাজাহানপুর', 'শেরপুর', 'শিবগঞ্জ', 'সোনাতলা'],
+      'ব্রাহ্মণবাড়িয়া': ['ব্রাহ্মণবাড়িয়া সদর', 'আখাউড়া', 'আশুগঞ্জ', 'বাঞ্ছারামপুর', 'বিজয়নগর', 'কসবা', 'নবীনগর', 'নাসিরনগর', 'সরাইল'],
+      'চাঁদপুর': ['চাঁদপুর সদর', 'ফরিদগঞ্জ', 'হাইমচর', 'হাজীগঞ্জ', 'কচুয়া', 'মতলব দক্ষিণ', 'মতলব উত্তর', 'শাহরাস্তি'],
+      'চাঁপাইনবাবগঞ্জ': ['চাঁপাইনবাবগঞ্জ সদর', 'ভোলাহাট', 'গোমস্তাপুর', 'নাচোল', 'শিবগঞ্জ'],
+      'চট্টগ্রাম': ['কোতোয়ালী', 'পাঁচলাইশ', 'হালিশহর', 'আগ্রাবাদ', 'আনোয়ারা', 'বাঁশখালী', 'বোয়ালখালী', 'চন্দনাইশ', 'ফটিকছড়ি', 'হাটহাজারী', 'কর্ণফুলী', 'লোহাগাড়া', 'মিরসরাই', 'পটিয়া', 'রাঙ্গুনিয়া', 'রাউজান', 'সন্দ্বীপ', 'সাতকানিয়া', 'সীতাকুণ্ড'],
+      'চুয়াডাঙ্গা': ['চুয়াডাঙ্গা সদর', 'আলমডাঙ্গা', 'দামুড়হুদা', 'জীবননগর'],
+      'কুমিল্লা': ['কুমিল্লা আদর্শ সদর', 'কুমিল্লা সদর দক্ষিণ', 'বরুড়া', 'ব্রাহ্মণপাড়া', 'বুড়িচং', 'চান্দিনা', 'চৌদ্দগ্রাম', 'দাউদকান্দি', 'দেবিদ্বার', 'হোমনা', 'লাকসাম', 'লালমাই', 'মনোহরগঞ্জ', 'মেঘনা', 'মুরাদনগর', 'নাঙ্গলকোট', 'তিতাস'],
+      'কক্সবাজার': ['কক্সবাজার সদর', 'চকরিয়া', 'ঈদগাঁও', 'কুতুবদিয়া', 'মহেশখালী', 'পেকুয়া', 'রামু', 'টেকনাফ', 'উখিয়া'],
+      'ঢাকা': ['ঢাকা উত্তর', 'ঢাকা দক্ষিণ', 'ধানমন্ডি', 'গুলশান', 'মিরপুর', 'উত্তরা', 'মোহাম্মদপুর', 'সাভার', 'কেরানীগঞ্জ', 'ধামরাই', 'নবাবগঞ্জ', 'দোহার'],
+      'দিনাজপুর': ['দিনাজপুর সদর', 'বিরামপুর', 'বীরগঞ্জ', 'বিড়াল', 'বোচাগঞ্জ', 'চিরিরবন্দর', 'ফুলবাড়ী', 'ঘোড়াঘাট', 'হাকিমপুর', 'কাহারোল', 'খানসামা', 'নবাবগঞ্জ', 'পার্বতীপুর'],
+      'ফরিদপুর': ['ফরিদপুর সদর', 'আলফাডাঙ্গা', 'ভাঙ্গা', 'বোয়ালমারী', 'চরভদ্রাসন', 'মধুখালী', 'নগরকান্দা', 'সদরপুর', 'সালথা'],
+      'ফেনী': ['ফেনী সদর', 'ছাগলনাইয়া', 'দাগনভূঞা', 'ফুলগাজী', 'পরশুরাম', 'সোনাগাজী'],
+      'গাইবান্ধা': ['গাইবান্ধা সদর', 'ফুলছড়ি', 'গোবিন্দগঞ্জ', 'পলাশবাড়ী', 'সাদুল্লাপুর', 'সাঘাটা', 'সুন্দরগঞ্জ'],
+      'গাজীপুর': ['গাজীপুর সদর', 'কালিয়াকৈর', 'কালীগঞ্জ', 'কাপাসিয়া', 'শ্রীপুর', 'টঙ্গী'],
+      'গোপালগঞ্জ': ['গোপালগঞ্জ সদর', 'কাশিয়ানী', 'কোটালীপাড়া', 'মুকসুদপুর', 'টুঙ্গিপাড়া'],
+      'হবিগঞ্জ': ['হবিগঞ্জ সদর', 'আজমিরীগঞ্জ', 'বাহুবল', 'বানিয়াচং', 'চুনারুঘাট', 'লাখাই', 'মাধবপুর', 'নবীগঞ্জ', 'শায়েস্তাগঞ্জ'],
+      'জামালপুর': ['জামালপুর সদর', 'বকশীগঞ্জ', 'দেওয়ানগঞ্জ', 'ইসলামপুর', 'মাদারগঞ্জ', 'মেলান্দহ', 'সরিষাবাড়ী'],
+      'যশোর': ['যশোর সদর', 'অভয়নগর', 'বাঘারপাড়া', 'চৌগাছা', 'ঝিকরগাছা', 'কেশবপুর', 'মণিরামপুর', 'শার্শা'],
+      'ঝালকাঠি': ['ঝালকাঠি সদর', 'কাঁঠালিয়া', 'নলছিটি', 'রাজাপুর'],
+      'ঝিনাইদহ': ['ঝিনাইদহ সদর', 'হরিণাকুণ্ডু', 'কালীগঞ্জ', 'কোটচাঁদপুর', 'মহেশপুর', 'শৈলকুপা'],
+      'জয়পুরহাট': ['জয়পুরহাট সদর', 'আক্কেলপুর', 'কালাই', 'ক্ষেতলাল', 'পাঁচবিবি'],
+      'খাগড়াছড়ি': ['খাগড়াছড়ি সদর', 'দীঘিনালা', 'গুইমারা', 'লক্ষ্মীছড়ি', 'মহালছড়ি', 'মানিকছড়ি', 'মাটিরাঙ্গা', 'পানছড়ি', 'রামগড়'],
+      'খুলনা': ['খুলনা সদর', 'সোনাডাঙ্গা', 'খালিশপুর', 'দৌলতপুর', 'বটিয়াঘাটা', 'দাকোপ', 'দিঘলিয়া', 'ডুমুরিয়া', 'কয়রা', 'পাইকগাছা', 'ফুলতলা', 'রূপসা', 'তেরখাদা'],
+      'কিশোরগঞ্জ': ['কিশোরগঞ্জ সদর', 'অষ্টগ্রাম', 'বাজিতপুর', 'ভৈরব', 'হোসেনপুর', 'ইটনা', 'করিমগঞ্জ', 'কটিয়াদী', 'কুলিয়ারচর', 'মিঠামইন', 'নিকলী', 'পাকুন্দিয়া', 'তাড়াইল'],
+      'কুড়িগ্রাম': ['কুড়িগ্রাম সদর', 'ভুরুঙ্গামারী', 'চর রাজিবপুর', 'চিলমারী', 'ফুলবাড়ী', 'নাগেশ্বরী', 'রাজারহাট', 'রৌমারী', 'উলিপুর'],
+      'কুষ্টিয়া': ['কুষ্টিয়া সদর', 'ভেড়ামারা', 'দৌলতপুর', 'খোকসা', 'কুমারখালী', 'মিরপুর'],
+      'লক্ষ্মীপুর': ['লক্ষ্মীপুর সদর', 'কমলনগর', 'রায়পুর', 'রামগঞ্জ', 'রামগতি'],
+      'লালমনিরহাট': ['লালমনিরহাট সদর', 'আদিতমারী', 'হাতীবান্ধা', 'কালীগঞ্জ', 'পাটগ্রাম'],
+      'মাদারীপুর': ['মাদারীপুর সদর', 'ডাসার', 'কালকিনি', 'রাজৈর', 'শিবচর'],
+      'মাগুরা': ['মাগুরা সদর', 'মহম্মদপুর', 'শালিখা', 'শ্রীপুর'],
+      'মানিকগঞ্জ': ['মানিকগঞ্জ সদর', 'দৌলতপুর', 'ঘিওর', 'হরিরামপুর', 'সাটুরিয়া', 'শিবালয়', 'সিংগাইর'],
+      'মেহেরপুর': ['মেহেরপুর সদর', 'গাংনী', 'মুজিবনগর'],
+      'মৌলভীবাজার': ['মৌলভীবাজার সদর', 'বড়লেখা', 'জুড়ী', 'কমলগঞ্জ', 'কুলাউড়া', 'রাজনগর', 'শ্রীমঙ্গল'],
+      'মুন্সীগঞ্জ': ['মুন্সীগঞ্জ সদর', 'গজারিয়া', 'লৌহজং', 'সিরাজদিখান', 'শ্রীনগর', 'টঙ্গীবাড়ী'],
+      'ময়মনসিংহ': ['ময়মনসিংহ সদর', 'ভালুকা', 'ধোবাউড়া', 'ফুলবাড়িয়া', 'গফরগাঁও', 'গৌরীপুর', 'হালুয়াঘাট', 'ঈশ্বরগঞ্জ', 'মুক্তাগাছা', 'নান্দাইল', 'ফুলপুর', 'তারাকান্দা', 'ত্রিশাল'],
+      'নওগাঁ': ['নওগাঁ সদর', 'আত্রাই', 'বদলগাছী', 'ধামইরহাট', 'মান্দা', 'মহাদেবপুর', 'নিয়ামতপুর', 'পত্নীতলা', 'পোরশা', 'রাণীনগর', 'সাপাহার'],
+      'নড়াইল': ['নড়াইল সদর', 'কালিয়া', 'লোহাগড়া'],
+      'নারায়ণগঞ্জ': ['নারায়ণগঞ্জ সদর', 'আড়াইহাজার', 'বন্দর', 'রূপগঞ্জ', 'সোনারগাঁও'],
+      'নরসিংদী': ['নরসিংদী সদর', 'বেলাবো', 'মনোহরদী', 'পলাশ', 'রায়পুরা', 'শিবপুর'],
+      'নাটোর': ['নাটোর সদর', 'বাগাতিপাড়া', 'বড়াইগ্রাম', 'গুরুদাসপুর', 'লালপুর', 'নলডাঙ্গা', 'সিংড়া'],
+      'নেত্রকোনা': ['নেত্রকোনা সদর', 'আটপাড়া', 'বারহাট্টা', 'দুর্গাপুর', 'কলমাকান্দা', 'কেন্দুয়া', 'খালিয়াজুরী', 'মদন', 'মোহনগঞ্জ', 'পূর্বধলা'],
+      'নীলফামারী': ['নীলফামারী সদর', 'ডিমলা', 'ডোমার', 'জলঢাকা', 'কিশোরগঞ্জ', 'সৈয়দপুর'],
+      'নোয়াখালী': ['নোয়াখালী সদর', 'বেগমগঞ্জ', 'চাটখিল', 'কোম্পানীগঞ্জ', 'হাতিয়া', 'কবিরহাট', 'সেনবাগ', 'সোনাইমুড়ী', 'সুবর্ণচর'],
+      'পাবনা': ['পাবনা সদর', 'আটঘরিয়া', 'বেড়া', 'ভাঙ্গুড়া', 'চাটমোহর', 'ফরিদপুর', 'ঈশ্বরদী', 'সাঁথিয়া', 'সুজানগর'],
+      'পঞ্চগড়': ['পঞ্চগড় সদর', 'আটোয়ারী', 'বোদা', 'দেবীগঞ্জ', 'তেঁতুলিয়া'],
+      'পটুয়াখালী': ['পটুয়াখালী সদর', 'বাউফল', 'দশমিনা', 'দুমকি', 'গলাচিপা', 'কলাপাড়া', 'মির্জাগঞ্জ', 'রাঙ্গাবালী'],
+      'পিরোজপুর': ['পিরোজপুর সদর', 'ভান্ডারিয়া', 'ইন্দুরকানী', 'কাউখালী', 'মঠবাড়িয়া', 'নাজিরপুর', 'নেছারাবাদ'],
+      'রাজবাড়ী': ['রাজবাড়ী সদর', 'বালিয়াকান্দি', 'গোয়ালন্দ', 'কালুখালী', 'পাংশা'],
+      'রাজশাহী': ['বোয়ালিয়া', 'মতিহার', 'রাজপাড়া', 'শাহ মখদুম', 'বাঘা', 'বাগমারা', 'চারঘাট', 'দুর্গাপুর', 'গোদাগাড়ী', 'মোহনপুর', 'পবা', 'পুঠিয়া', 'তানোর'],
+      'রাঙ্গামাটি': ['রাঙ্গামাটি সদর', 'বাঘাইছড়ি', 'বরকল', 'বিলাইছড়ি', 'জুরাছড়ি', 'কাপ্তাই', 'কাউখালী', 'লংগদু', 'নানিয়ারচর', 'রাজস্থলী'],
+      'রংপুর': ['রংপুর সদর', 'বদরগঞ্জ', 'গংগাচড়া', 'কাউনিয়া', 'মিঠাপুকুর', 'পীরগাছা', 'পীরগঞ্জ', 'তারাগঞ্জ'],
+      'সাতক্ষীরা': ['সাতক্ষীরা সদর', 'আশাশুনি', 'দেবহাটা', 'কলারোয়া', 'কালীগঞ্জ', 'শ্যামনগর', 'তালা'],
+      'শরীয়তপুর': ['শরীয়তপুর সদর', 'ভেদরগঞ্জ', 'ডামুড্যা', 'গোসাইরহাট', 'নড়িয়া', 'জাজিরা'],
+      'শেরপুর': ['শেরপুর সদর', 'ঝিনাইগাতী', 'নকলা', 'নালিতাবাড়ী', 'শ্রীবরদী'],
+      'সিরাজগঞ্জ': ['সিরাজগঞ্জ সদর', 'বেলকুচি', 'চৌহালী', 'কামারখন্দ', 'কাজীপুর', 'রায়গঞ্জ', 'শাহজাদপুর', 'তাড়াশ', 'উল্লাপাড়া'],
+      'সুনামগঞ্জ': ['সুনামগঞ্জ সদর', 'বিশ্বম্ভরপুর', 'ছাতক', 'দক্ষিণ সুনামগঞ্জ', 'দিরাই', 'ধর্মপাশা', 'দোয়ারাবাজার', 'জগন্নাথপুর', 'জামালগঞ্জ', 'মধ্যনগর', 'শাল্লা', 'তাহিরপুর'],
+      'সিলেট': ['সিলেট সদর', 'কোতোয়ালী', 'জালালাবাদ', 'দক্ষিণ সুরমা', 'বালাগঞ্জ', 'বিয়ানীবাজার', 'বিশ্বনাথ', 'কোম্পানীগঞ্জ', 'ফেঞ্চুগঞ্জ', 'গোলাপগঞ্জ', 'গোয়াইনঘাট', 'জৈন্তাপুর', 'কানাইঘাট', 'ওসমানীনগর', 'জকিগঞ্জ'],
+      'টাঙ্গাইল': ['টাঙ্গাইল সদর', 'বাসাইল', 'ভুঞাপুর', 'দেলদুয়ার', 'ধনবাড়ী', 'ঘাটাইল', 'গোপালপুর', 'কালিহাতী', 'মধুপুর', 'মির্জাপুর', 'নাগরপুর', 'সখীপুর'],
+      'ঠাকুরগাঁও': ['ঠাকুরগাঁও সদর', 'বালিয়াডাঙ্গী', 'হরিপুর', 'পীরগঞ্জ', 'রাণীশংকৈল']
+    };
+
+    let currentView = 'home';
+    let activeFolderId = null;
+    let lastVisitedFolderId = null;
+    let cartItems = [];
+    let currentLang = 'bn';
+    let currentSessionUser = null;
+
+    const STORAGE_KEYS = {
+      categories: 'hatbazar_categories_v1',
+      cart: 'hatbazar_cart_v1',
+      lang: 'hatbazar_lang_v1',
+      session: 'hatbazar_session_v1'
+    };
+
+    function safeStorageGet(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function safeStorageSet(key, value) {
+      try {
+        window.localStorage.setItem(key, value);
+      } catch (_err) {
+        // স্টোরেজ ব্লক বা কোটা পূর্ণ হলে নিরাপদে এড়িয়ে যাবে
+      }
+    }
+
+    function persistAppState() {
+      try {
+        const customItemsByCat = {};
+        const customCoversByCat = {};
+        const customExtraCategories = [];
+        const removedDefaultCatIds = [];
+        const defaultIdsSet = new Set(RAW_24_CATEGORIES.map((c) => c.id));
+
+        RAW_24_CATEGORIES.forEach((defCat) => {
+          if (!categoriesData.some((c) => c.id === defCat.id)) {
+            removedDefaultCatIds.push(defCat.id);
+          }
+        });
+
+        categoriesData.forEach((cat) => {
+          if (Array.isArray(cat.items) && cat.items.length > 0) {
+            customItemsByCat[cat.id] = cat.items;
+          }
+          if (cat.customCover && typeof cat.image === 'string') {
+            customCoversByCat[cat.id] = cat.image;
+          }
+          if (!defaultIdsSet.has(cat.id)) {
+            customExtraCategories.push({
+              id: cat.id,
+              name: cat.name,
+              emoji: cat.emoji || '📁',
+              c1: cat.c1 || '#4f46e5',
+              c2: cat.c2 || '#312e81',
+              accent: cat.accent || '#c7d2fe',
+              itemName: cat.itemName || cat.name,
+              price: cat.price || 1000,
+              desc: cat.desc,
+              image: cat.image,
+              customCover: Boolean(cat.customCover)
+            });
+          }
+        });
+
+        safeStorageSet(
+          STORAGE_KEYS.categories,
+          JSON.stringify({
+            items: customItemsByCat,
+            covers: customCoversByCat,
+            extraCategories: customExtraCategories,
+            removedDefaultIds: removedDefaultCatIds
+          })
+        );
+        safeStorageSet(STORAGE_KEYS.cart, JSON.stringify(cartItems));
+        safeStorageSet(STORAGE_KEYS.lang, currentLang);
+        safeStorageSet(STORAGE_KEYS.session, currentSessionUser ? JSON.stringify(currentSessionUser) : '');
+      } catch (_err) {
+        // নিরাপদ ব্যাকআপ
+      }
+    }
+
+    function restoreAppState() {
+      try {
+        const savedLang = safeStorageGet(STORAGE_KEYS.lang);
+        if (savedLang === 'bn' || savedLang === 'en') {
+          currentLang = savedLang;
+        }
+
+        const savedSession = safeStorageGet(STORAGE_KEYS.session);
+        if (savedSession) {
+          const parsedSession = JSON.parse(savedSession);
+          if (parsedSession && typeof parsedSession.name === 'string') {
+            currentSessionUser = parsedSession;
+          }
+        }
+
+        const savedCats = safeStorageGet(STORAGE_KEYS.categories);
+        if (savedCats) {
+          const parsedMap = JSON.parse(savedCats);
+          if (parsedMap && typeof parsedMap === 'object') {
+            const itemsMap = parsedMap.items && typeof parsedMap.items === 'object' ? parsedMap.items : parsedMap;
+            const coversMap = parsedMap.covers && typeof parsedMap.covers === 'object' ? parsedMap.covers : {};
+            const removedIds = Array.isArray(parsedMap.removedDefaultIds) ? parsedMap.removedDefaultIds : [];
+            const extraCats = Array.isArray(parsedMap.extraCategories) ? parsedMap.extraCategories : [];
+
+            categoriesData = RAW_24_CATEGORIES.filter((c) => !removedIds.includes(c.id)).map((cat) => {
+              const folderImg = makeCategoryVisual(cat.name, cat.emoji, cat.c1, cat.c2, cat.accent, cat);
+              return {
+                ...cat,
+                desc: `${cat.name} ফোল্ডারে ঢুকে পণ্য দেখুন এবং নিচের অপশন থেকে নতুন পণ্য ও ছবি অ্যাড করুন।`,
+                image: folderImg,
+                items: []
+              };
+            });
+
+            extraCats.forEach((ex) => {
+              if (ex && ex.id && ex.name && !categoriesData.some((c) => c.id === ex.id)) {
+                categoriesData.push({
+                  ...ex,
+                  desc: ex.desc || `${ex.name} ফোল্ডারে ঢুকে পণ্য দেখুন এবং নিচের অপশন থেকে নতুন পণ্য ও ছবি অ্যাড করুন।`,
+                  image: ex.image || getCategoryPhotoFallback(ex.name),
+                  items: []
+                });
+              }
+            });
+
+            categoriesData.forEach((cat) => {
+              if (Array.isArray(itemsMap[cat.id])) {
+                cat.items = itemsMap[cat.id].filter(
+                  (item) => item && typeof item.title === 'string' && !Number.isNaN(Number(item.price))
+                );
+              }
+              if (typeof coversMap[cat.id] === 'string' && coversMap[cat.id]) {
+                cat.image = coversMap[cat.id];
+                cat.customCover = true;
+              }
+            });
+          }
+        }
+
+        const savedCart = safeStorageGet(STORAGE_KEYS.cart);
+        if (savedCart) {
+          const parsedCart = JSON.parse(savedCart);
+          if (Array.isArray(parsedCart)) {
+            cartItems = parsedCart.filter(
+              (item) => item && item.id && typeof item.title === 'string' && Number(item.qty) > 0
+            );
+          }
+        }
+      } catch (_err) {
+        // করাপ্টেড স্টোরেজ ডেটা থাকলে ডিফল্ট অবস্থায় চলবে
+      }
+    }
+
+    function isAdminSession() {
+      if (!currentSessionUser || typeof currentSessionUser.role !== 'string') return false;
+      const roleNormalized = currentSessionUser.role.trim().toLowerCase();
+      return roleNormalized === 'অ্যাডমিন' || roleNormalized === 'admin';
+    }
+
+    function syncDiscountAdminPermission() {
+      const discInput = document.getElementById('newItemDiscount');
+      const lockNote = document.getElementById('discountAdminLockNote');
+      const coverInput = document.getElementById('adminFolderCoverInput');
+      const coverTitle = document.getElementById('adminFolderCoverTitle');
+      const coverHint = document.getElementById('adminFolderCoverHint');
+      const t = LANG_TEXT_MAP[currentLang] || LANG_TEXT_MAP.bn;
+      const allowed = isAdminSession();
+
+      if (discInput) {
+        discInput.disabled = !allowed;
+        if (!allowed) {
+          discInput.value = '';
+          discInput.classList.remove('bg-white', 'text-slate-900', 'border-violet-300');
+          discInput.classList.add('bg-slate-100', 'text-slate-400', 'border-slate-300', 'cursor-not-allowed');
+        } else {
+          discInput.classList.remove('bg-slate-100', 'text-slate-400', 'border-slate-300', 'cursor-not-allowed');
+          discInput.classList.add('bg-white', 'text-slate-900', 'border-violet-300');
+        }
+      }
+
+      if (lockNote) {
+        lockNote.textContent = allowed ? t.discountAdminUnlockedText : t.discountAdminLockText;
+        lockNote.classList.toggle('text-emerald-700', allowed);
+        lockNote.classList.toggle('text-rose-600', !allowed);
+      }
+
+      if (coverInput) {
+        coverInput.disabled = !allowed;
+      }
+      if (coverTitle) {
+        coverTitle.textContent =
+          currentLang === 'en'
+            ? '🖼️ Change Folder Photo (Admin Only)'
+            : '🖼️ ফোল্ডারের ছবি পরিবর্তন করুন (শুধুমাত্র অ্যাডমিন)';
+      }
+      if (coverHint) {
+        coverHint.textContent = allowed
+          ? currentLang === 'en'
+            ? '🔓 Admin mode active: Upload a custom cover image for this folder.'
+            : '🔓 অ্যাডমিন মোড সক্রিয়: এই ফোল্ডারের জন্য নিজের পছন্দের ছবি অ্যাড করুন।'
+          : currentLang === 'en'
+          ? '🔒 Only Admin can upload or change folder cover photos.'
+          : '🔒 অ্যাডমিন হিসেবে লগ ইন করলে এই ফোল্ডারের ছবি নিজের মতো করে আপলোড করতে পারবেন।';
+      }
+
+      const addCatBtn = document.getElementById('adminAddCategoryBtn');
+      const remCatBtn = document.getElementById('adminRemoveCategoryBtn');
+      const catAdjTitle = document.getElementById('adminCategoryAdjustTitle');
+      const catAdjHint = document.getElementById('adminCategoryAdjustHint');
+
+      if (addCatBtn) {
+        addCatBtn.disabled = !allowed;
+        addCatBtn.classList.toggle('opacity-50', !allowed);
+        addCatBtn.classList.toggle('cursor-not-allowed', !allowed);
+        addCatBtn.textContent = currentLang === 'en' ? '+ Add Category' : '+ ক্যাটাগরি বাড়ান';
+      }
+      if (remCatBtn) {
+        remCatBtn.disabled = !allowed || categoriesData.length <= 1;
+        remCatBtn.classList.toggle('opacity-50', !allowed || categoriesData.length <= 1);
+        remCatBtn.classList.toggle('cursor-not-allowed', !allowed || categoriesData.length <= 1);
+        remCatBtn.textContent = currentLang === 'en' ? '− Remove Category' : '− ক্যাটাগরি কমান';
+      }
+      if (catAdjTitle) {
+        catAdjTitle.textContent =
+          currentLang === 'en'
+            ? '➕ / − Add or Remove Categories (Admin Only)'
+            : '➕ / − ক্যাটাগরি বাড়ানো বা কমানো (শুধুমাত্র অ্যাডমিন)';
+      }
+      if (catAdjHint) {
+        catAdjHint.textContent = allowed
+          ? currentLang === 'en'
+            ? `🔓 Admin mode active: Total ${categoriesData.length} categories. Click + to add or − to reduce.`
+            : `🔓 অ্যাডমিন মোড সক্রিয়: বর্তমানে ${formatNum(categoriesData.length)}টি ক্যাটাগরি আছে। + দিয়ে বাড়ান বা − দিয়ে কমান।`
+          : currentLang === 'en'
+          ? '🔒 Only Admin can add (+) or remove (−) categories.'
+          : '🔒 অ্যাডমিন হিসেবে লগ ইন করলে + বাটন দিয়ে নতুন ক্যাটাগরি যোগ করতে এবং − বাটন দিয়ে ক্যাটাগরি কমাতে পারবেন।';
+      }
+    }
+
+    function handleAdminAddCategory() {
+      if (!isAdminSession()) {
+        showToast(
+          currentLang === 'en'
+            ? 'Only Admin can add categories!'
+            : 'শুধুমাত্র অ্যাডমিন নতুন ক্যাটাগরি বাড়াতে পারবেন!'
+        );
+        return;
+      }
+
+      const nextIndex = categoriesData.length + 1;
+      const newId = `cat-custom-${Date.now()}-${nextIndex}`;
+      const newName =
+        currentLang === 'en' ? `New Category ${nextIndex}` : `নতুন ক্যাটাগরি ${formatNum(nextIndex)}`;
+      const newCat = {
+        id: newId,
+        name: newName,
+        emoji: '📁',
+        c1: '#4f46e5',
+        c2: '#312e81',
+        accent: '#c7d2fe',
+        itemName: newName,
+        price: 1000,
+        desc: `${newName} ফোল্ডারে ঢুকে পণ্য দেখুন এবং নিচের অপশন থেকে নতুন পণ্য ও ছবি অ্যাড করুন।`,
+        image: getCategoryPhotoFallback(newName),
+        items: []
+      };
+
+      categoriesData.push(newCat);
+      renderCategoriesGrid();
+      renderHomeSections();
+      refreshAdminStats();
+      syncDiscountAdminPermission();
+      persistAppState();
+      showToast(
+        currentLang === 'en'
+          ? `Added "${newName}"! Total: ${categoriesData.length}`
+          : `“${newName}” যোগ হয়েছে! মোট: ${formatNum(categoriesData.length)}টি`
+      );
+    }
+
+    function handleAdminRemoveCategory() {
+      if (!isAdminSession()) {
+        showToast(
+          currentLang === 'en'
+            ? 'Only Admin can remove categories!'
+            : 'শুধুমাত্র অ্যাডমিন ক্যাটাগরি কমাতে পারবেন!'
+        );
+        return;
+      }
+
+      if (categoriesData.length <= 1) {
+        showToast(
+          currentLang === 'en'
+            ? 'At least one category must remain!'
+            : 'অন্তত একটি ক্যাটাগরি থাকতে হবে!'
+        );
+        return;
+      }
+
+      const removedCat = categoriesData.pop();
+      if (activeFolderId === removedCat.id) {
+        activeFolderId = null;
+        document.getElementById('activeFolderPanel')?.classList.add('hidden');
+        document.getElementById('categoriesGrid')?.classList.remove('hidden');
+      }
+      if (lastVisitedFolderId === removedCat.id) {
+        lastVisitedFolderId = null;
+      }
+
+      renderCategoriesGrid();
+      renderHomeSections();
+      refreshAdminStats();
+      syncDiscountAdminPermission();
+      persistAppState();
+      showToast(
+        currentLang === 'en'
+          ? `Removed "${removedCat.name}"! Total: ${categoriesData.length}`
+          : `“${removedCat.name}” কমানো হয়েছে! মোট: ${formatNum(categoriesData.length)}টি`
+      );
+    }
+
+    function renderLastUploadedFbBar() {
+      const bar = document.getElementById('folderLastUploadFbBar');
+      if (!bar) return;
+      if (!lastUploadedShareData) {
+        bar.classList.add('hidden');
+        return;
+      }
+      const t = LANG_TEXT_MAP[currentLang] || LANG_TEXT_MAP.bn;
+      const labelEl = document.getElementById('lastUploadedFbLabel');
+      const previewEl = document.getElementById('lastUploadedFbLinkPreview');
+      const shareBtn = bar.querySelector('button[onclick*="shareLastUploadedToFacebook"]');
+      const copyBtn = bar.querySelector('button[onclick*="copyLastUploadedShareLink"]');
+
+      if (labelEl) {
+        labelEl.textContent = `${t.lastUploadedFbPrefix} ${lastUploadedShareData.title} (৳${formatNum(lastUploadedShareData.price)})`;
+      }
+      if (previewEl) {
+        previewEl.textContent = lastUploadedShareData.shareUrl;
+      }
+      if (shareBtn) shareBtn.textContent = t.lastUploadedFbShareBtn;
+      if (copyBtn) copyBtn.textContent = t.lastUploadedCopyBtn;
+      bar.classList.remove('hidden');
+    }
+
+    function shareLastUploadedToFacebook() {
+      if (!lastUploadedShareData) return;
+      openFacebookShareWithUrl(
+        lastUploadedShareData.shareUrl,
+        `Hatbazar — ${lastUploadedShareData.title} (৳${lastUploadedShareData.price})`
+      );
+      showToast(
+        currentLang === 'en'
+          ? 'Opening Facebook share link...'
+          : 'ফেসবুক শেয়ার লিংক খোলা হচ্ছে...'
+      );
+    }
+
+    function copyLastUploadedShareLink() {
+      if (!lastUploadedShareData || !lastUploadedShareData.shareUrl) return;
+      const url = lastUploadedShareData.shareUrl;
+      let copied = false;
+      try {
+        const tempInp = document.createElement('input');
+        tempInp.value = url;
+        document.body.appendChild(tempInp);
+        tempInp.select();
+        copied = document.execCommand('copy');
+        document.body.removeChild(tempInp);
+      } catch (_err) {
+        copied = false;
+      }
+      if (!copied && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).catch(() => {});
+      }
+      showToast(
+        currentLang === 'en'
+          ? 'Share link copied!'
+          : 'শেয়ার লিংক কপি করা হয়েছে!'
+      );
+    }
+
+    function handleAddFolderItem(e) {
+      e.preventDefault();
+      if (!activeFolderId) return;
+      const cat = categoriesData.find((c) => c.id === activeFolderId);
+      if (!cat) return;
+
+      const title = document.getElementById('newItemTitle').value.trim();
+      const price = Number(document.getElementById('newItemPrice').value);
+      const canApplyDiscount = isAdminSession();
+      const rawDiscountInput = document.getElementById('newItemDiscount')?.value || 0;
+      if (!canApplyDiscount && Number(rawDiscountInput) > 0) {
+        showToast(LANG_TEXT_MAP[currentLang].discountAdminOnlyToast);
+      }
+      const rawDiscount = canApplyDiscount ? Number(rawDiscountInput) : 0;
+      const discountPercent = canApplyDiscount ? Math.min(100, Math.max(0, isNaN(rawDiscount) ? 0 : rawDiscount)) : 0;
+      const discountAmount = canApplyDiscount ? Number(((price * discountPercent) / 100).toFixed(2)) : 0;
+      const finalPrice = Math.max(0, Number((price - discountAmount).toFixed(2)));
+      const desc = document.getElementById('newItemDesc').value.trim();
+      const fileInput = document.getElementById('newItemImageFile');
+      const file = fileInput?.files?.[0];
+      const catName = getCategoryDisplayName(cat);
+
+      const saveItem = (imgSrc) => {
+        const newItemId = `${cat.id}-${Date.now()}`;
+        cat.items.unshift({
+          id: newItemId,
+          title,
+          price,
+          finalPrice,
+          discountPercent,
+          discountAmount,
+          desc: desc || (currentLang === 'en' ? `New item in ${catName}` : `${cat.name} ফোল্ডারের নতুন পণ্য`),
+          image: imgSrc
+        });
+        lastUploadedShareData = {
+          id: newItemId,
+          title,
+          price: finalPrice,
+          catId: cat.id,
+          shareUrl: buildProductShareUrl(newItemId, title, finalPrice, cat.id)
+        };
+        renderFolderItems(cat);
+        renderCategoriesGrid();
+        renderHomeSections();
+        renderLastUploadedFbBar();
+        persistAppState();
+        e.target.reset();
+        syncDiscountAdminPermission();
+        const discAmtText = Number.isInteger(discountAmount) ? discountAmount : discountAmount.toFixed(2);
+        showToast(
+          discountAmount > 0
+            ? currentLang === 'en'
+              ? `"${title}" added! Discount: ৳${formatNum(discAmtText)}`
+              : `“${title}” যোগ হয়েছে! ডিসকাউন্ট: ৳${formatNum(discAmtText)}`
+            : currentLang === 'en'
+            ? `"${title}" added to ${catName} folder!`
+            : `“${title}” সফলভাবে ${cat.name} ফোল্ডারে যোগ হয়েছে!`
+        );
+      };
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => saveItem(reader.result);
+        reader.readAsDataURL(file);
+      } else {
+        saveItem(makeCategoryVisual(title, cat.emoji, '#047857', '#064e3b', '#fde047'));
+      }
+    }
+
+    /* =====================================================================
+       ৭. কার্ট ও চেকআউট লজিক
+       ===================================================================== */
+    function addToCart(id, title, price, image, discountAmount = 0, discountPercent = 0) {
+      const existing = cartItems.find((item) => item.id === id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cartItems.push({ id, title, price, image, qty: 1, discountAmount: Number(discountAmount || 0), discountPercent: Number(discountPercent || 0) });
+      }
+      updateCartBadge();
+      persistAppState();
+      showToast(currentLang === 'en' ? `"${title}" added to cart!` : `“${title}” কার্টে যোগ করা হয়েছে!`);
+    }
+
+    function orderNowItem(id, title, price, image, discountAmount = 0, discountPercent = 0) {
+      addToCart(id, title, price, image, discountAmount, discountPercent);
+      navigateTo('cart');
+    }
+
+    function updateCartBadge() {
+      const totalQty = cartItems.reduce((sum, item) => sum + item.qty, 0);
+      const badge = document.getElementById('cartCountBadge');
+      if (badge) badge.textContent = formatNum(totalQty);
+      refreshAdminStats();
+    }
+
+    function changeCartQty(id, delta) {
+      const idx = cartItems.findIndex((i) => i.id === id);
+      if (idx === -1) return;
+      cartItems[idx].qty += delta;
+      if (cartItems[idx].qty <= 0) {
+        cartItems.splice(idx, 1);
+      }
+      updateCartBadge();
+      renderCartItems();
+      persistAppState();
+    }
+
+    function removeCartItem(id) {
+      const idx = cartItems.findIndex((i) => i.id === id);
+      if (idx === -1) return;
+      const removed = cartItems[idx];
+      cartItems.splice(idx, 1);
+      updateCartBadge();
+      renderCartItems();
+      persistAppState();
+      showToast(
+        currentLang === 'en'
+          ? `"${removed.title}" removed from cart`
+          : `“${removed.title}” কার্ট থেকে মুছে ফেলা হয়েছে`
+      );
+    }
+
+    function clearAllCartItems() {
+      if (cartItems.length === 0) return;
+      cartItems = [];
+      updateCartBadge();
+      renderCartItems();
+      persistAppState();
+      showToast(
+        currentLang === 'en'
+          ? 'All cart items cleared'
+          : 'কার্টের সব পণ্য মুছে ফেলা হয়েছে'
+      );
+    }
+
+    function renderCartItems() {
+      const t = LANG_TEXT_MAP[currentLang];
+      const container = document.getElementById('cartItemsContainer');
+      if (!container) return;
+
+      if (cartItems.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-3 shadow-xs">
+            <div class="text-4xl">🛒</div>
+            <h3 class="text-lg font-extrabold text-slate-900">${t.emptyCartTitle}</h3>
+            <p class="text-sm text-slate-500">${t.emptyCartSub}</p>
+            <button
+              type="button"
+              onclick="navigateTo('shop')"
+              class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white transition"
+            >
+              ${t.emptyCartBtn}
+            </button>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-rose-100 px-4 py-2.5 flex items-center justify-between gap-2 shadow-2xs">
+            <span class="text-xs sm:text-sm font-extrabold text-slate-800">
+              ${currentLang === 'en' ? `Cart Items (${formatNum(cartItems.length)})` : `কার্টের পণ্য (${formatNum(cartItems.length)})`}
+            </span>
+            <button
+              type="button"
+              onclick="clearAllCartItems()"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-rose-600 hover:bg-rose-700 text-white transition"
+            >
+              ${t.clearAllCartBtn}
+            </button>
+          </div>
+        ` + cartItems
+          .map(
+            (item) => {
+              const unitDisc = Number(item.discountAmount || 0);
+              const totalDisc = Number((unitDisc * item.qty).toFixed(2));
+              const unitPriceLabel = Number.isInteger(item.price) ? item.price : item.price.toFixed(2);
+              const lineTotal = Number((item.price * item.qty).toFixed(2));
+              const lineTotalLabel = Number.isInteger(lineTotal) ? lineTotal : lineTotal.toFixed(2);
+              const totalDiscLabel = Number.isInteger(totalDisc) ? totalDisc : totalDisc.toFixed(2);
+
+              return `
+            <div class="bg-white rounded-2xl border border-violet-100 p-4 flex flex-wrap items-center justify-between gap-4 shadow-2xs">
+              <div class="flex items-center gap-3.5">
+                <img src="${item.image}" alt="${item.title}" class="w-16 h-16 rounded-xl object-cover border border-slate-200" />
+                <div>
+                  <h4 class="text-sm sm:text-base font-extrabold text-slate-900">${item.title}</h4>
+                  <div class="text-xs sm:text-sm font-bold text-violet-700 mt-0.5">
+                    ৳${formatNum(unitPriceLabel)} × ${formatNum(item.qty)} = ৳${formatNum(lineTotalLabel)}
+                  </div>
+                  ${
+                    totalDisc > 0
+                      ? `<div class="text-[11px] font-extrabold text-emerald-700 mt-0.5">${
+                          currentLang === 'en'
+                            ? `Discount Amount: -৳${formatNum(totalDiscLabel)}`
+                            : `ডিসকাউন্ট অ্যামাউন্ট: -৳${formatNum(totalDiscLabel)}`
+                        }</div>`
+                      : ''
+                  }
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="changeCartQty('${item.id}', -1)" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold transition">−</button>
+                <span class="w-6 text-center text-sm font-extrabold text-slate-900">${formatNum(item.qty)}</span>
+                <button type="button" onclick="changeCartQty('${item.id}', 1)" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold transition">+</button>
+                <button type="button" onclick="removeCartItem('${item.id}')" class="ml-1 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold transition">
+                  ${t.removeItemBtn}
+                </button>
+              </div>
+            </div>
+          `;
+            }
+          )
+          .join('');
+      }
+
+      updateCartSummary();
+    }
+
+    function updateCartSummary() {
+      const subtotalRaw = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const subtotal = Number(subtotalRaw.toFixed(2));
+      const subtotalLabel = Number.isInteger(subtotal) ? subtotal : subtotal.toFixed(2);
+      const zone = document.getElementById('deliveryZone')?.value || 'inside';
+      const deliveryFee = zone === 'outside' ? 130 : 80;
+      const grandTotal = Number((subtotal + deliveryFee).toFixed(2));
+      const grandTotalLabel = Number.isInteger(grandTotal) ? grandTotal : grandTotal.toFixed(2);
+
+      document.getElementById('cartSubtotal').textContent = `৳${formatNum(subtotalLabel)}`;
+      document.getElementById('cartDeliveryFee').textContent = `৳${formatNum(deliveryFee)}`;
+      document.getElementById('cartGrandTotal').textContent = `৳${formatNum(grandTotalLabel)}`;
+    }
+
+    function handleCheckoutSubmit(e) {
+      e.preventDefault();
+      if (cartItems.length === 0) {
+        showToast(currentLang === 'en' ? 'Please add at least one item to cart first!' : 'অর্ডার করার আগে কার্টে অন্তত একটি পণ্য যোগ করুন!');
+        return;
+      }
+
+      const name = document.getElementById('customerName').value.trim();
+      const phone = document.getElementById('customerPhone').value.trim();
+      const rawDistrict = document.getElementById('customerDistrict').value;
+      const rawUpazila = document.getElementById('customerUpazila').value;
+      const district = formatDistrictLabel(rawDistrict);
+      const upazila = formatUpazilaLabel(rawUpazila);
+      const address = document.getElementById('customerAddress').value.trim();
+      const payment = document.getElementById('paymentMethod').value;
+      const zone = document.getElementById('deliveryZone').value;
+      const deliveryFee = zone === 'outside' ? 130 : 80;
+      const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const total = subtotal + deliveryFee;
+
+      const box = document.getElementById('orderSuccessBox');
+      if (currentLang === 'en') {
+        box.innerHTML = `
+          <div class="font-extrabold text-emerald-800 mb-1">✅ Order Confirmed Successfully!</div>
+          <div>Customer: <strong>${name}</strong> (${phone})</div>
+          <div>Address: ${address}, ${upazila}, ${district}</div>
+          <div>Payment: ${payment} | Total Bill: <strong>৳${formatNum(total)}</strong></div>
+        `;
+      } else {
+        box.innerHTML = `
+          <div class="font-extrabold text-emerald-800 mb-1">✅ অর্ডার সফলভাবে গৃহীত হয়েছে!</div>
+          <div>গ্রাহক: <strong>${name}</strong> (${phone})</div>
+          <div>ঠিকানা: ${address}, ${upazila}, ${district}</div>
+          <div>পেমেন্ট: ${payment} | মোট বিল: <strong>৳${formatNum(total)}</strong></div>
+        `;
+      }
+      box.classList.remove('hidden');
+
+      cartItems = [];
+      updateCartBadge();
+      renderCartItems();
+      persistAppState();
+      e.target.reset();
+      showToast(currentLang === 'en' ? 'Your order has been confirmed!' : 'আপনার অর্ডারটি কনফার্ম করা হয়েছে!');
+    }
+
+    /* =====================================================================
+       ৮. সেলার / রিসেলার ফর্ম সাবমিশন ও AI অ্যাসিস্ট্যান্ট
+       ===================================================================== */
+    function handlePartnerSubmit(e) {
+      e.preventDefault();
+      const roleVal = document.getElementById('partnerRoleSelect').value;
+      const roleLabel =
+        currentLang === 'en'
+          ? roleVal === 'reseller'
+            ? 'Reseller'
+            : 'Seller'
+          : roleVal === 'reseller'
+          ? 'রিসেলার'
+          : 'সেলার';
+      const name = document.getElementById('partnerName').value.trim();
+      const phone = document.getElementById('partnerPhone').value.trim();
+      const shop = document.getElementById('partnerShopName').value.trim();
+      const district = formatDistrictLabel(document.getElementById('partnerDistrict').value);
+
+      const box = document.getElementById('partnerConfirmationBox');
+      if (currentLang === 'en') {
+        box.innerHTML = `
+          <div class="font-extrabold text-emerald-800 mb-1">🎉 ${roleLabel} Registration Submitted!</div>
+          <div>Name: <strong>${name}</strong> | Shop: <strong>${shop}</strong> (${district})</div>
+          <div>Our team will contact you shortly at <strong>${phone}</strong>.</div>
+        `;
+      } else {
+        box.innerHTML = `
+          <div class="font-extrabold text-emerald-800 mb-1">🎉 ${roleLabel} রেজিস্ট্রেশন আবেদন জমা হয়েছে!</div>
+          <div>নাম: <strong>${name}</strong> | শপ: <strong>${shop}</strong> (${district})</div>
+          <div>আমাদের টিম শীঘ্রই <strong>${phone}</strong> নম্বরে যোগাযোগ করবে।</div>
+        `;
+      }
+      box.classList.remove('hidden');
+      e.target.reset();
+      showToast(
+        currentLang === 'en'
+          ? `${roleLabel} registration submitted successfully!`
+          : `${roleLabel} রেজিস্ট্রেশন সফলভাবে জমা হয়েছে!`
+      );
+    }
+
+    function openAiAssistantModal() {
+      document.getElementById('aiAssistantModal')?.classList.remove('hidden');
+    }
+
+    function closeAiAssistantModal() {
+      document.getElementById('aiAssistantModal')?.classList.add('hidden');
+    }
+
+    function sendAiPrompt(promptText) {
+      const messages = document.getElementById('aiChatMessages');
+      if (!messages) return;
+
+      const userDiv = document.createElement('div');
+      userDiv.className = 'ml-auto bg-blue-600 text-white rounded-2xl rounded-tr-sm px-3.5 py-2.5 max-w-[85%] shadow-2xs';
+      userDiv.textContent = promptText;
+      messages.appendChild(userDiv);
+
+      const lower = promptText.toLowerCase();
+      let reply =
+        currentLang === 'en'
+          ? 'You can pick items from 24 category folders at Hatbazar. Feel free to ask more!'
+          : 'Hatbazar-এ ২৪টি ক্যাটাগরি ফোল্ডার থেকে পণ্য বেছে নিতে পারেন। আরও জানতে প্রশ্ন করুন!';
+
+      if (promptText.includes('ক্যাটাগরি') || lower.includes('categor')) {
+        reply =
+          currentLang === 'en'
+            ? 'Click "All Categories" in the navigation bar to explore all 24 category folders.'
+            : 'উপরের “সকল ক্যাটাগরি” বাটনে ক্লিক করলে ২৪টি আলাদা ক্যাটাগরি ফোল্ডার দেখতে পাবেন।';
+      } else if (promptText.includes('কুরিয়ার') || promptText.includes('চার্জ') || lower.includes('courier') || lower.includes('charge')) {
+        reply =
+          currentLang === 'en'
+            ? 'Courier charge is ৳80 inside Dhaka and ৳130 across all 64 districts outside Dhaka.'
+            : 'ঢাকার ভেতরে কুরিয়ার চার্জ ৳৮০ এবং ঢাকার বাইরে সারাদেশের ৬৪ জেলায় ৳১৩০।';
+      } else if (promptText.includes('সেলার') || promptText.includes('রিসেলার') || lower.includes('seller') || lower.includes('reseller')) {
+        reply =
+          currentLang === 'en'
+            ? 'Click "Seller / Reseller" in the navigation bar, select your role from the dropdown, and submit the form.'
+            : 'উপরের “সেলার / রিসেলার” বাটনে ক্লিক করে ড্রপডাউন থেকে আপনার পছন্দের অপশন বেছে ফর্ম পূরণ করুন।';
+      }
+
+      const botDiv = document.createElement('div');
+      botDiv.className = 'bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-slate-700 max-w-[85%] shadow-2xs';
+      botDiv.textContent = reply;
+      messages.appendChild(botDiv);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    /* =====================================================================
+       ৯. ওয়েবসাইটের প্রতিটি বাটনে হালকা কাঁপা ও ক্লিক নড়াচড়া এফেক্ট
+       ===================================================================== */
+    function resolveEventElement(node) {
+      if (!node) return null;
+      if (node instanceof Element) return node;
+      return node.parentElement || null;
+    }
+
+    function triggerButtonMotion(btn, className) {
+      if (!btn || !btn.classList) return;
+      btn.classList.remove(className);
+      void btn.offsetWidth;
+      btn.classList.add(className);
+    }
+
+    function bindAllButtonsMotion() {
+      if (window.__hatbazarButtonMotionBound) return;
+      window.__hatbazarButtonMotionBound = true;
+
+      document.addEventListener('mouseover', (e) => {
+        const targetEl = resolveEventElement(e.target);
+        const btn = targetEl ? targetEl.closest('button') : null;
+        if (!btn || btn.disabled) return;
+        const related = resolveEventElement(e.relatedTarget);
+        if (related && btn.contains(related)) return;
+        triggerButtonMotion(btn, 'btn-tremor');
+      });
+
+      document.addEventListener('click', (e) => {
+        const targetEl = resolveEventElement(e.target);
+        const btn = targetEl ? targetEl.closest('button') : null;
+        if (!btn || btn.disabled) return;
+        triggerButtonMotion(btn, 'btn-clicked');
+      });
+    }
+
+    /* =====================================================================
+       ১০. ইনিশিয়ালাইজেশন
+       ===================================================================== */
+    function attachFormListeners() {
+      const addFolderForm = document.getElementById('addFolderItemForm');
+      if (addFolderForm && !addFolderForm.dataset.bound) {
+        addFolderForm.dataset.bound = '1';
+        addFolderForm.addEventListener('submit', handleAddFolderItem);
+      }
+
+      const partnerForm = document.getElementById('partnerRegistrationForm');
+      if (partnerForm && !partnerForm.dataset.bound) {
+        partnerForm.dataset.bound = '1';
+        partnerForm.addEventListener('submit', handlePartnerSubmit);
+      }
+
+      const checkoutForm = document.getElementById('checkoutOrderForm');
+      if (checkoutForm && !checkoutForm.dataset.bound) {
+        checkoutForm.dataset.bound = '1';
+        checkoutForm.addEventListener('submit', handleCheckoutSubmit);
+      }
+
+      const aiForm = document.getElementById('aiChatForm');
+      if (aiForm && !aiForm.dataset.bound) {
+        aiForm.dataset.bound = '1';
+        aiForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const input = document.getElementById('aiChatInput');
+          if (!input || !input.value.trim()) return;
+          const msg = input.value.trim();
+          input.value = '';
+          sendAiPrompt(msg);
+        });
+      }
+    }
+
+    function initHatbazarApp() {
+      try {
+        restoreAppState();
+        bindAllButtonsMotion();
+        attachFormListeners();
+        populateDistrictsAndUpazilas();
+        applyFullPageLanguage();
+        if (!currentView) {
+          currentView = 'home';
+        }
+        syncNavButtons();
+        refreshAdminStats();
+      } catch (err) {
+        console.error('Hatbazar init error:', err);
+      }
+      window.__hatbazarInitialized = true;
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', initHatbazarApp);
+    } else {
+      initHatbazarApp();
+    }
+    window.addEventListener('load', initHatbazarApp);
+  </script>
+</body>
+</html>
