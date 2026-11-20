@@ -51,7 +51,7 @@ button:disabled{opacity:.5}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .tab.active{background:#d9f36a;color:#173f35}
 .bulk-row{display:grid;grid-template-columns:38px 1.3fr 1.2fr .75fr .75fr .65fr 1.5fr 1.3fr 1.5fr auto;gap:7px;align-items:start;border-bottom:1px solid #e8eeeb;padding:8px 0}
-.bulk-row input,.bulk-row select{margin:0;min-width:0;padding:10px;font-size:13px}
+.bulk-row input,.bulk-row select,.bulk-row textarea{margin:0;min-width:0;padding:10px;font-size:13px}.bulk-row textarea{min-height:82px;resize:vertical}
 .bulk-head{font-size:12px;font-weight:bold;color:#52645d}
 .row-number{padding:10px 0;font-weight:bold}
 .hint{font-size:13px;color:#687871}
@@ -397,8 +397,7 @@ async function generateAIProductDetails(){
  }finally{
   button.disabled=false;button.textContent='✨ আবার AI দিয়ে তথ্য তৈরি করুন';
  }
-}
-$('aiGenerateBtn').addEventListener('click',generateAIProductDetails);
+}$('aiGenerateBtn').addEventListener('click',generateAIProductDetails);
 function selectedAISizes(){
  return [...document.querySelectorAll('[data-ai-size]:checked')].map(x=>x.value);}
 async function facebookRequest(action,method='GET',body=null){
@@ -797,8 +796,7 @@ async function editProduct(id){
   return;
  }
 
- editingProduct=data;
- aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''}; $('aiGeneratedDetails').textContent='সংরক্ষিত AI তথ্য লোড হয়েছে।';
+ editingProduct=data; aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''}; $('aiGeneratedDetails').textContent='সংরক্ষিত AI তথ্য লোড হয়েছে।';
  $('aiSizesPanel').innerHTML=aiProductMeta.sizes.length?'<strong>Size অপশন (প্রয়োজনমতো পরিবর্তন করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>':'এই পণ্যে Size অপশন সংরক্ষিত নেই।'; $('name').value=data.name||'';
  $('name_bn').value=data.name_bn||'';
  $('description').value=data.description||'';
@@ -1035,7 +1033,7 @@ function addBulkRow(v={}){
 
   <input data-field="stock" type="number" min="0" step="1" placeholder="Stock" value="${escapeHTML(v.stock??'')}">
 
-  <input data-field="description" placeholder="Description" value="${escapeHTML(v.description||'')}">
+  <textarea data-field="description" placeholder="Product description" rows="3">${escapeHTML(v.description||'')}</textarea>
 
   <select data-field="category_id">${categoryOptions(v.category_id||'')}</select>
 
@@ -1197,8 +1195,7 @@ async function analyzeBulkImagesWithAI(){
   }
   $('bulkAiStatus').textContent=completed+'টি Product-এর AI তথ্য তৈরি হয়েছে। '+(failed.length?'সমস্যা: '+failed.join(' | '):'এখন প্রতিটি Row দেখে Edit করুন, Price, Base Price ও Stock দিন।');
  }catch(err){
-  $('bulkAiStatus').textContent=completed+'টি Product বিশ্লেষণ হয়েছে। পরেরটিতে সমস্যা: '+(err.message||'AI অনুরোধ ব্যর্থ হয়েছে।');
- }finally{
+  $('bulkAiStatus').textContent=completed+'টি Product বিশ্লেষণ হয়েছে। পরেরটিতে সমস্যা: '+(err.message||'AI অনুরোধ ব্যর্থ হয়েছে।'); }finally{
   btn.disabled=false;
  }
 }
