@@ -3632,6 +3632,7 @@
     }
 
     async function renderAdminSellerApprovals() {
+      refreshAdminResellerPayouts();
       const container = document.getElementById('adminSellerApprovalsContainer');
       if (!container) return;
       let cloudApplications = [];
