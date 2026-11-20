@@ -4502,6 +4502,7 @@
     function handleAuthButtonClick() {
       if (currentSessionUser) {
         currentSessionUser = null;
+        supabaseUser = null;
         supabaseProfile = null;
         if (cloudSyncEnabled && supabaseClient) {
           supabaseClient.auth.signOut().catch(() => {});
@@ -4701,6 +4702,7 @@
 
     function handleAdminLogoutOnly() {
       currentSessionUser = null;
+      supabaseUser = null;
       supabaseProfile = null;
       if (cloudSyncEnabled && supabaseClient) {
         supabaseClient.auth.signOut().catch(() => {});
