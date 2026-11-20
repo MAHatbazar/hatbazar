@@ -2383,15 +2383,30 @@
       if (crumbTitle) crumbTitle.textContent = foundProduct.title;
       const isOutOfStock = (Number(foundProduct.stock) || 0) <= 0;
       const t = LANG_TEXT_MAP[currentLang];
+      const productImages = [...new Set([
+        foundProduct.image,
+        ...(Array.isArray(foundProduct.gallery) ? foundProduct.gallery : [])
+      ].filter((url) => typeof url === 'string' && /^https?:\/\//i.test(url)))].slice(0, 10);
+      const mainProductImage = productImages[0] || foundProduct.image || getCategoryPhotoFallback(foundProduct.title);
 
       container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
           <div class="md:col-span-5">
             <img
-              src="${escapeHtml(foundProduct.image || getCategoryPhotoFallback(foundProduct.title))}"
+              id="productDetailMainImage"
+              src="${escapeHtml(mainProductImage)}"
               alt="${escapeHtml(foundProduct.title)}"
               class="w-full h-72 sm:h-80 rounded-2xl object-cover border border-violet-100 shadow-xs"
             />
+            ${productImages.length > 1 ? `
+              <div class="grid grid-cols-5 gap-2 mt-2">
+                ${productImages.map((imageUrl) => `
+                  <button type="button" data-act="pdp-image" data-image-url="${escapeHtml(imageUrl)}" class="rounded-xl overflow-hidden border border-violet-100 hover:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <img src="${escapeHtml(imageUrl)}" alt="Product image" class="w-full h-16 object-cover" />
+                  </button>
+                `).join('')}
+              </div>
+            ` : ''}
           </div>
           <div class="md:col-span-7 space-y-4">
             <div class="flex flex-wrap items-center gap-2">
@@ -6226,6 +6241,10 @@
           triggerAdminFolderPhotoPicker(catId);
         } else if (act === 'pdp' && pid) {
           openProductDetailsPage(pid);
+        } else if (act === 'pdp-image') {
+          const mainImage = document.getElementById('productDetailMainImage');
+          const imageUrl = actionEl.getAttribute('data-image-url');
+          if (mainImage && imageUrl) mainImage.src = imageUrl;
         } else if (act === 'add' && pid) {
           addProductToCart(pid, false);
         } else if (act === 'order' && pid) {
