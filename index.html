@@ -2655,31 +2655,31 @@
       }
     }
 
-    const SUPABASE_CATEGORY_IDS = {
-      'মেন্স ফ্যাশন': 'aee389fa-b863-41b3-9f81-ae076a906c2d',
-      'ওমেন্স ফ্যাশন': 'a7790e28-ec46-423a-b668-fc33eb6da9b1',
-      'কিডস কালেকশন': 'bdab9f55-27e2-4176-9dfa-08e1e42c97ee',
-      'জুতা ও স্যান্ডেল': 'e6120406-3a47-4367-9943-02fff3c67b9c',
-      'স্মার্ট গ্যাজেট': 'a60d47a1-b38f-473c-aa1a-19461d0b3ea9',
-      'অডিও ও হেডফোন': '173349c0-2c35-4154-8258-b931d5117f84',
-      'হোম ডেকর': 'c001c6d7-144f-435d-94dc-727eb59b874b',
-      'কিচেন ডাইনিং': '1e67b0d4-1bfd-4a0e-bf0a-2dd5567731b1',
-      'স্কিন কেয়ার': '408db14e-28c7-4a6b-bb06-45bc75212836',
-      'হেয়ার কেয়ার': '82eae233-ef62-45d8-89ae-39a7e5ca51a6',
-      'পারফিউম ও বডি স্প্রে': 'e34e94a3-d1e1-4b41-9138-d62886c0ef75',
-      'ব্যাগ ও লাগেজ': 'd604a29b-9fd5-43d6-ae7a-3c87a213c93f',
-      'ওয়াচ ও জুয়েলারি': 'c7d6dd3c-820c-4e62-9166-b279bdcd8de8',
-      'স্পোর্টস ও ফিটনেস': '76d56749-f3a9-41ea-ab91-fed988052afb',
-      'বই ও স্টেশনারি': '8a9ae3c3-0a8e-42ff-84b7-94d54fdb5919',
-      'বেবি কেয়ার': '34641659-f958-4a50-898d-05ece59e53dc',
-      'মোবাইল অ্যাক্সেসরিজ': '2c554d10-3a75-4c65-8efd-ae231d9fb3cf',
-      'ইলেকট্রনিক্স ও অ্যাপ্লায়েন্স': '7149d889-f11a-473a-aaf5-9d2dfd912c12',
-      'গিফট ও হ্যাম্পার': 'eca859fa-e1b6-4e2f-88ec-7c36ac40969c',
-      'ট্রাভেল ও আউটডোর': '7b072790-9b26-4e96-860e-59f7317d7572',
-      'হেলথ ও ওয়েলনেস': '6fe7b0a1-59c2-4636-80bf-106c42de1f1e',
-      'গ্রোসারি ও অর্গানিক': '5686ed30-9f02-4b7f-90e1-9eb673475378',
-      'ফেস্টিভ ও এথনিক': 'beace772-1df2-4a87-9eff-6fb15b27e965',
-      'মেগা ডিলস': '95b099ef-c83f-4ff0-9a67-eefc2ac7fbd0'
+    const SUPABASE_CATEGORY_IDS_BY_FRONTEND_ID = {
+      'cat-01': 'aee389fa-b863-41b3-9f81-ae076a906c2d',
+      'cat-02': 'a7790e28-ec46-423a-b668-fc33eb6da9b1',
+      'cat-03': 'bdab9f55-27e2-4176-9dfa-08e1e42c97ee',
+      'cat-04': 'e6120406-3a47-4367-9943-02fff3c67b9c',
+      'cat-05': 'a60d47a1-b38f-473c-aa1a-19461d0b3ea9',
+      'cat-06': '173349c0-2c35-4154-8258-b931d5117f84',
+      'cat-07': 'c001c6d7-144f-435d-94dc-727eb59b874b',
+      'cat-08': '1e67b0d4-1bfd-4a0e-bf0a-2dd5567731b1',
+      'cat-09': '408db14e-28c7-4a6b-bb06-45bc75212836',
+      'cat-10': '82eae233-ef62-45d8-89ae-39a7e5ca51a6',
+      'cat-11': 'e34e94a3-d1e1-4b41-9138-d62886c0ef75',
+      'cat-12': 'd604a29b-9fd5-43d6-ae7a-3c87a213c93f',
+      'cat-13': 'c7d6dd3c-820c-4e62-9166-b279bdcd8de8',
+      'cat-14': '76d56749-f3a9-41ea-ab91-fed988052afb',
+      'cat-15': '8a9ae3c3-0a8e-42ff-84b7-94d54fdb5919',
+      'cat-16': '34641659-f958-4a50-898d-05ece59e53dc',
+      'cat-17': '2c554d10-3a75-4c65-8efd-ae231d9fb3cf',
+      'cat-18': '7149d889-f11a-473a-aaf5-9d2dfd912c12',
+      'cat-19': 'eca859fa-e1b6-4e2f-88ec-7c36ac40969c',
+      'cat-20': '7b072790-9b26-4e96-860e-59f7317d7572',
+      'cat-21': '6fe7b0a1-59c2-4636-80bf-106c42de1f1e',
+      'cat-22': '5686ed30-9f02-4b7f-90e1-9eb673475378',
+      'cat-23': 'beace772-1df2-4a87-9eff-6fb15b27e965',
+      'cat-24': '95b099ef-c83f-4ff0-9a67-eefc2ac7fbd0'
     };
 
     function createUuid() {
@@ -2698,12 +2698,12 @@
 
     function getSupabaseCategoryId(cat) {
       if (!cat) return null;
-      return SUPABASE_CATEGORY_IDS[cat.name] || null;
+      return SUPABASE_CATEGORY_IDS_BY_FRONTEND_ID[cat.id] || null;
     }
 
     function getFrontendCategoryBySupabaseId(categoryId) {
-      const entry = Object.entries(SUPABASE_CATEGORY_IDS).find(([, id]) => id === categoryId);
-      return entry ? categoriesData.find((c) => c.name === entry[0]) : null;
+      const entry = Object.entries(SUPABASE_CATEGORY_IDS_BY_FRONTEND_ID).find(([, id]) => id === categoryId);
+      return entry ? categoriesData.find((c) => c.id === entry[0]) : null;
     }
 
     function applyCloudProductsToCategories(rows) {
