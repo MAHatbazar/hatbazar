@@ -6349,7 +6349,7 @@
             showToast(currentLang === 'en' ? 'Enter a valid title, price and whole-number stock.' : 'সঠিক নাম, মূল্য ও পূর্ণসংখ্যার স্টক লিখুন।');
             return;
           }
-          if (isAdminSession() && (!Number.isFinite(basePrice) || basePrice < 0 || (basePrice > 0 && basePrice > price))) {
+          if (isAdminSession() && (!Number.isFinite(basePrice) || basePrice < 0 || (basePrice > 0 && basePrice > Math.max(1, price - Math.round((price * Math.min(90, Math.max(0, rawDiscount))) / 100))))) {
             showToast(currentLang === 'en' ? 'Base price must be zero or less than/equal to the selling price.' : 'বেস মূল্য শূন্য অথবা বিক্রয় মূল্যের সমান/কম হতে হবে।');
             return;
           }
