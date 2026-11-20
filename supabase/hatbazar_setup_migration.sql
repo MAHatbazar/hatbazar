@@ -988,3 +988,35 @@ CREATE POLICY "Resellers view own reseller ledger"
 ON public.reseller_ledger
 FOR SELECT TO authenticated
 USING (reseller_id = (SELECT auth.uid()) OR public.is_admin());
+
+
+-- Profile-role protection and trigger endpoint hardening.
+CREATE OR REPLACE FUNCTION public.prevent_profile_role_change()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path TO ''
+AS $function$
+BEGIN
+  IF (SELECT auth.uid()) IS NOT NULL
+     AND NEW.role IS DISTINCT FROM OLD.role THEN
+    RAISE EXCEPTION 'You are not allowed to change your role';
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
+
+-- Foreign-key indexes for order, product, and reseller lookups.
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON public.order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON public.order_items(product_id);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON public.orders(customer_id);
+CREATE INDEX IF NOT EXISTS idx_orders_reseller_id ON public.orders(reseller_id);
+CREATE INDEX IF NOT EXISTS idx_products_category_id ON public.products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_seller_id ON public.products(seller_id);
+CREATE INDEX IF NOT EXISTS idx_reseller_ledger_order_id ON public.reseller_ledger(order_id);
+CREATE INDEX IF NOT EXISTS idx_reseller_ledger_product_id ON public.reseller_ledger(product_id);
+CREATE INDEX IF NOT EXISTS idx_reseller_ledger_reseller_id ON public.reseller_ledger(reseller_id);
+CREATE INDEX IF NOT EXISTS idx_reseller_payout_requests_reseller_id ON public.reseller_payout_requests(reseller_id);
+CREATE INDEX IF NOT EXISTS idx_reseller_sales_product_id ON public.reseller_sales(product_id);
+CREATE INDEX IF NOT EXISTS idx_reseller_sales_reseller_id ON public.reseller_sales(reseller_id);
