@@ -20,6 +20,14 @@ checks = {
     "rate-limit table is not directly accessible to API roles": "REVOKE ALL ON TABLE private.hatbazar_rate_limits FROM PUBLIC, anon, authenticated, service_role" in step10,
     "checkout and lookup have separate server-side limits": "'checkout'" in step10 and "'order_lookup'" in step10 and "Too many checkout attempts" in step10 and "Too many order lookup attempts" in step10,
     "no Supabase service-role or secret key is embedded in the storefront": re.search(r"service_role|sb_secret_[A-Za-z0-9]+", html, re.I) is None,
+    "admin and live-editor navigation are hidden until an authenticated admin session": "adminNav.style.display = adminActive ? '' : 'none'" in html and "editorNav.style.display = adminActive ? '' : 'none'" in html,
+    "direct navigation to admin-only management views is guarded": "adminOnlyViews.includes(viewName) && !isAdminSession()" in html and "Admin access only" in html,
+    "home hero uses a real retail photograph": "photo-1441986300917-64674bd600d8" in html and "Real clothing and lifestyle retail store interior" in html,
+    "shipping, return and refund policy cards include relevant photos": "Shipping parcels ready for delivery" in html and "Shopping bag and customer return experience" in html and "Digital refund and payment card" in html,
+    "public navigation contains only home, categories, seller registration and reseller registration": all(token in html for token in ["data-nav=" + chr(34) + "home" + chr(34), "data-nav=" + chr(34) + "shop" + chr(34), "data-nav=" + chr(34) + "sellerRegistration" + chr(34), "data-nav=" + chr(34) + "resellerRegistration" + chr(34)]) and "data-nav=" + chr(34) + "sellerDash" + chr(34) not in html and "data-nav=" + chr(34) + "ordersHistory" + chr(34) not in html,
+    "seller and reseller registration buttons preselect the matching application type": "openPartnerRegistration('seller')" in html and "openPartnerRegistration('reseller')" in html and "roleSelect.value = role" in html,
+    "management routes are restricted to authenticated admin sessions": "const adminOnlyViews = ['admin', 'sellerDash', 'resellerDash', 'ordersHistory', 'liveEditor']" in html and "adminOnlyViews.includes(viewName) && !isAdminSession()" in html,
+    "admin dashboard provides shortcuts to private management sections": all("navigateTo('" + view + "')" in html for view in ["sellerDash", "resellerDash", "ordersHistory", "policies", "liveEditor"]),
 }
 
 failed = [name for name, ok in checks.items() if not ok]
