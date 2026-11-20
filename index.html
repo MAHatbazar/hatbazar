@@ -3380,6 +3380,28 @@
         return;
       }
 
+      // Sellers may submit products only after server-side approval.
+      if (!isAdminSession()) {
+        if (currentSessionUser?.role !== 'সেলার' || !cloudSyncEnabled || !supabaseClient || !supabaseUser?.id) {
+          showToast('পণ্য যোগ করতে Supabase-এ লগইন করা অনুমোদিত সেলার অ্যাকাউন্ট প্রয়োজন।');
+          return;
+        }
+        try {
+          const { data: sellerProfile, error: sellerProfileError } = await supabaseClient
+            .from('seller_profiles')
+            .select('status')
+            .eq('id', supabaseUser.id)
+            .maybeSingle();
+          if (sellerProfileError || sellerProfile?.status?.toLowerCase() !== 'approved') {
+            showToast('আপনার সেলার অ্যাকাউন্ট এখনো অনুমোদিত হয়নি। অনুমোদনের পর পণ্য যোগ করতে পারবেন।');
+            return;
+          }
+        } catch (_sellerCheckError) {
+          showToast('সেলার অনুমোদন যাচাই করা যায়নি। পরে আবার চেষ্টা করুন।');
+          return;
+        }
+      }
+
       const defaultVisual = makeSvgVisual(title, cat.emoji, cat.c1, cat.c2, cat.accent, cat.id);
       let imageSrc = defaultVisual;
       const file = imgInput?.files?.[0];
