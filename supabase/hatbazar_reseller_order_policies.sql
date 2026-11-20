@@ -16,3 +16,13 @@ USING (
       AND o.reseller_id = auth.uid()
   )
 );
+
+-- Resellers may read only their own checkout ledger rows; admins may review all rows.
+ALTER TABLE public.reseller_ledger ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.reseller_ledger FROM PUBLIC, anon;
+GRANT SELECT ON TABLE public.reseller_ledger TO authenticated;
+DROP POLICY IF EXISTS "Resellers view own reseller ledger" ON public.reseller_ledger;
+CREATE POLICY "Resellers view own reseller ledger"
+ON public.reseller_ledger
+FOR SELECT TO authenticated
+USING (reseller_id = auth.uid() OR public.is_admin());
