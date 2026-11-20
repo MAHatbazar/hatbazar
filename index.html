@@ -153,6 +153,7 @@
       border-radius: 9999px;
     }
   </style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="min-h-screen flex flex-col text-slate-900 selection:bg-violet-600 selection:text-white">
 
@@ -982,6 +983,16 @@
                   </button>
                 </div>
               </form>
+              <section id="bulkProductImportPanel" class="rounded-2xl bg-white border border-emerald-200 p-4 space-y-3">
+                <div class="flex items-center justify-between gap-2"><h4 class="text-sm font-extrabold text-emerald-950">📊 Excel দিয়ে একসঙ্গে পণ্য যোগ করুন</h4><span class="text-[10px] font-bold text-emerald-700">শুধু Admin</span></div>
+                <p class="text-[11px] text-slate-600">Excel (.xlsx/.xls) বা CSV ফাইল দিন। Category, English/Bangla নাম, Selling Price, Base Price, Stock Quantity ও Description দিন। Preview-তে প্রতিটি পণ্যের সর্বোচ্চ ১০টি ছবি বেছে নিতে পারবেন।</p>
+                <button type="button" onclick="downloadBulkProductTemplate()" class="text-xs font-bold text-violet-700 underline">Excel Template ডাউনলোড</button>
+                <input id="bulkProductExcelFile" type="file" accept=".xlsx,.xls,.csv" class="block w-full text-xs text-slate-600 file:mr-2 file:rounded-xl file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:font-bold file:text-white" />
+                <button type="button" onclick="previewBulkProductExcel()" class="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white">ফাইল Preview করুন</button>
+                <div id="bulkProductPreview" class="hidden space-y-3"></div>
+                <button id="bulkProductImportButton" type="button" onclick="importBulkProductsFromPreview()" class="hidden w-full rounded-xl bg-violet-700 px-4 py-2.5 text-xs font-extrabold text-white">সব পণ্য Supabase-এ সেভ করুন</button>
+                <p id="bulkProductImportStatus" class="text-[11px] text-slate-600"></p>
+              </section>
             </div>
 
             <div class="lg:col-span-7 space-y-3">
@@ -2292,6 +2303,7 @@
     let supabaseProfile = null;
     let cloudSyncEnabled = false;
     let ordersData = [];
+    let pendingBulkProductRows = [];
 
     let deliveryZoneConfig = {
       insideFee: 80,
@@ -6376,6 +6388,130 @@
       document.getElementById('aiAssistantModal')?.addEventListener('click', (e) => {
         if (e.target.id === 'aiAssistantModal') closeAiAssistantModal();
       });
+
+      const BULK_CATEGORY_ENGLISH = {
+        'mens fashion':'cat-01','womens fashion':'cat-02','kids collection':'cat-03','shoes and sandals':'cat-04',
+        'smart gadgets':'cat-05','audio and headphones':'cat-06','home decor':'cat-07','kitchen and dining':'cat-08',
+        'skin care':'cat-09','hair care':'cat-10','perfumes and body spray':'cat-11','bags and luggage':'cat-12',
+        'watches and jewellery':'cat-13','watches and jewelry':'cat-13','sports and fitness':'cat-14',
+        'books and stationery':'cat-15','baby care':'cat-16','mobile accessories':'cat-17',
+        'electronics and appliances':'cat-18','gifts and hampers':'cat-19','travel and outdoor':'cat-20',
+        'health and wellness':'cat-21','grocery and organic':'cat-22','festive and ethnic':'cat-23','mega deals':'cat-24'
+      };
+      function normalizeBulkHeader(value) {
+        return String(value || '').trim().toLowerCase().replace(/[ _-]+/g, ' ').replace(/\s+/g, ' ');
+      }
+      function resolveBulkCategory(value) {
+        const key = normalizeBulkHeader(value);
+        const mappedId = BULK_CATEGORY_ENGLISH[key];
+        if (mappedId) return categoriesData.find((item) => item.id === mappedId) || null;
+        return categoriesData.find((item) => normalizeBulkHeader(item.name) === key || normalizeBulkHeader(item.nameBn) === key || item.id.toLowerCase() === key) || null;
+      }
+      function downloadBulkProductTemplate() {
+        if (!window.XLSX) { showToast('Excel library লোড হয়নি। পেজ রিফ্রেশ করুন।'); return; }
+        const rows = [{
+          'Category':'Mens Fashion','Product Name (English)':'Premium Cotton Panjabi',
+          'Product Name (Bangla)':'প্রিমিয়াম কটন পাঞ্জাবি','Selling Price':1450,'Base Price':1000,
+          'Stock Quantity':20,'Description':'Product description','Image URL':'','Gallery URLs':''
+        }];
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'Products');
+        XLSX.writeFile(workbook, 'hatbazar-product-template.xlsx');
+      }
+      async function previewBulkProductExcel() {
+        if (!isAdminSession()) { showToast('শুধুমাত্র Admin bulk upload করতে পারবেন।'); return; }
+        const file = document.getElementById('bulkProductExcelFile')?.files?.[0];
+        const status = document.getElementById('bulkProductImportStatus');
+        const preview = document.getElementById('bulkProductPreview');
+        const importButton = document.getElementById('bulkProductImportButton');
+        if (!file || !preview || !window.XLSX) { if (status) status.textContent = 'Excel ফাইল নির্বাচন করুন।'; return; }
+        try {
+          const workbook = XLSX.read(await file.arrayBuffer(), {type:'array'});
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rawRows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+          const getValue = (row, names) => {
+            const entry = Object.entries(row).find(([key]) => names.includes(normalizeBulkHeader(key)));
+            return entry ? entry[1] : '';
+          };
+          pendingBulkProductRows = rawRows.map((row, index) => {
+            const categoryText = getValue(row, ['category']);
+            const category = resolveBulkCategory(categoryText);
+            const titleEn = String(getValue(row, ['product name english','english name','name english'])).trim();
+            const titleBn = String(getValue(row, ['product name bangla','bangla name','name bangla','product name'])).trim();
+            const price = Number(getValue(row, ['selling price','price']));
+            const basePrice = Number(getValue(row, ['base price','wholesale price']) || 0);
+            const stock = Number(getValue(row, ['stock quantity','stock']));
+            return {
+              rowNumber:index+2, categoryId:category?.id || '', categoryName:category?.name || String(categoryText),
+              titleEn,titleBn,price,basePrice,stock,desc:String(getValue(row,['description'])).trim(),
+              imageUrl:String(getValue(row,['image url','image'])).trim(),
+              galleryUrls:String(getValue(row,['gallery urls','gallery images'])).split(/[\n,;]/).map((url)=>url.trim()).filter(Boolean),
+              valid:Boolean(category && (titleEn || titleBn) && Number.isFinite(price) && price>0 && Number.isInteger(stock) && stock>=0 && Number.isFinite(basePrice) && basePrice>=0 && basePrice<=price)
+            };
+          }).filter((row)=>row.titleEn || row.titleBn || row.categoryName);
+          if (!pendingBulkProductRows.length) throw new Error('ফাইলে কোনো পণ্যের সারি পাওয়া যায়নি।');
+          preview.innerHTML = pendingBulkProductRows.map((row,index) =>
+            '<div class="rounded-xl border '+(row.valid?'border-emerald-200 bg-emerald-50/40':'border-rose-200 bg-rose-50')+' p-3 space-y-2">'+
+            '<div class="flex items-start justify-between gap-2"><div class="text-xs font-bold">'+(index+1)+'. '+escapeHtml(row.titleBn||row.titleEn||'নাম নেই')+'</div>'+
+            '<span class="text-[10px] font-bold '+(row.valid?'text-emerald-700':'text-rose-700')+'">'+(row.valid?'Valid':'তথ্য ঠিক করুন')+'</span></div>'+
+            '<div class="text-[10px] text-slate-600">'+escapeHtml(row.categoryName)+' · ৳'+formatNum(row.price||0)+' · Stock '+formatNum(row.stock||0)+'</div>'+
+            '<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple data-bulk-row="'+index+'" class="block w-full text-[10px] text-slate-600" /></div>'
+          ).join('');
+          preview.classList.remove('hidden');
+          importButton?.classList.toggle('hidden',!pendingBulkProductRows.some((row)=>row.valid));
+          if(status) status.textContent=pendingBulkProductRows.length+'টি পণ্য পাওয়া গেছে। প্রতিটি পণ্যের ছবি বেছে নিন।';
+        } catch(error) {
+          pendingBulkProductRows=[];
+          preview?.classList.add('hidden');
+          importButton?.classList.add('hidden');
+          if(status) status.textContent=error.message||'Excel ফাইল পড়া যায়নি।';
+        }
+      }
+      async function importBulkProductsFromPreview() {
+        if(!isAdminSession()||!cloudSyncEnabled||!supabaseClient){showToast('Admin login ও Supabase connection প্রয়োজন।');return;}
+        const button=document.getElementById('bulkProductImportButton');
+        const status=document.getElementById('bulkProductImportStatus');
+        const validRows=pendingBulkProductRows.filter((row)=>row.valid);
+        if(!validRows.length){showToast('সঠিক পণ্যের তথ্য পাওয়া যায়নি।');return;}
+        button.disabled=true;
+        let savedCount=0,failedCount=0;
+        for(const row of validRows){
+          try{
+            const rowIndex=pendingBulkProductRows.indexOf(row);
+            const rowInput=document.querySelector('[data-bulk-row="'+rowIndex+'"]');
+            const files=Array.from(rowInput?.files||[]).slice(0,10);
+            const imageUrls=[row.imageUrl,...row.galleryUrls].filter((url)=>/^https?:\/\//i.test(url));
+            for(const file of files){
+              const validation=validateProductImageFile(file);
+              if(!validation.ok) throw new Error(validation.message);
+              const compressed=await compressImageFile(file,900,0.72);
+              const uploadedUrl=await uploadProductImageToSupabase(file,compressed);
+              if(!uploadedUrl||!/^https?:\/\//i.test(uploadedUrl)) throw new Error('ছবি Storage-এ আপলোড হয়নি।');
+              imageUrls.push(uploadedUrl);
+            }
+            const uniqueImages=[...new Set(imageUrls)].slice(0,10);
+            const category=categoriesData.find((item)=>item.id===row.categoryId);
+            if(!category) throw new Error('Category পাওয়া যায়নি।');
+            const product={
+              id:createUuid(),title:row.titleBn||row.titleEn,titleEn:row.titleEn||row.titleBn,
+              price:row.price,finalPrice:row.price,basePrice:row.basePrice,discountPercent:0,
+              discountAmount:0,stock:row.stock,desc:row.desc,image:uniqueImages[0]||'',
+              gallery:uniqueImages,sellerId:null
+            };
+            const saved=await syncProductToSupabase(category.id,product);
+            if(!saved) throw new Error('Supabase product save failed.');
+            category.items.unshift(product);
+            savedCount++;
+          }catch(error){failedCount++;console.error('Bulk product row failed:',row.rowNumber,error);}
+          if(status) status.textContent='সেভ হয়েছে: '+savedCount+' · ব্যর্থ: '+failedCount+' / '+validRows.length;
+        }
+        const activeCategory=categoriesData.find((item)=>item.id===activeFolderId);
+        if(activeCategory) renderFolderItems(activeCategory);
+        renderCategoriesGrid();renderHomeSections();renderSellerDashboard();refreshAdminStats();persistAppState();
+        button.disabled=false;
+        if(status) status.textContent='সম্পন্ন। সেভ হয়েছে: '+savedCount+' · ব্যর্থ: '+failedCount;
+        showToast('Bulk upload সম্পন্ন: '+savedCount+'টি পণ্য সেভ হয়েছে।');
+      }
 
       const addFolderItemForm = document.getElementById('addFolderItemForm');
       if (addFolderItemForm) {
