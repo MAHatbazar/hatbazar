@@ -171,7 +171,6 @@ button:disabled{opacity:.5}
  <div id="aiJobsPanel" class="upload-box"></div>
  <div id="aiGeneratedDetails" class="hint"></div>
  <div id="aiFoodDetails" class="upload-box hidden"></div>
- <div id="aiImageSuggestions" class="upload-box hidden"></div>
  <div id="aiSizesPanel" class="hint"></div>
 </div>
 
@@ -400,7 +399,6 @@ function applyAIProductResult(result,productName=''){
  }else $('aiFoodDetails').classList.add('hidden');
  if(aiProductMeta.sizes.length)$('aiSizesPanel').innerHTML='<strong>প্রস্তাবিত Size (প্রয়োজনমতো টিক/আনটিক করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>';
  else $('aiSizesPanel').textContent='এই পণ্যের জন্য আলাদা Size প্রযোজ্য নয় বলে AI কোনো Size দেয়নি।';
- renderAIImageSuggestions(result.image_suggestions||[]);
  $('aiStatus').textContent='AI তথ্য তৈরি হয়েছে। দাম, Base Price ও Stock নিজে বসাবেন। প্রস্তাবিত ছবি চাইলে বেছে Gallery-তে যোগ করুন।';
 }
 async function restoreAIImage(path,forBulkRow=null){
@@ -535,38 +533,7 @@ async function generateAIProductDetails(mode='image'){
  }catch(err){$('aiStatus').textContent=err.message||'AI কাজ শুরু করা যায়নি.';}
  finally{button.disabled=false;}
 }
-function renderAIImageSuggestions(items){
- const panel=$('aiImageSuggestions');panel.innerHTML='';
- if(!items.length){panel.classList.add('hidden');return;}
- const heading=document.createElement('strong');heading.textContent='ছবির প্রস্তাব (উন্মুক্ত Wikimedia Commons থেকে)';panel.appendChild(heading);
- const note=document.createElement('p');note.className='hint';note.textContent='এগুলো নমুনা/ইলাস্ট্রেটিভ ছবি। প্যাকেট বা নির্দিষ্ট ব্র্যান্ডের আসল ছবি নাও হতে পারে। পছন্দ হলে Gallery-তে যোগ করুন।';panel.appendChild(note);
- const grid=document.createElement('div');grid.className='multi-preview';panel.appendChild(grid);
- items.forEach((item,index)=>{
-  const wrap=document.createElement('div');wrap.style.cssText='display:inline-block;vertical-align:top;width:145px;margin:5px;padding:6px;border:1px solid #d8e2dd;border-radius:10px';
-  const img=document.createElement('img');img.src=item.image_url;img.alt=item.title||'Suggested image';img.style.cssText='width:130px;height:110px;object-fit:contain;cursor:zoom-in';img.addEventListener('click',()=>openImagePreview(item.image_url,item.title||'Suggested image'));
-  const info=document.createElement('small');info.textContent=(item.license||'License details unavailable')+(item.artist?' · '+item.artist:'');info.style.cssText='display:block;font-size:10px;margin:5px 0';
-  const link=document.createElement('a');link.href=item.source_url;link.target='_blank';link.rel='noopener';link.textContent='Source / License';link.style.cssText='font-size:11px;display:block;margin-bottom:5px';
-  const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent='Gallery-তে যোগ';btn.style.cssText='padding:8px;font-size:11px;width:100%';
-  btn.addEventListener('click',async()=>{
-   if(singleProductImages.length>=10){alert('সর্বোচ্চ ১০টি Gallery ছবি রাখা যাবে।');return;}
-   btn.disabled=true;btn.textContent='যোগ হচ্ছে...';
-   try{
-    const res=await fetch(item.image_url);if(!res.ok)throw new Error('ছবি ডাউনলোড করা যায়নি।');
-    const blob=await res.blob();const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');
-    const imageFile=new File([blob],('commons-'+(index+1)+'.'+ext),{type:blob.type||'image/jpeg'});
-    const problem=validImage(imageFile);if(problem)throw new Error(problem);
-    singleProductImages.push(imageFile);
-    $('singleImageNames').textContent=singleProductImages.map((f,i)=>(i+1)+'. '+f.name).join(' | ');
-    const thumb=document.createElement('img');thumb.src=URL.createObjectURL(imageFile);thumb.classList.add('image-preview-thumb');thumb.addEventListener('click',()=>openImagePreview(thumb.src,imageFile.name));$('singleImagePreview').appendChild(thumb);
-    btn.textContent='Gallery-তে যোগ হয়েছে';btn.disabled=true;
-   }catch(err){btn.disabled=false;btn.textContent='Gallery-তে যোগ';alert(err.message||'ছবি যোগ করা যায়নি।');}
-  });
-  wrap.append(img,info,link,btn);grid.appendChild(wrap);
- });
- panel.classList.remove('hidden');
-}
-$('aiGenerateBtn').addEventListener('click',()=>generateAIProductDetails('image'));
-$('aiNameGenerateBtn').addEventListener('click',()=>generateAIProductDetails('name'));
+
 function selectedAISizes(){
  return [...document.querySelectorAll('[data-ai-size]:checked')].map(x=>x.value);}
 async function facebookRequest(action,method='GET',body=null){
