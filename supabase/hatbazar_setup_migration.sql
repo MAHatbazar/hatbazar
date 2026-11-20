@@ -78,8 +78,12 @@ GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_delivery_settings(NUMERIC
 
 -- Hatbazar production checkout RPC v2
 -- Run in Supabase SQL Editor after reviewing the schema.
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS reseller_id UUID REFERENCES public.reseller_profiles(id) ON DELETE SET NULL;
 -- This function calculates product prices from the database, locks stock rows,
 -- writes the order and order_items atomically, and deducts stock only on success.
+
+DROP FUNCTION IF EXISTS public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT);
 
 CREATE OR REPLACE FUNCTION public.hatbazar_checkout_v2(
   p_customer_name TEXT,
@@ -91,7 +95,8 @@ CREATE OR REPLACE FUNCTION public.hatbazar_checkout_v2(
   p_upazila TEXT,
   p_delivery_zone TEXT,
   p_delivery_fee NUMERIC,
-  p_payment_trx_id TEXT DEFAULT NULL
+  p_payment_trx_id TEXT DEFAULT NULL,
+  p_reseller_id UUID DEFAULT NULL
 )
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -103,6 +108,7 @@ DECLARE
   v_product_name TEXT;
   v_price NUMERIC;
   v_stock INTEGER;
+  v_base_price NUMERIC;
   v_is_active BOOLEAN;
   v_subtotal NUMERIC(12,2) := 0;
   v_delivery_fee NUMERIC(12,2);
@@ -146,6 +152,18 @@ BEGIN
 
   IF p_delivery_zone IS NULL OR p_delivery_zone NOT IN ('inside', 'outside') THEN
     RAISE EXCEPTION 'Invalid delivery zone';
+  END IF;
+
+  IF p_reseller_id IS NOT NULL THEN
+    IF auth.uid() IS NULL OR auth.uid() <> p_reseller_id THEN
+      RAISE EXCEPTION 'Reseller identity does not match the signed-in account';
+    END IF;
+    IF NOT EXISTS (
+      SELECT 1 FROM public.reseller_profiles AS rp
+      WHERE rp.id = p_reseller_id
+    ) THEN
+      RAISE EXCEPTION 'Reseller account is not approved';
+    END IF;
   END IF;
 
   -- Delivery fee is read from the protected server-side settings row.
@@ -206,13 +224,14 @@ BEGIN
     pg_catalog.upper(pg_catalog.substr(pg_catalog.replace(pg_catalog.gen_random_uuid()::TEXT, '-', ''), 1, 6));
 
   INSERT INTO public.orders (
-    customer_id, customer_name, phone, address,
+    customer_id, reseller_id, customer_name, phone, address,
     total_amount, payment_method, payment_status, order_status,
     order_code, district, upazila, delivery_zone,
     subtotal, delivery_fee, payment_trx_id, payment_verified
   )
   VALUES (
-    auth.uid(), pg_catalog.btrim(p_customer_name), v_phone, pg_catalog.btrim(p_address),
+    CASE WHEN p_reseller_id IS NULL THEN auth.uid() ELSE NULL END,
+    p_reseller_id, pg_catalog.btrim(p_customer_name), v_phone, pg_catalog.btrim(p_address),
     v_total, v_payment_method, 'pending', 'pending',
     v_order_code, pg_catalog.btrim(p_district), pg_catalog.btrim(p_upazila), p_delivery_zone,
     v_subtotal, v_delivery_fee, NULLIF(pg_catalog.btrim(COALESCE(p_payment_trx_id, '')), ''), FALSE
@@ -226,10 +245,22 @@ BEGIN
     GROUP BY x.product_id
     ORDER BY x.product_id
   LOOP
-    SELECT p.name, p.price
-      INTO v_product_name, v_price
+    SELECT p.name, p.price, p.base_price
+      INTO v_product_name, v_price, v_base_price
     FROM public.products AS p
     WHERE p.id = v_item.product_id;
+
+    IF p_reseller_id IS NOT NULL THEN
+      IF v_base_price IS NULL OR v_base_price < 0 OR v_price < v_base_price THEN
+        RAISE EXCEPTION 'Product base price is missing or exceeds selling price: %', v_product_name;
+      END IF;
+      INSERT INTO public.reseller_ledger (
+        reseller_id, order_id, product_id, base_price, selling_price, quantity
+      )
+      VALUES (
+        p_reseller_id, v_order_id, v_item.product_id, v_base_price, v_price, v_item.quantity
+      );
+    END IF;
 
     INSERT INTO public.order_items (
       order_id, product_id, product_name, quantity, unit_price
@@ -269,8 +300,8 @@ BEGIN
 END;
 $function$;
 
-REVOKE ALL ON FUNCTION public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT) TO anon, authenticated, postgres;
+REVOKE ALL ON FUNCTION public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT,UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT,UUID) TO anon, authenticated, postgres;
 
 -- ==================== supabase/hatbazar_admin_update_order.sql ====================
 -- Hatbazar: admin-only order status and payment verification updates
@@ -286,6 +317,7 @@ SET search_path TO ''
 AS $function$
 DECLARE
   v_status TEXT;
+  v_old_status TEXT;
   v_verified BOOLEAN;
   v_payment_status TEXT;
 BEGIN
@@ -297,6 +329,28 @@ BEGIN
     'pending', 'pending_verification', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'
   ) THEN
     RAISE EXCEPTION 'Invalid order status';
+  END IF;
+
+  SELECT o.order_status INTO v_old_status
+  FROM public.orders o
+  WHERE o.id = p_order_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Order not found';
+  END IF;
+
+  IF v_old_status = 'cancelled' AND p_order_status IS NOT NULL AND p_order_status <> 'cancelled' THEN
+    RAISE EXCEPTION 'A cancelled order cannot be reopened';
+  END IF;
+
+  IF p_order_status = 'cancelled' AND v_old_status NOT IN ('cancelled', 'delivered') THEN
+    UPDATE public.products p
+    SET stock = p.stock + oi.quantity
+    FROM public.order_items oi
+    WHERE oi.order_id = p_order_id AND oi.product_id = p.id;
+  ELSIF p_order_status = 'cancelled' AND v_old_status = 'delivered' THEN
+    RAISE EXCEPTION 'A delivered order cannot be cancelled';
   END IF;
 
   UPDATE public.orders
@@ -311,10 +365,6 @@ BEGIN
   WHERE id = p_order_id
   RETURNING order_status, payment_verified, payment_status
   INTO v_status, v_verified, v_payment_status;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Order not found';
-  END IF;
 
   RETURN pg_catalog.jsonb_build_object(
     'success', TRUE,
