@@ -517,7 +517,7 @@
     <button type="button" onclick="navigateTo('home')" data-mobile-nav="home" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">⌂</span><span class="text-[10px] font-bold">HOME</span></button>
     <button type="button" onclick="openSiteMenuDrawer()" data-mobile-nav="shop" aria-label="মেনু খুলুন" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">☰</span><span class="text-[10px] font-bold">MENU</span></button>
     <button type="button" onclick="openRightOrderDrawer()" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none relative">🛍️<span id="mobileCartCountBadge" class="absolute -top-1 -right-3 rounded-full bg-slate-900 text-white text-[9px] min-w-4 px-1">0</span></span><span class="text-[10px] font-bold">CART</span></button>
-    <button type="button" onclick="document.getElementById('topSearchInput')?.focus();window.scrollTo({top:0,behavior:'smooth'});" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">⌕</span><span class="text-[10px] font-bold">SEARCH</span></button>
+    <button type="button" onclick="openSiteMenuDrawer();setTimeout(()=>document.getElementById('siteMenuSearchInput')?.focus(),120)" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">⌕</span><span class="text-[10px] font-bold">SEARCH</span></button>
     <button type="button" onclick="handleAuthButtonClick()" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">♙</span><span class="text-[10px] font-bold">ACCOUNT</span></button>
   </nav>
 
@@ -530,6 +530,11 @@
           <div><div class="text-xs font-bold text-white/85">HATBAZAR</div><h2 class="text-xl font-extrabold">আপনার কেনাকাটার মেনু</h2><p class="text-xs text-white/85 mt-1">সব বিভাগ ও প্রয়োজনীয় সেবা এক জায়গায়</p></div>
           <button type="button" onclick="closeSiteMenuDrawer()" aria-label="মেনু বন্ধ করুন" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white text-xl font-bold">×</button>
         </div>
+        <form onsubmit="handleSiteMenuSearch(event)" class="mt-4 flex items-center gap-2 rounded-xl bg-white p-2 shadow-sm">
+          <span class="text-orange-500 text-lg pl-1">⌕</span>
+          <input id="siteMenuSearchInput" type="search" placeholder="পণ্য বা ক্যাটাগরি খুঁজুন..." class="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm text-slate-800 outline-none" />
+          <button type="submit" class="rounded-lg bg-[#f58220] px-3 py-2 text-xs font-extrabold text-white">খুঁজুন</button>
+        </form>
         <div class="grid grid-cols-2 gap-2 mt-4">
           <button type="button" onclick="closeSiteMenuDrawer();navigateTo('home')" class="rounded-xl bg-white text-[#b45309] px-3 py-2.5 text-sm font-extrabold">⌂ হোমপেজ</button>
           <button type="button" onclick="closeSiteMenuDrawer();openRightOrderDrawer()" class="rounded-xl bg-white/20 border border-white/35 text-white px-3 py-2.5 text-sm font-extrabold">🛒 আমার কার্ট <span id="menuCartCount">0</span></button>
@@ -2201,6 +2206,25 @@
       const badge = document.getElementById('menuCartCount');
       if (badge) badge.textContent = formatNum(cartCount);
       document.getElementById('siteMenuAdminLink')?.classList.toggle('hidden', !isAdminSession());
+    }
+    function handleSiteMenuSearch(event) {
+      event.preventDefault();
+      const q = (document.getElementById('siteMenuSearchInput')?.value || '').trim().toLowerCase();
+      closeSiteMenuDrawer();
+      navigateTo('shop');
+      if (!q) { closeActiveFolder(); return; }
+      const matchedCat = categoriesData.find((cat) =>
+        (cat.name || '').toLowerCase().includes(q) ||
+        (cat.nameEn || '').toLowerCase().includes(q) ||
+        (cat.itemName || '').toLowerCase().includes(q) ||
+        (Array.isArray(cat.items) && cat.items.some((item) => (item.title || '').toLowerCase().includes(q)))
+      );
+      if (matchedCat) {
+        openCategoryFolder(matchedCat.id);
+        showToast(currentLang === 'en' ? `Opened "${getCategoryName(matchedCat)}"` : `“${getCategoryName(matchedCat)}” ক্যাটাগরি খোলা হয়েছে`);
+      } else {
+        showToast(currentLang === 'en' ? 'No matching category found' : 'মিলিয়ে কোনো ক্যাটাগরি পাওয়া যায়নি');
+      }
     }
     function openSiteMenuDrawer() {
       if (rightSlideDrawerOpen) closeRightOrderDrawer();
@@ -4589,7 +4613,7 @@
     }
 
     function navigateTo(viewName) {
-      const adminOnlyViews = ['admin', 'sellerDash', 'resellerDash', 'ordersHistory', 'liveEditor'];
+      const adminOnlyViews = ['admin', 'sellerDash', 'resellerDash', 'liveEditor'];
       if (adminOnlyViews.includes(viewName) && !isAdminSession()) {
         showToast(currentLang === 'en' ? 'Admin access only. Please sign in with the authorized admin account.' : 'এই অংশটি শুধু অ্যাডমিনের জন্য। অনুমোদিত অ্যাডমিন অ্যাকাউন্ট দিয়ে লগ ইন করুন।');
         viewName = 'home';
