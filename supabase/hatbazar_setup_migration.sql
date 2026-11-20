@@ -479,6 +479,10 @@ GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_marketplace_status(UUID,T
 
 -- ==================== supabase/hatbazar_register_marketplace_profile.sql ====================
 -- Secure Supabase Auth profile registration for seller and reseller accounts.
+-- Ensure the seller profile has the shop name field used by registration and admin review.
+ALTER TABLE public.seller_profiles
+  ADD COLUMN IF NOT EXISTS shop_name TEXT;
+
 CREATE OR REPLACE FUNCTION public.hatbazar_register_marketplace_profile(
   p_full_name TEXT,
   p_phone TEXT,
@@ -971,3 +975,13 @@ USING (
       AND o.reseller_id = auth.uid()
   )
 );
+
+-- Resellers may read only their own checkout ledger rows; admins may review all rows.
+ALTER TABLE public.reseller_ledger ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.reseller_ledger FROM PUBLIC, anon;
+GRANT SELECT ON TABLE public.reseller_ledger TO authenticated;
+DROP POLICY IF EXISTS "Resellers view own reseller ledger" ON public.reseller_ledger;
+CREATE POLICY "Resellers view own reseller ledger"
+ON public.reseller_ledger
+FOR SELECT TO authenticated
+USING (reseller_id = auth.uid() OR public.is_admin());
