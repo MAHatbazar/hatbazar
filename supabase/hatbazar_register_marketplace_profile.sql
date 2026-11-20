@@ -1,4 +1,8 @@
 -- Secure Supabase Auth profile registration for seller and reseller accounts.
+-- Ensure the seller profile has the shop name field used by registration and admin review.
+ALTER TABLE public.seller_profiles
+  ADD COLUMN IF NOT EXISTS shop_name TEXT;
+
 CREATE OR REPLACE FUNCTION public.hatbazar_register_marketplace_profile(
   p_full_name TEXT,
   p_phone TEXT,
