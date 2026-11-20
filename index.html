@@ -1087,11 +1087,11 @@
 
             <div>
               <label for="deliveryZone" class="block text-xs font-bold text-slate-700 mb-1">ডেলিভারি জোন *</label>
-              <select id="deliveryZone" onchange="updateCartSummary()" class="w-full rounded-xl bg-violet-50 border border-violet-300 px-3 py-2 text-xs sm:text-sm font-extrabold text-violet-950 outline-none">
+              <select id="deliveryZone" onchange="updateCartSummary()" disabled aria-describedby="deliveryZoneHelp" class="w-full rounded-xl bg-violet-50 border border-violet-300 px-3 py-2 text-xs sm:text-sm font-extrabold text-violet-950 outline-none disabled:opacity-100 disabled:cursor-not-allowed">
                 <option value="inside">ঢাকার ভেতরে (৳৮০)</option>
                 <option value="outside">ঢাকার বাইরে (৳১৩০)</option>
               </select>
-              <p class="text-[11px] text-slate-600 font-medium mt-1">পণ্যের ওজন এবং স্থানের উপর ভিত্তি করে কুরিয়ার চার্জ পরিবর্তন হতে পারে।</p>
+              <p id="deliveryZoneHelp" class="text-[11px] text-slate-600 font-medium mt-1">জেলা ও উপজেলা অনুযায়ী ডেলিভারি জোন স্বয়ংক্রিয়ভাবে নির্ধারিত হয়।</p>
             </div>
 
             <div>
@@ -1397,7 +1397,7 @@
           <h2 data-bn="অর্ডার হিস্ট্রি ও ট্র্যাকিং" data-en="Order History & Tracking" class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-sky-900 via-blue-800 to-violet-700 bg-clip-text text-transparent">
             অর্ডার হিস্ট্রি ও ট্র্যাকিং
           </h2>
-          <p data-bn="মোবাইল নম্বর বা অর্ডার আইডি দিয়ে আপনার পূর্বের ও চলমান সকল অর্ডারের স্ট্যাটাস ও পেমেন্ট যাচাই দেখুন।" data-en="Search by mobile number or order ID to check order status, payment verification, and delivery details." class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
+          <p data-bn="অর্ডার নম্বর ও অর্ডারের সময় দেওয়া মোবাইল নম্বর একসঙ্গে দিয়ে অর্ডারের অবস্থা ও পেমেন্ট যাচাই দেখুন।" data-en="Enter both your order code and the mobile number used at checkout to check order and payment status." class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
             মোবাইল নম্বর বা অর্ডার আইডি দিয়ে আপনার পূর্বের ও চলমান সকল অর্ডারের স্ট্যাটাস ও পেমেন্ট যাচাই দেখুন।
           </p>
         </div>
@@ -1413,17 +1413,26 @@
       </div>
 
       <div class="bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 items-stretch gap-3">
           <input
             id="orderHistoryPhoneFilter"
             type="tel"
-            oninput="renderCustomerOrderHistory()"
-            placeholder="মোবাইল নম্বর বা অর্ডার আইডি দিয়ে ফিল্টার করুন (যেমন: 017XXXXXXXX বা HB-)..."
-            class="flex-1 rounded-xl bg-slate-50 border border-slate-300 focus:border-sky-600 focus:bg-white px-4 py-2.5 text-sm outline-none"
+            inputmode="numeric"
+            autocomplete="tel"
+            placeholder="অর্ডারের মোবাইল নম্বর (01XXXXXXXXX)"
+            class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-sky-600 focus:bg-white px-4 py-2.5 text-sm outline-none"
+          />
+          <input
+            id="orderHistoryCodeFilter"
+            type="text"
+            autocomplete="off"
+            autocapitalize="characters"
+            placeholder="অর্ডার কোড (HB-...)"
+            class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-sky-600 focus:bg-white px-4 py-2.5 text-sm outline-none"
           />
           <button
             type="button"
-            onclick="renderCustomerOrderHistory()"
+            onclick="lookupCustomerOrder()"
             data-bn="🔍 অর্ডার খুঁজুন"
             data-en="🔍 Search Orders"
             class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-sky-600 hover:bg-sky-700 text-white transition"
@@ -3921,16 +3930,7 @@
       const container = document.getElementById('customerOrderHistoryList');
       if (!container) return;
 
-      const rawFilter = (document.getElementById('orderHistoryPhoneFilter')?.value || '').trim();
-      const normalizedFilter = normalizeBdPhone(rawFilter) || rawFilter;
-
-      const filteredOrders = !normalizedFilter
-        ? ordersData
-        : ordersData.filter(
-            (o) =>
-              String(o.customerPhone || '').includes(normalizedFilter) ||
-              String(o.id || '').toLowerCase().includes(normalizedFilter.toLowerCase())
-          );
+      const filteredOrders = Array.isArray(ordersData) ? ordersData : [];
 
       if (!Array.isArray(filteredOrders) || filteredOrders.length === 0) {
         container.innerHTML = `
@@ -3991,6 +3991,75 @@
           `;
         })
         .join('');
+    }
+
+    async function lookupCustomerOrder() {
+      const phoneInput = document.getElementById('orderHistoryPhoneFilter');
+      const codeInput = document.getElementById('orderHistoryCodeFilter');
+      const container = document.getElementById('customerOrderHistoryList');
+      const phone = normalizeBdPhone((phoneInput?.value || '').trim());
+      const orderCode = (codeInput?.value || '').trim().toUpperCase();
+
+      if (!phone || !/^01[0-9]{9}$/.test(phone) || !/^HB-[0-9]{6}-[A-F0-9]{16}$/.test(orderCode)) {
+        showToast(currentLang === 'en'
+          ? 'Enter the valid mobile number and complete order code.'
+          : 'সঠিক মোবাইল নম্বর ও সম্পূর্ণ অর্ডার কোড লিখুন।');
+        return;
+      }
+      if (!cloudSyncEnabled || !supabaseClient) {
+        showToast(currentLang === 'en'
+          ? 'Cloud order lookup is unavailable right now.'
+          : 'এই মুহূর্তে ক্লাউড অর্ডার খোঁজার সুবিধা পাওয়া যাচ্ছে না।');
+        return;
+      }
+
+      if (container) {
+        container.innerHTML = '<div class="rounded-xl bg-slate-50 p-4 text-center text-sm text-slate-500">অর্ডার খোঁজা হচ্ছে...</div>';
+      }
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_lookup_order', {
+          p_order_code: orderCode,
+          p_phone: phone
+        });
+        if (error) throw error;
+        if (!data?.found) {
+          if (container) container.innerHTML = `<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center text-sm text-amber-800">${currentLang === 'en' ? 'No matching order was found. Check the order code and mobile number.' : 'এই অর্ডার কোড ও মোবাইল নম্বরের সঙ্গে কোনো অর্ডার পাওয়া যায়নি।'}</div>`;
+          return;
+        }
+
+        const statusMap = {
+          pending: currentLang === 'en' ? 'Pending' : 'অপেক্ষমাণ',
+          pending_verification: currentLang === 'en' ? 'Pending verification' : 'যাচাইাধীন',
+          confirmed: currentLang === 'en' ? 'Confirmed' : 'নিশ্চিত',
+          processing: currentLang === 'en' ? 'Processing' : 'প্রসেসিং',
+          shipped: currentLang === 'en' ? 'Shipped' : 'কুরিয়ারে পাঠানো হয়েছে',
+          delivered: currentLang === 'en' ? 'Delivered' : 'ডেলিভারি সম্পন্ন',
+          cancelled: currentLang === 'en' ? 'Cancelled' : 'বাতিল'
+        };
+        const items = Array.isArray(data.items) ? data.items : [];
+        const itemsHtml = items.map(item =>
+          `<li>${escapeHtml(item.product_name || '')} × ${formatNum(item.quantity || 0)}</li>`
+        ).join('');
+        const paymentLabel = data.payment_status === 'paid'
+          ? (currentLang === 'en' ? 'Paid' : 'পরিশোধিত')
+          : (currentLang === 'en' ? 'Pending verification' : 'যাচাইাধীন');
+        if (container) {
+          container.innerHTML = `
+            <div class="rounded-2xl border border-sky-200 bg-sky-50/50 p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong class="text-sky-950">#${escapeHtml(data.order_code)}</strong>
+                <span class="rounded-full bg-white border border-sky-200 px-3 py-1 text-xs font-bold">${escapeHtml(statusMap[data.order_status] || data.order_status || '')}</span>
+              </div>
+              <div class="text-sm text-slate-700">${currentLang === 'en' ? 'Payment' : 'পেমেন্ট'}: <strong>${escapeHtml(paymentLabel)}</strong></div>
+              <div class="text-sm text-slate-700">${currentLang === 'en' ? 'Items' : 'পণ্য'}:<ul class="list-disc pl-5 mt-1">${itemsHtml}</ul></div>
+              <div class="text-base font-black text-violet-900">${currentLang === 'en' ? 'Total' : 'সর্বমোট'}: ৳${formatNum(data.total_amount || 0)}</div>
+              <div class="text-xs text-slate-500">${data.created_at ? new Date(data.created_at).toLocaleString(currentLang === 'en' ? 'en-GB' : 'bn-BD') : ''}</div>
+            </div>`;
+        }
+      } catch (lookupError) {
+        console.error('Hatbazar order lookup failed:', lookupError?.message || lookupError);
+        if (container) container.innerHTML = `<div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-center text-sm text-rose-700">${currentLang === 'en' ? 'Could not retrieve this order. Please try again.' : 'অর্ডারটি খুঁজে পাওয়া যায়নি। আবার চেষ্টা করুন।'}</div>`;
+      }
     }
 
     const ADMIN_PASS_SALT = 'hatbazar-admin:';
