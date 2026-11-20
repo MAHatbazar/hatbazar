@@ -2578,10 +2578,6 @@
             : 'ডেলিভারি সেটিংস ডেটাবেজে সেভ হয়নি: ' + (settingsError?.message || 'সমস্যা হয়েছে'));
           return;
         }
-      } else {
-        showToast(currentLang === 'en'
-          ? 'Cloud database is not connected. These settings are only local.'
-          : 'ক্লাউড ডেটাবেজ সংযুক্ত নয়। সেটিংস শুধু এই ডিভাইসে থাকবে।');
       }
 
       deliveryZoneConfig = {
@@ -2598,9 +2594,13 @@
       updateCartSummary();
       persistAppState();
       showToast(
-        currentLang === 'en'
-          ? 'Delivery zone & courier settings saved!'
-          : 'ডেলিভারি জোন ও Redx/Steadfast কুরিয়ার চার্জ সেভ হয়েছে!'
+        cloudSyncEnabled
+          ? (currentLang === 'en'
+              ? 'Delivery zone & courier settings saved to the database!'
+              : 'ডেলিভারি জোন ও কুরিয়ার চার্জ ডেটাবেজে সেভ হয়েছে!')
+          : (currentLang === 'en'
+              ? 'Saved locally only. Connect the cloud database for live checkout.'
+              : 'শুধু এই ডিভাইসে সেভ হয়েছে। লাইভ চেকআউটের জন্য ক্লাউড সংযোগ প্রয়োজন।')
       );
     }
 
