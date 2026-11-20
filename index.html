@@ -7348,7 +7348,8 @@
               if(!uploadedUrl||!/^https?:\/\//i.test(uploadedUrl)) throw new Error('ছবি Storage-এ আপলোড হয়নি।');
               imageUrls.push(uploadedUrl);
             }
-            const uniqueImages=[...new Set(imageUrls)].slice(0,10);
+            const uniqueImages=[...new Set(imageUrls)];
+            if(uniqueImages.length>10) throw new Error('একটি পণ্যের জন্য সর্বোচ্চ ১০টি ছবি দিতে পারবেন।');
             const category=categoriesData.find((item)=>item.id===row.categoryId);
             if(!category) throw new Error('Category পাওয়া যায়নি।');
             const product={
@@ -7434,7 +7435,11 @@
           }
 
           const galleryUrls = [];
-          const galleryFiles = Array.from(galleryInput?.files || []).slice(0, 10);
+          const galleryFiles = Array.from(galleryInput?.files || []);
+          if (galleryFiles.length > (file ? 9 : 10)) {
+            showToast(currentLang === 'en' ? 'A product can have up to 10 images including its main image.' : 'মূল ছবিসহ একটি পণ্যে সর্বোচ্চ ১০টি ছবি দিতে পারবেন।');
+            return;
+          }
           for (const galleryFile of galleryFiles) {
             const galleryValidation = validateProductImageFile(galleryFile);
             if (!galleryValidation.ok) {
