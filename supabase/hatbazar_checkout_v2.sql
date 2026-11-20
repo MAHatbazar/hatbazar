@@ -82,6 +82,8 @@ ALTER TABLE public.orders
 -- This function calculates product prices from the database, locks stock rows,
 -- writes the order and order_items atomically, and deducts stock only on success.
 
+DROP FUNCTION IF EXISTS public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT);
+
 CREATE OR REPLACE FUNCTION public.hatbazar_checkout_v2(
   p_customer_name TEXT,
   p_phone TEXT,
@@ -105,6 +107,7 @@ DECLARE
   v_product_name TEXT;
   v_price NUMERIC;
   v_stock INTEGER;
+  v_base_price NUMERIC;
   v_is_active BOOLEAN;
   v_subtotal NUMERIC(12,2) := 0;
   v_delivery_fee NUMERIC(12,2);
@@ -242,19 +245,19 @@ BEGIN
     ORDER BY x.product_id
   LOOP
     SELECT p.name, p.price, p.base_price
-      INTO v_product_name, v_price, v_stock
+      INTO v_product_name, v_price, v_base_price
     FROM public.products AS p
     WHERE p.id = v_item.product_id;
 
     IF p_reseller_id IS NOT NULL THEN
-      IF v_stock IS NULL OR v_stock <= 0 OR v_price < v_stock THEN
+      IF v_base_price IS NULL OR v_base_price < 0 OR v_price < v_base_price THEN
         RAISE EXCEPTION 'Product base price is missing or exceeds selling price: %', v_product_name;
       END IF;
       INSERT INTO public.reseller_ledger (
         reseller_id, order_id, product_id, base_price, selling_price, quantity
       )
       VALUES (
-        p_reseller_id, v_order_id, v_item.product_id, v_stock, v_price, v_item.quantity
+        p_reseller_id, v_order_id, v_item.product_id, v_base_price, v_price, v_item.quantity
       );
     END IF;
 
