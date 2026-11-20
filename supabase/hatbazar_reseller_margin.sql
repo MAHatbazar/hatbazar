@@ -172,10 +172,15 @@ BEGIN
     RAISE EXCEPTION 'Invalid payout details';
   END IF;
 
-  SELECT COALESCE(SUM(s.profit_amount), 0)
-  INTO v_earned
-  FROM public.reseller_sales s
-  WHERE s.reseller_id = auth.uid();
+  SELECT
+    COALESCE((SELECT SUM(s.profit_amount)
+              FROM public.reseller_sales s
+              WHERE s.reseller_id = auth.uid()), 0)
+    +
+    COALESCE((SELECT SUM((l.selling_price - l.base_price) * l.quantity)
+              FROM public.reseller_ledger l
+              WHERE l.reseller_id = auth.uid()), 0)
+  INTO v_earned;
 
   SELECT COALESCE(SUM(r.amount), 0)
   INTO v_reserved
