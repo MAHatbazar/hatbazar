@@ -2733,11 +2733,24 @@
       if (!cloudSyncEnabled || !supabaseClient) return null;
       try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) return null;
-        supabaseUser = data?.user || null;
-        await pullProductsFromSupabase();
+        if (error || !data?.user?.id) return null;
+        const { data: profile, error: profileError } = await supabaseClient
+          .from('profiles')
+          .select('id,role')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        if (profileError || profile?.role !== 'admin') {
+          await supabaseClient.auth.signOut();
+          supabaseUser = null;
+          supabaseProfile = null;
+          return null;
+        }
+        supabaseUser = data.user;
+        supabaseProfile = profile;
         return supabaseUser;
       } catch (_err) {
+        supabaseUser = null;
+        supabaseProfile = null;
         return null;
       }
     }
@@ -4260,35 +4273,27 @@
       if (role === 'অ্যাডমিন') {
         if (adminLoginBlocked()) return;
         const typedPass = document.getElementById('authModalAdminPassword')?.value || '';
-        const bdPhone = normalizeBdPhone(contactRaw);
         const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contactRaw);
-        if (!bdPhone && !isValidEmail) {
+        if (!isValidEmail || !typedPass) {
           registerAdminFail();
-          showToast(
-            currentLang === 'en'
-              ? 'Admin requires a valid 11-digit BD mobile or email'
-              : 'অ্যাডমিন লগ ইনের জন্য সঠিক ১১ সংখ্যার মোবাইল নম্বর বা ইমেইল দিন'
-          );
+          showToast(currentLang === 'en'
+            ? 'Admin login requires the Supabase account email and password.'
+            : 'অ্যাডমিন লগইনের জন্য Supabase অ্যাকাউন্টের ইমেইল ও পাসওয়ার্ড প্রয়োজন।');
           return;
         }
-        const ok = await verifyAdminPassword(typedPass);
-        if (!ok) {
+        const authUser = await signInWithSupabaseEmail(contactRaw.toLowerCase(), typedPass);
+        if (!authUser) {
           registerAdminFail();
-          showToast(
-            currentLang === 'en'
-              ? 'Incorrect Admin Password! Access denied.'
-              : 'ভুল অ্যাডমিন পাসওয়ার্ড! লগ ইন অনুমোদিত নয়।'
-          );
+          showToast(currentLang === 'en'
+            ? 'Admin authentication failed. Check the email/password and admin profile role.'
+            : 'অ্যাডমিন লগইন হয়নি। ইমেইল/পাসওয়ার্ড এবং Supabase প্রোফাইলের admin role যাচাই করুন।');
           return;
         }
         adminFailCount = 0;
         adminLockUntil = 0;
-        if (isValidEmail && typedPass) {
-          await signInWithSupabaseEmail(contactRaw, typedPass);
-        }
         currentSessionUser = {
           name,
-          contact: bdPhone || contactRaw.toLowerCase(),
+          contact: contactRaw.toLowerCase(),
           role: 'অ্যাডমিন',
           loginAt: Date.now(),
           expiresAt: Date.now() + ADMIN_SESSION_TTL_MS
@@ -4311,6 +4316,10 @@
         };
       }
 
+      if (role === 'অ্যাডমিন') {
+        await pullProductsFromSupabase();
+        await pullCentralOrdersFromSupabase();
+      }
       persistAppState();
       closeAuthModal();
       updateAuthButtonLabel();
@@ -4338,33 +4347,24 @@
       if (adminLoginBlocked()) return;
 
       const normalizedPhone = normalizeBdPhone(typedPhoneRaw);
-      if (typedUser.length < 2) {
+      const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(typedUser);
+      if (!validEmail || !normalizedPhone || !typedPass) {
         registerAdminFail();
-        showToast(currentLang === 'en' ? 'Enter a valid Admin Name / Username' : 'অনুগ্রহ করে সঠিক অ্যাডমিন নাম বা ইউজারনেম লিখুন (কমপক্ষে ২ অক্ষর)');
+        showToast(currentLang === 'en'
+          ? 'Enter the Supabase admin email, valid BD phone number and password.'
+          : 'Supabase অ্যাডমিন ইমেইল, সঠিক বাংলাদেশি মোবাইল নম্বর ও পাসওয়ার্ড দিন।');
         return;
       }
-      if (!normalizedPhone) {
+      const authUser = await signInWithSupabaseEmail(typedUser.toLowerCase(), typedPass);
+      if (!authUser) {
         registerAdminFail();
-        showToast(currentLang === 'en' ? 'Enter a valid 11-digit BD mobile number' : 'অনুগ্রহ করে সঠিক ১১ সংখ্যার বাংলাদেশি মোবাইল নম্বর লিখুন (01XXXXXXXXX)');
-        return;
-      }
-      if (!typedPass || typedPass.length < 4) {
-        registerAdminFail();
-        showToast(currentLang === 'en' ? 'Enter a valid Admin Password' : 'অনুগ্রহ করে সঠিক অ্যাডমিন পাসওয়ার্ড লিখুন');
-        return;
-      }
-
-      const ok = await verifyAdminPassword(typedPass);
-      if (!ok) {
-        registerAdminFail();
-        showToast(currentLang === 'en' ? 'Wrong password! Access denied.' : 'পাসওয়ার্ড বা তথ্য সঠিক নয়! লগ ইন বাতিল করা হয়েছে।');
+        showToast(currentLang === 'en'
+          ? 'Admin authentication failed. Check the credentials and profiles.role = admin.'
+          : 'অ্যাডমিন লগইন হয়নি। তথ্য এবং profiles.role = admin যাচাই করুন।');
         return;
       }
       adminFailCount = 0;
       adminLockUntil = 0;
-      if (typedUser.includes('@') && typedPass) {
-        await signInWithSupabaseEmail(typedUser, typedPass);
-      }
 
       currentSessionUser = {
         name: typedUser,
@@ -4373,6 +4373,8 @@
         loginAt: Date.now(),
         expiresAt: Date.now() + ADMIN_SESSION_TTL_MS
       };
+      await pullProductsFromSupabase();
+      await pullCentralOrdersFromSupabase();
       if (userEl) userEl.value = '';
       if (phoneEl) phoneEl.value = '';
       if (inputEl) inputEl.value = '';
