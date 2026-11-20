@@ -326,6 +326,18 @@
       #mobileCustomerNav { display:grid !important; }
     }
 
+  
+    /* Right-side mega menu inspired by familiar Bangladeshi ecommerce navigation */
+    #siteMenuOverlay { opacity:0; transition:opacity .24s ease; }
+    #siteMenuOverlay.site-menu-open { opacity:1; }
+    #siteMenuPanel { transform:translateX(102%); transition:transform .28s cubic-bezier(.2,.75,.25,1); }
+    #siteMenuOverlay.site-menu-open #siteMenuPanel { transform:translateX(0); }
+    #siteMenuPanel button:focus-visible { outline:3px solid rgba(245,130,32,.35); outline-offset:2px; }
+    @media (max-width:639px) {
+      #siteMenuPanel { max-width:min(90vw,420px); }
+      #mobileCustomerNav [data-mobile-nav="shop"] { background:rgba(255,255,255,.2); }
+    }
+
   </style>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -385,7 +397,7 @@
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-violet-100">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <button id="mobileMenuButton" type="button" aria-label="মেনু খুলুন" onclick="navigateTo('shop')" class="hidden text-slate-800 text-3xl leading-none" style="border:0;background:transparent">☰</button>
+        <button id="mobileMenuButton" type="button" aria-label="মেনু খুলুন" onclick="openSiteMenuDrawer()" class="hidden text-slate-800 text-3xl leading-none" style="border:0;background:transparent">☰</button>
         <div role="button" tabindex="0" aria-label="Hatbazar Home" title="Hatbazar" class="order-1 flex items-center gap-3 cursor-pointer" onclick="if(!editablePreviewEnabled) navigateTo('home')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();if(!editablePreviewEnabled)navigateTo('home')}">
           <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#1e1b4b] via-[#6d28d9] to-[#be185d] p-0.5 shadow-lg shadow-violet-600/25 flex items-center justify-center shrink-0">
             <svg viewBox="0 0 80 80" class="w-full h-full rounded-[14px]" xmlns="http://www.w3.org/2000/svg">
@@ -490,7 +502,8 @@
       </div>
 
       <!-- গোছানো প্রাইমারি নেভিগেশন বাটন বার -->
-      <nav aria-label="প্রধান নেভিগেশন" class="hidden sm:grid mt-3 pt-2.5 border-t border-violet-100 grid-cols-4 gap-2">
+      <nav aria-label="প্রধান নেভিগেশন" class="hidden sm:grid mt-3 pt-2.5 border-t border-violet-100 grid-cols-5 gap-2">
+        <button type="button" onclick="openSiteMenuDrawer()" data-nav="menu" class="nav-pill px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border transition">☰ মেনু</button>
         <button type="button" onclick="navigateTo('home')" data-nav="home" data-bn="🏠 হোম" data-en="🏠 Home" class="nav-pill px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border transition">🏠 হোম</button>
         <button type="button" onclick="navigateTo('shop')" data-nav="shop" data-bn="📂 অল ক্যাটাগরিজ" data-en="📂 All Categories" class="nav-pill px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border transition">📂 অল ক্যাটাগরিজ</button>
         <button type="button" onclick="openPartnerRegistration('seller')" data-nav="sellerRegistration" data-bn="🏪 সেলার রেজিস্ট্রেশন" data-en="🏪 Seller Registration" class="nav-pill px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border transition">🏪 সেলার রেজিস্ট্রেশন</button>
@@ -502,11 +515,57 @@
   <!-- মোবাইল শপিং অ্যাপের মতো নিচের নেভিগেশন -->
   <nav id="mobileCustomerNav" aria-label="মোবাইল কাস্টমার নেভিগেশন" class="sm:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 gap-1 border-t border-orange-200 bg-[#f58220] text-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(245,130,32,0.22)]">
     <button type="button" onclick="navigateTo('home')" data-mobile-nav="home" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">⌂</span><span class="text-[10px] font-bold">HOME</span></button>
-    <button type="button" onclick="navigateTo('shop')" data-mobile-nav="shop" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">▦</span><span class="text-[10px] font-bold">MENU</span></button>
+    <button type="button" onclick="openSiteMenuDrawer()" data-mobile-nav="shop" aria-label="মেনু খুলুন" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">☰</span><span class="text-[10px] font-bold">MENU</span></button>
     <button type="button" onclick="openRightOrderDrawer()" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none relative">🛍️<span id="mobileCartCountBadge" class="absolute -top-1 -right-3 rounded-full bg-slate-900 text-white text-[9px] min-w-4 px-1">0</span></span><span class="text-[10px] font-bold">CART</span></button>
-    <button type="button" onclick="document.getElementById('topSearchInput')?.focus();window.scrollTo({top:0,behavior:'smooth'});" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">⌕</span><span class="text-[10px] font-bold">SEARCH</span></button>
+    <button type="button" onclick="openSiteMenuDrawer();setTimeout(()=>document.getElementById('siteMenuSearchInput')?.focus(),120)" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">⌕</span><span class="text-[10px] font-bold">SEARCH</span></button>
     <button type="button" onclick="handleAuthButtonClick()" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">♙</span><span class="text-[10px] font-bold">ACCOUNT</span></button>
   </nav>
+
+
+  <!-- Hatbazar right-side navigation drawer -->
+  <div id="siteMenuOverlay" class="hidden fixed inset-0 z-[70] bg-slate-950/55 backdrop-blur-sm" onclick="if(event.target===this)closeSiteMenuDrawer()" aria-hidden="true">
+    <aside id="siteMenuPanel" role="dialog" aria-modal="true" aria-label="Hatbazar navigation menu" class="absolute right-0 top-0 h-full w-full max-w-[420px] bg-[#fffaf5] shadow-2xl flex flex-col overflow-hidden">
+      <div class="shrink-0 bg-gradient-to-r from-[#f58220] to-[#ff9d43] px-5 py-5 text-white">
+        <div class="flex items-center justify-between gap-3">
+          <div><div class="text-xs font-bold text-white/85">HATBAZAR</div><h2 class="text-xl font-extrabold">আপনার কেনাকাটার মেনু</h2><p class="text-xs text-white/85 mt-1">সব বিভাগ ও প্রয়োজনীয় সেবা এক জায়গায়</p></div>
+          <button type="button" onclick="closeSiteMenuDrawer()" aria-label="মেনু বন্ধ করুন" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white text-xl font-bold">×</button>
+        </div>
+        <form onsubmit="handleSiteMenuSearch(event)" class="mt-4 flex items-center gap-2 rounded-xl bg-white p-2 shadow-sm">
+          <span class="text-orange-500 text-lg pl-1">⌕</span>
+          <input id="siteMenuSearchInput" type="search" placeholder="পণ্য বা ক্যাটাগরি খুঁজুন..." class="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm text-slate-800 outline-none" />
+          <button type="submit" class="rounded-lg bg-[#f58220] px-3 py-2 text-xs font-extrabold text-white">খুঁজুন</button>
+        </form>
+        <div class="grid grid-cols-2 gap-2 mt-4">
+          <button type="button" onclick="closeSiteMenuDrawer();navigateTo('home')" class="rounded-xl bg-white text-[#b45309] px-3 py-2.5 text-sm font-extrabold">⌂ হোমপেজ</button>
+          <button type="button" onclick="closeSiteMenuDrawer();openRightOrderDrawer()" class="rounded-xl bg-white/20 border border-white/35 text-white px-3 py-2.5 text-sm font-extrabold">🛒 আমার কার্ট <span id="menuCartCount">0</span></button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+        <section>
+          <h3 class="text-xs font-extrabold tracking-wide text-slate-500 mb-2">দ্রুত প্রয়োজনীয় অপশন</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="closeSiteMenuDrawer();handleAuthButtonClick()" class="rounded-xl border border-orange-100 bg-white p-3 text-left shadow-sm"><span class="text-lg">👤</span><span class="block text-sm font-bold text-slate-800">অ্যাকাউন্ট / লগইন</span></button>
+            <button type="button" onclick="closeSiteMenuDrawer();navigateTo('ordersHistory')" class="rounded-xl border border-orange-100 bg-white p-3 text-left shadow-sm"><span class="text-lg">📦</span><span class="block text-sm font-bold text-slate-800">অর্ডার ট্র্যাকিং</span></button>
+            <button type="button" onclick="closeSiteMenuDrawer();navigateTo('policies')" class="rounded-xl border border-orange-100 bg-white p-3 text-left shadow-sm"><span class="text-lg">📜</span><span class="block text-sm font-bold text-slate-800">ডেলিভারি ও নীতিমালা</span></button>
+            <button type="button" onclick="closeSiteMenuDrawer();openAiAssistantModal()" class="rounded-xl border border-orange-100 bg-white p-3 text-left shadow-sm"><span class="text-lg">💬</span><span class="block text-sm font-bold text-slate-800">হেল্প ও সাপোর্ট</span></button>
+          </div>
+        </section>
+        <section>
+          <div class="flex items-center justify-between mb-2"><h3 class="text-xs font-extrabold tracking-wide text-slate-500">শপ বাই ক্যাটাগরি</h3><button type="button" onclick="closeSiteMenuDrawer();navigateTo('shop')" class="text-xs font-extrabold text-orange-700">সব ক্যাটাগরি দেখুন ›</button></div>
+          <div id="siteMenuCategoryList" class="rounded-2xl border border-orange-100 bg-white overflow-hidden divide-y divide-orange-50"></div>
+        </section>
+        <section>
+          <h3 class="text-xs font-extrabold tracking-wide text-slate-500 mb-2">Hatbazar পার্টনার</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="closeSiteMenuDrawer();openPartnerRegistration('seller')" class="rounded-xl bg-white border border-orange-100 p-3 text-left"><span class="text-lg">🏪</span><span class="block text-sm font-bold text-slate-800">সেলার রেজিস্ট্রেশন</span></button>
+            <button type="button" onclick="closeSiteMenuDrawer();openPartnerRegistration('reseller')" class="rounded-xl bg-white border border-orange-100 p-3 text-left"><span class="text-lg">🤝</span><span class="block text-sm font-bold text-slate-800">রিসেলার রেজিস্ট্রেশন</span></button>
+          </div>
+          <button id="siteMenuAdminLink" type="button" onclick="closeSiteMenuDrawer();navigateTo('admin')" class="hidden mt-2 w-full rounded-xl bg-slate-900 text-white p-3 text-left text-sm font-bold">⚙️ অ্যাডমিন ড্যাশবোর্ড</button>
+        </section>
+      </div>
+      <div class="shrink-0 border-t border-orange-100 bg-white px-5 py-3 text-center text-[11px] text-slate-500">Hatbazar • আভিজাত্য ও আস্থার ঠিকানা</div>
+    </aside>
+  </div>
 
   <!-- টোস্ট নোটিফিকেশন -->
   <div id="toastBanner" class="hidden fixed bottom-5 right-5 z-50 max-w-sm rounded-2xl px-4 py-3 text-sm font-bold shadow-xl border border-emerald-200 bg-slate-900 text-white">
@@ -2130,6 +2189,68 @@
        ০. ডান স্লাইড ড্রয়ার, এডিটেবল প্রিভিউ, ভাষা ও নেভিগেশন ফাংশনসমূহ
        ===================================================================== */
     let rightSlideDrawerOpen = false;
+
+
+    let siteMenuDrawerOpen = false;
+    function renderSiteMenuDrawer() {
+      const list = document.getElementById('siteMenuCategoryList');
+      if (list) {
+        list.innerHTML = categoriesData.map((cat, index) => `
+          <button type="button" onclick="selectSiteMenuCategory('${escapeHtml(cat.id)}')" class="w-full flex items-center gap-3 px-3.5 py-3 text-left hover:bg-orange-50 transition">
+            <span class="w-8 h-8 rounded-lg bg-orange-50 text-orange-700 flex items-center justify-center text-base">${escapeHtml(cat.emoji || '🛍️')}</span>
+            <span class="flex-1 min-w-0"><span class="block text-sm font-bold text-slate-800">${escapeHtml(getCategoryName(cat))}</span><span class="block text-[10px] text-slate-400">${formatNum(Array.isArray(cat.items) ? cat.items.length : 0)}টি পণ্য</span></span>
+            <span class="text-orange-400 text-lg">›</span>
+          </button>`).join('');
+      }
+      const cartCount = cartItems.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+      const badge = document.getElementById('menuCartCount');
+      if (badge) badge.textContent = formatNum(cartCount);
+      document.getElementById('siteMenuAdminLink')?.classList.toggle('hidden', !isAdminSession());
+    }
+    function handleSiteMenuSearch(event) {
+      event.preventDefault();
+      const q = (document.getElementById('siteMenuSearchInput')?.value || '').trim().toLowerCase();
+      closeSiteMenuDrawer();
+      navigateTo('shop');
+      if (!q) { closeActiveFolder(); return; }
+      const matchedCat = categoriesData.find((cat) =>
+        (cat.name || '').toLowerCase().includes(q) ||
+        (cat.nameEn || '').toLowerCase().includes(q) ||
+        (cat.itemName || '').toLowerCase().includes(q) ||
+        (Array.isArray(cat.items) && cat.items.some((item) => (item.title || '').toLowerCase().includes(q)))
+      );
+      if (matchedCat) {
+        openCategoryFolder(matchedCat.id);
+        showToast(currentLang === 'en' ? `Opened "${getCategoryName(matchedCat)}"` : `“${getCategoryName(matchedCat)}” ক্যাটাগরি খোলা হয়েছে`);
+      } else {
+        showToast(currentLang === 'en' ? 'No matching category found' : 'মিলিয়ে কোনো ক্যাটাগরি পাওয়া যায়নি');
+      }
+    }
+    function openSiteMenuDrawer() {
+      if (rightSlideDrawerOpen) closeRightOrderDrawer();
+      const overlay = document.getElementById('siteMenuOverlay');
+      if (!overlay) return;
+      renderSiteMenuDrawer();
+      overlay.classList.remove('hidden');
+      overlay.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => overlay.classList.add('site-menu-open'));
+      siteMenuDrawerOpen = true;
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSiteMenuDrawer() {
+      const overlay = document.getElementById('siteMenuOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('site-menu-open');
+      siteMenuDrawerOpen = false;
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      setTimeout(() => { if (!siteMenuDrawerOpen) overlay.classList.add('hidden'); }, 260);
+    }
+    function selectSiteMenuCategory(categoryId) {
+      closeSiteMenuDrawer();
+      navigateTo('shop');
+      openCategoryFolder(categoryId);
+    }
 
     function mountCheckoutIntoRightDrawer() {
       const drawerBody = document.getElementById('rightSlideDrawerBody');
@@ -4492,7 +4613,7 @@
     }
 
     function navigateTo(viewName) {
-      const adminOnlyViews = ['admin', 'sellerDash', 'resellerDash', 'ordersHistory', 'liveEditor'];
+      const adminOnlyViews = ['admin', 'sellerDash', 'resellerDash', 'liveEditor'];
       if (adminOnlyViews.includes(viewName) && !isAdminSession()) {
         showToast(currentLang === 'en' ? 'Admin access only. Please sign in with the authorized admin account.' : 'এই অংশটি শুধু অ্যাডমিনের জন্য। অনুমোদিত অ্যাডমিন অ্যাকাউন্ট দিয়ে লগ ইন করুন।');
         viewName = 'home';
