@@ -88,7 +88,7 @@ ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS payment_trx_id TEXT,
   ADD COLUMN IF NOT EXISTS payment_verified BOOLEAN NOT NULL DEFAULT FALSE;
 
-CREATE UNIQUE INDEX IF NOT EXISTS orders_order_code_unique_idx
+CREATE UNIQUE INDEX IF NOT EXISTS orders_order_code_unique
   ON public.orders (order_code)
   WHERE order_code IS NOT NULL;
 
@@ -102,6 +102,7 @@ ON public.product_images
 FOR ALL TO authenticated
 USING (public.is_admin())
 WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "Public views active product images" ON public.product_images;
 DROP POLICY IF EXISTS "Public can view gallery images for active products" ON public.product_images;
 CREATE POLICY "Public can view gallery images for active products"
 ON public.product_images
