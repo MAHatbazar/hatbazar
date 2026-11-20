@@ -194,6 +194,7 @@
       header > div { padding:10px 12px !important; }
       header > div > div:first-child { min-height:50px; display:flex; align-items:center; justify-content:space-between; position:relative; gap:0 !important; }
       #mobileMenuButton { display:block !important; order:0 !important; position:relative; z-index:2; width:34px; }
+      #mobileLangToggleBtn { display:inline-flex !important; order:0 !important; position:relative; z-index:2; margin-left:4px; }
       header [aria-label="Hatbazar Home"] { position:absolute; left:50%; transform:translateX(-50%); gap:6px !important; }
       header [aria-label="Hatbazar Home"] > div:first-child { width:38px !important; height:38px !important; border-radius:10px !important; box-shadow:none !important; }
       header [aria-label="Hatbazar Home"] #editableBrandTitle { font-size:18px !important; color:#e87518 !important; background:none !important; -webkit-text-fill-color:#e87518 !important; }
@@ -330,7 +331,7 @@
     /* Right-side mega menu inspired by familiar Bangladeshi ecommerce navigation */
     #siteMenuOverlay { opacity:0; transition:opacity .24s ease; }
     #siteMenuOverlay.site-menu-open { opacity:1; }
-    #siteMenuPanel { transform:translateX(102%); transition:transform .28s cubic-bezier(.2,.75,.25,1); }
+    #siteMenuPanel { left:0 !important; right:auto !important; transform:translateX(-102%); transition:transform .28s cubic-bezier(.2,.75,.25,1); }
     #siteMenuOverlay.site-menu-open #siteMenuPanel { transform:translateX(0); }
     #siteMenuPanel button:focus-visible { outline:3px solid rgba(245,130,32,.35); outline-offset:2px; }
     @media (max-width:639px) {
@@ -398,6 +399,7 @@
     <div class="max-w-7xl mx-auto px-3 sm:px-6 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <button id="mobileMenuButton" type="button" aria-label="মেনু খুলুন" onclick="openSiteMenuDrawer()" class="hidden text-slate-800 text-3xl leading-none" style="border:0;background:transparent">☰</button>
+        <button id="mobileLangToggleBtn" type="button" onclick="toggleLanguage()" aria-label="Change language" class="hidden items-center justify-center rounded-full border border-orange-200 bg-orange-50 px-2.5 py-2 text-[11px] font-extrabold text-orange-800">EN / বাংলা</button>
         <div role="button" tabindex="0" aria-label="Hatbazar Home" title="Hatbazar" class="order-1 flex items-center gap-3 cursor-pointer" onclick="if(!editablePreviewEnabled) navigateTo('home')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();if(!editablePreviewEnabled)navigateTo('home')}">
           <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#1e1b4b] via-[#6d28d9] to-[#be185d] p-0.5 shadow-lg shadow-violet-600/25 flex items-center justify-center shrink-0">
             <svg viewBox="0 0 80 80" class="w-full h-full rounded-[14px]" xmlns="http://www.w3.org/2000/svg">
@@ -5134,6 +5136,8 @@
     function applyFullPageLanguage() {
       document.documentElement.lang = currentLang === 'en' ? 'en' : 'bn';
       const langBtnLabel = document.getElementById('langToggleLabel');
+      const mobileLangBtn = document.getElementById('mobileLangToggleBtn');
+      if (mobileLangBtn) mobileLangBtn.textContent = currentLang === 'bn' ? 'EN / বাংলা' : 'বাংলা / EN';
       if (langBtnLabel) {
         langBtnLabel.textContent = currentLang === 'bn' ? 'English / বাংলা' : 'বাংলা / English';
       }
