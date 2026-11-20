@@ -1741,6 +1741,9 @@ async function saveBulkProducts(){
  }
 }
 
+$('aiNameGenerateBtn').addEventListener('click',()=>generateAIProductDetails('name'));
+$('aiGenerateBtn').addEventListener('click',()=>generateAIProductDetails('image'));
+
 addBulkRow();
 
 async function checkExistingSession(){
