@@ -416,6 +416,7 @@ async function restoreAIImage(path,forBulkRow=null,jobId=null){
  const {data,error}=await db.storage.from(BUCKET).download(path);
  if(error||!data)throw new Error('সংরক্ষিত AI ছবি পুনরুদ্ধার করা যায়নি।');
  const file=new File([data],path.split('/').pop()||'ai-product.jpg',{type:data.type||'image/jpeg'});
+ if(jobId)file._aiJobId=jobId;
  if(forBulkRow){setRowImages(forBulkRow,[file]);updateBulkImageStatus();return;}
  if(singleProductImages.length>=10)return;
  singleProductImages.push(file);
@@ -429,6 +430,45 @@ function aiJobLabel(job){
  const states={queued:'অপেক্ষমাণ',processing:'কাজ চলছে',completed:'সম্পন্ন',failed:'ব্যর্থ'};
  return (types[job.job_type]||'AI কাজ')+' · '+(states[job.status]||job.status)+' · '+(job.progress||0)+'%';
 }
+function renderSingleAIImages(){
+ const preview=$('singleImagePreview');preview.innerHTML='';
+ singleProductImages.forEach(file=>{
+  const thumb=document.createElement('img');thumb.src=URL.createObjectURL(file);thumb.classList.add('image-preview-thumb');
+  thumb.addEventListener('click',()=>openImagePreview(thumb.src,file.name));preview.appendChild(thumb);
+ });
+ $('singleImageNames').textContent=singleProductImages.length?singleProductImages.map((file,i)=>(i+1)+'. '+file.name).join(' | '):'কোনো নতুন ছবি নির্বাচন করা হয়নি।';
+}
+function clearAIJobResult(job){
+ if(job.job_type==='bulk'){
+  document.querySelectorAll('.bulk-row').forEach(row=>{
+   if(row.dataset.aiJobId!==job.id)return;
+   ['name','name_bn','category_id','description'].forEach(key=>{
+    const field=row.querySelector('[data-field="'+key+'"]');if(field)field.value='';
+   });
+   row._aiMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
+   row.dataset.aiReady='';row.dataset.aiJobId='';
+   row._imageFiles=(row._imageFiles||[]).filter(file=>file._aiJobId!==job.id);
+   const name=row.querySelector('[data-image-name]');if(name)name.textContent=row._imageFiles.length?row._imageFiles.map((f,i)=>(i+1)+'. '+f.name).join(' | '):'ছবি নেই';
+   const preview=row.querySelector('[data-row-preview]');if(preview){
+    preview.innerHTML='';
+    row._imageFiles.forEach(file=>{const img=document.createElement('img');img.src=URL.createObjectURL(file);img.classList.add('image-preview-thumb');img.addEventListener('click',()=>openImagePreview(img.src,file.name));preview.appendChild(img);});
+   }
+  });
+  updateBulkImageStatus();
+  $('bulkAiStatus').textContent='';
+  return;
+ }
+ if($('productForm').dataset.aiJobId!==job.id)return;
+ $('productForm').dataset.aiJobId='';
+ $('name').value='';$('name_bn').value='';$('category_id').value='';$('description').value='';
+ aiProductMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
+ $('aiGeneratedDetails').textContent='';
+ $('aiResultPreview').textContent='';$('aiResultPreview').classList.add('hidden');
+ $('aiFoodDetails').innerHTML='';$('aiFoodDetails').classList.add('hidden');
+ $('aiSizesPanel').innerHTML='';$('aiStatus').textContent='';
+ singleProductImages=singleProductImages.filter(file=>file._aiJobId!==job.id);
+ renderSingleAIImages();
+}
 async function applyAIJob(job){
  if(job.job_type==='bulk'){
   const results=job.result?.results||[];
@@ -438,6 +478,7 @@ async function applyAIJob(job){
    let rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
    while(rows.length<rowIndex){addBulkRow();rows=[...$('bulkRows').querySelectorAll('.bulk-row')];}
    const row=rows[rowIndex-1];
+   row.dataset.aiJobId=job.id;
    const r=item.result||{};
    const set=(key,value)=>{const input=row.querySelector('[data-field="'+key+'"]');if(input)input.value=value??'';};
    set('name',r.name||'');set('name_bn',r.name_bn||'');set('category_id',r.category_id||'');set('description',formatAIProductDescription(r));
@@ -449,6 +490,7 @@ async function applyAIJob(job){
   return;
  }
  const result=job.result||{};
+ $('productForm').dataset.aiJobId=job.id;
  applyAIProductResult(result,job.payload?.product_name||'');
  if(job.job_type==='image'&&result.storage_path)await restoreAIImage(result.storage_path,null,job.id);
 }
@@ -478,7 +520,7 @@ async function loadAIJobs(){
    if(job.status==='completed'||job.status==='failed'){
     const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='🗑️ Delete';del.title='এই AI কাজ মুছে ফেলুন';del.setAttribute('aria-label','এই AI কাজ মুছে ফেলুন');del.style.cssText='padding:7px 10px;min-width:76px;line-height:1;white-space:nowrap;flex-shrink:0';
     del.addEventListener('click',async()=>{
-     if(!confirm('এই AI কাজের রেকর্ড ও তৈরি করা অস্থায়ী ছবি মুছে ফেলবেন?'))return;
+     if(!confirm('এই AI কাজের রেকর্ড, তৈরি করা বিবরণ, প্রিভিউ ও সংশ্লিষ্ট ছবিগুলো একসঙ্গে মুছে ফেলবেন?'))return;
      del.disabled=true;
      try{
       const paths=[job.payload?.storage_path,job.result?.storage_path,...(job.result?.results||[]).map(item=>item.storage_path)].filter(Boolean);
@@ -488,22 +530,12 @@ async function loadAIJobs(){
       }
       const {error:deleteError}=await db.from('hatbazar_ai_jobs').delete().eq('id',job.id);
       if(deleteError)throw deleteError;
-      const remaining=singleProductImages.filter(file=>file._aiJobId!==job.id);
-      singleProductImages=remaining;
-      const preview=$('singleImagePreview');preview.innerHTML='';
-      remaining.forEach(file=>{
-       const thumb=document.createElement('img');thumb.src=URL.createObjectURL(file);thumb.classList.add('image-preview-thumb');
-       thumb.addEventListener('click',()=>openImagePreview(thumb.src,file.name));preview.appendChild(thumb);
-      });
-      $('singleImageNames').textContent=remaining.length?remaining.map((file,i)=>(i+1)+'. '+file.name).join(' | '):'কোনো নতুন ছবি নির্বাচন করা হয়নি।';
-      document.querySelectorAll('.bulk-row').forEach(row=>{
-       if(row.dataset.aiJobId===job.id){row.dataset.aiJobId='';row._imageFiles=[];const name=row.querySelector('[data-image-name]');if(name)name.textContent='ছবি নেই';const rowPreview=row.querySelector('[data-row-preview]');if(rowPreview)rowPreview.innerHTML='';}
-      });
+      clearAIJobResult(job);
       if(aiActiveJobId===job.id)aiActiveJobId=null;
       aiAppliedJobIds.delete(job.id);
       await loadAIJobs();
      }catch(e){del.disabled=false;alert('Delete করা যায়নি: '+(e.message||'অজানা সমস্যা'));}
-    });
+    });;
     titleRow.appendChild(del);
    }
    card.appendChild(titleRow);
@@ -561,6 +593,7 @@ async function generateAIProductDetails(mode='image'){
   }
   const payload={product_name:productName,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn}))};
   if(storagePath)payload.storage_path=storagePath;
+  if(mode==='image'&&file)file._aiJobId=jobId;
   const {error}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:mode,payload});
   if(error)throw new Error('AI কাজ Queue-তে রাখা যায়নি: '+error.message);
   aiActiveJobId=jobId;
@@ -1418,6 +1451,8 @@ async function analyzeBulkImagesWithAI(){
    if(problem)throw new Error('সারি '+item.row_index+': '+problem);
    $('bulkAiStatus').textContent='ছবি সার্ভারে সংরক্ষণ হচ্ছে '+(i+1)+'/'+targets.length+'...';
    const path=await uploadAIJobImage(item.file,user.id,jobId,i);
+   item.row.dataset.aiJobId=jobId;
+   (item.row._imageFiles||[]).forEach(file=>file._aiJobId=jobId);
    items.push({row_index:item.row_index,product_name:item.row.querySelector('[data-field="name"]')?.value||item.row.querySelector('[data-field="name_bn"]')?.value||'',storage_path:path});
   }
   const payload={items,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn}))};
