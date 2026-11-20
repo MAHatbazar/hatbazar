@@ -19,7 +19,7 @@ BEGIN
   END IF;
 
   IF p_order_status IS NOT NULL AND p_order_status NOT IN (
-    'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'
+    'pending', 'pending_verification', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'
   ) THEN
     RAISE EXCEPTION 'Invalid order status';
   END IF;
