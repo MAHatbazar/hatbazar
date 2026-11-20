@@ -3206,6 +3206,15 @@
         showToast(currentLang === 'en' ? 'Order update failed: ' + saveResult.error : 'অর্ডার আপডেট হয়নি: ' + saveResult.error);
         return;
       }
+      if (nextStatus === 'cancelled' && previousStatus !== 'cancelled') {
+        for (const orderedItem of (ord.items || [])) {
+          for (const category of categoriesData) {
+            const product = (category.items || []).find((item) => item.id === orderedItem.id);
+            if (product) product.stock = Math.max(0, Number(product.stock) || 0) + (Number(orderedItem.qty) || 1);
+          }
+        }
+        persistAppState();
+      }
       renderCentralOrdersList();
       renderCustomerOrderHistory();
       refreshAdminStats();
@@ -3288,6 +3297,7 @@
                   <option value="confirmed" ${ord.orderStatus === 'confirmed' ? 'selected' : ''}>কনফার্মড</option>
                   <option value="shipped" ${ord.orderStatus === 'shipped' ? 'selected' : ''}>কুরিয়ারে পাঠানো হয়েছে</option>
                   <option value="delivered" ${ord.orderStatus === 'delivered' ? 'selected' : ''}>ডেলিভারি সম্পন্ন</option>
+                  <option value="cancelled" ${ord.orderStatus === 'cancelled' ? 'selected' : ''}>অর্ডার বাতিল</option>
                 </select>
                 <button
                   type="button"
