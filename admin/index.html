@@ -161,8 +161,9 @@ button:disabled{opacity:.5}
  <strong>✨ AI Product Assistant</strong>
  <p class="hint">Product-এর ছবি নির্বাচন করে AI দিয়ে বাংলা-ইংরেজি নাম, আকর্ষণীয় বিবরণ, Category ও প্রয়োজনীয় Size তৈরি করুন।</p>
  <button id="aiGenerateBtn" type="button" class="secondary">✨ ছবি থেকে Product Details তৈরি করুন</button>
- <button id="freeImageStylesBtn" type="button" class="secondary" onclick="generateFiveFreeImageStyles()">🖼️ ফ্রিতে ৫টি ছবি ডিজাইন তৈরি করুন</button>
+ <button id="freeImageStylesBtn" type="button" class="secondary" onclick="generateFreeImagePrompts()">✨ ৫টি আলাদা AI ছবির Prompt তৈরি করুন</button>
  <div id="freeImageStylesStatus" class="hint" aria-live="polite"></div>
+ <div id="freeImagePrompts" class="upload-box hidden"></div>
  <div id="aiStatus" class="hint" aria-live="polite"></div>
  <div id="aiGeneratedDetails" class="hint"></div>
  <div id="aiSizesPanel" class="hint"></div>
@@ -495,6 +496,29 @@ function previewSingleImages(files){
   img.src=URL.createObjectURL(file);
   preview.appendChild(img);
  });
+}
+
+
+function generateFreeImagePrompts(){
+ const name=$('name').value.trim()||'the exact product shown in the reference photo';
+ const category=$('category_id').selectedOptions[0]?.textContent||'product';
+ const source=(singleProductImages&&singleProductImages[0])||($('imageFiles').files&&$('imageFiles').files[0]);
+ if(!source){$('freeImageStylesStatus').textContent='আগে পণ্যের একটি পরিষ্কার আসল ছবি নির্বাচন করুন।';return;}
+ const base='Use the uploaded reference photo as the exact product identity. Create a photorealistic professional ecommerce product photograph of '+name+' ('+category+'). Preserve the exact product design, color, shape, logo, material and all visible details. Do not invent features, do not change the product, no extra products, no text, no watermark. Square 1:1 composition, sharp focus, realistic lighting.';
+ const prompts=[
+  ['১. সামনের দিক',base+' Show a straight-on front view, centered, on a clean pure white studio background.'],
+  ['২. পাশের দিক',base+' Show a realistic three-quarter side view of the same exact item. Keep its design unchanged. Clean light grey studio background.'],
+  ['৩. পেছনের দিক',base+' Show the rear view of the same exact item. Only show details that can reasonably be inferred from the reference; if the rear design is not visible, do not invent labels, ports or features. Neutral studio background.'],
+  ['৪. ডিটেইল ক্লোজ-আপ',base+' Create an elegant close-up product photograph highlighting visible texture, stitching, buttons or surface details that are actually present in the reference. Soft studio lighting.'],
+  ['৫. লাইফস্টাইল',base+' Place the same exact product in a tasteful realistic lifestyle setting suitable for an online store. Product remains the clear main subject and unchanged.']
+ ];
+ const panel=$('freeImagePrompts');
+ panel.classList.remove('hidden');
+ panel.innerHTML='<strong>৫টি আলাদা ছবির Prompt প্রস্তুত</strong><p class="hint">Gemini-তে একটি করে Prompt ব্যবহার করো এবং প্রতিবার একই আসল ছবিটি Reference হিসেবে আপলোড করো। AI নতুন ভিউ ভুলভাবে বানাতে পারে, তাই প্রতিটি ছবি যাচাই করবে।</p><div class="actions" style="margin-bottom:10px"><button type="button" class="secondary" id="copyAllImagePrompts">সব Prompt Copy</button><button type="button" class="secondary" id="openGeminiImages">Gemini খুলুন</button></div>'+prompts.map((p,i)=>'<div style="background:#fff;border:1px solid #d8e2dd;border-radius:9px;padding:10px;margin:9px 0"><strong>'+p[0]+'</strong><textarea readonly id="freePrompt'+i+'" style="min-height:115px">'+escapeHTML(p[1])+'</textarea><button type="button" class="secondary" data-copy-prompt="'+i+'">এই Prompt Copy</button></div>').join('');
+ panel.querySelectorAll('[data-copy-prompt]').forEach(b=>b.addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('freePrompt'+b.dataset.copyPrompt).value);$('freeImageStylesStatus').textContent='Prompt Copy হয়েছে।';}catch(e){$('freePrompt'+b.dataset.copyPrompt).select();$('freeImageStylesStatus').textContent='লেখাটি Select হয়েছে, Copy চাপুন।';}}));
+ $('copyAllImagePrompts').addEventListener('click',async()=>{const all=prompts.map((p,i)=>p[0]+'\n'+$('freePrompt'+i).value).join('\n\n');try{await navigator.clipboard.writeText(all);$('freeImageStylesStatus').textContent='৫টি Prompt একসঙ্গে Copy হয়েছে।';}catch(e){$('freeImageStylesStatus').textContent='প্রতিটি Prompt আলাদাভাবে Copy করুন।';}});
+ $('openGeminiImages').addEventListener('click',()=>window.open('https://gemini.google.com/app','_blank','noopener'));
+ $('freeImageStylesStatus').textContent='৫টি Prompt তৈরি হয়েছে। কোনো ছবি এখনো তৈরি বা আপলোড হয়নি।';
 }
 
 async function generateFiveFreeImageStyles(){
