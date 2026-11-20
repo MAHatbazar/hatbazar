@@ -162,8 +162,8 @@ button:disabled{opacity:.5}
  <strong>✨ AI Product Assistant</strong>
  <p class="hint">এই AI সুবিধাটি Admin Panel-এ লগইন করা অনুমোদিত Admin-এর জন্য।</p>
  <p class="hint">পণ্যের নাম লিখে অথবা ছবি দিয়ে বাংলা-ইংরেজি বিবরণ, খাবারের পুষ্টিগুণ, সম্ভাব্য উপকারিতা ও সতর্কতা তৈরি করুন।</p>
- <button id="aiNameGenerateBtn" type="button" class="secondary">✨ শুধু নাম লিখে Details + Food Benefits তৈরি করুন</button>
-  <button id="aiGenerateBtn" type="button" class="secondary">🖼️ ছবি থেকে Product Details তৈরি করুন</button>
+ <button id="aiNameGenerateBtn" type="button" class="secondary" onclick="generateAIProductDetails('name')">✨ শুধু নাম লিখে Details + Food Benefits তৈরি করুন</button>
+  <button id="aiGenerateBtn" type="button" class="secondary" onclick="generateAIProductDetails('image')">🖼️ ছবি থেকে Product Details তৈরি করুন</button>
  <button id="freeImageStylesBtn" type="button" class="secondary" onclick="generateFreeImagePrompts()">✨ ৫টি আলাদা AI ছবির Prompt তৈরি করুন</button>
  <div id="freeImageStylesStatus" class="hint" aria-live="polite"></div>
  <div id="freeImagePrompts" class="upload-box hidden"></div>
@@ -1741,8 +1741,6 @@ async function saveBulkProducts(){
  }
 }
 
-$('aiNameGenerateBtn').addEventListener('click',()=>generateAIProductDetails('name'));
-$('aiGenerateBtn').addEventListener('click',()=>generateAIProductDetails('image'));
 
 addBulkRow();
 
