@@ -3853,6 +3853,7 @@
     }
 
     function renderResellerDashboard() {
+      refreshCurrentMarketplaceProfile();
       refreshResellerCloudData();
       const totals = computeResellerTotals();
       const totalEl = document.getElementById('resellerTotalCommission');
