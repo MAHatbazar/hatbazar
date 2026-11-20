@@ -309,6 +309,59 @@ $function$;
 REVOKE ALL ON FUNCTION public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT,UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT,UUID) TO anon, authenticated, postgres;
 
+-- ==================== supabase/hatbazar_private_base_prices.sql ====================
+-- Keep products.base_price private from public and normal authenticated clients.
+-- Product listing remains available through explicit public columns only.
+REVOKE SELECT ON TABLE public.products FROM anon, authenticated;
+GRANT SELECT (
+  id, category_id, seller_id, name, name_bn, description,
+  price, stock, image_url, is_active, created_at
+) ON TABLE public.products TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.hatbazar_admin_product_base_prices()
+RETURNS TABLE(product_id UUID, base_price NUMERIC)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+BEGIN
+  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
+    RAISE EXCEPTION 'Only an authenticated administrator can view base prices';
+  END IF;
+
+  RETURN QUERY
+  SELECT p.id, p.base_price
+  FROM public.products AS p;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.hatbazar_admin_product_base_prices() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_admin_product_base_prices() TO authenticated, postgres;
+
+-- ==================== supabase/hatbazar_guard_product_base_price.sql ====================
+-- Prevent non-admin sellers or public clients from setting a private wholesale/base price.
+CREATE OR REPLACE FUNCTION public.hatbazar_guard_product_base_price()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+BEGIN
+  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
+    NEW.base_price := NULL;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+DROP TRIGGER IF EXISTS hatbazar_guard_product_base_price_trigger ON public.products;
+CREATE TRIGGER hatbazar_guard_product_base_price_trigger
+BEFORE INSERT OR UPDATE OF base_price ON public.products
+FOR EACH ROW
+EXECUTE FUNCTION public.hatbazar_guard_product_base_price();
+
+REVOKE ALL ON FUNCTION public.hatbazar_guard_product_base_price() FROM PUBLIC, anon, authenticated;
+
 -- ==================== supabase/hatbazar_admin_update_order.sql ====================
 -- Hatbazar: admin-only order status and payment verification updates
 CREATE OR REPLACE FUNCTION public.hatbazar_admin_update_order(
@@ -384,66 +437,6 @@ $function$;
 REVOKE ALL ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) TO authenticated, postgres;
 
--- ==================== supabase/hatbazar_admin_marketplace_approvals.sql ====================
--- Admin review queue and approval controls for real authenticated marketplace accounts.
-CREATE OR REPLACE FUNCTION public.hatbazar_admin_list_marketplace_applications()
-RETURNS TABLE(user_id UUID, full_name TEXT, phone TEXT, role TEXT, status TEXT, shop_name TEXT)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $function$
-BEGIN
-  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
-    RAISE EXCEPTION 'Only administrators can view marketplace applications';
-  END IF;
-
-  RETURN QUERY
-  SELECT p.id, p.full_name, p.phone, p.role,
-         CASE WHEN p.role = 'seller' THEN sp.status ELSE rp.status END::TEXT,
-         sp.shop_name
-  FROM public.profiles p
-  LEFT JOIN public.seller_profiles sp ON sp.id = p.id AND p.role = 'seller'
-  LEFT JOIN public.reseller_profiles rp ON rp.id = p.id AND p.role = 'reseller'
-  WHERE p.role IN ('seller','reseller')
-  ORDER BY p.created_at DESC;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.hatbazar_admin_update_marketplace_status(
-  p_user_id UUID,
-  p_role TEXT,
-  p_status TEXT
-)
-RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $function$
-BEGIN
-  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
-    RAISE EXCEPTION 'Only administrators can approve marketplace accounts';
-  END IF;
-  IF p_user_id IS NULL OR p_role NOT IN ('seller','reseller') OR p_status NOT IN ('pending','approved','rejected') THEN
-    RAISE EXCEPTION 'Invalid marketplace approval request';
-  END IF;
-
-  IF p_role = 'seller' THEN
-    UPDATE public.seller_profiles SET status = p_status WHERE id = p_user_id;
-  ELSE
-    UPDATE public.reseller_profiles SET status = p_status WHERE id = p_user_id;
-  END IF;
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Marketplace application not found';
-  END IF;
-  RETURN pg_catalog.jsonb_build_object('success',TRUE,'user_id',p_user_id,'role',p_role,'status',p_status);
-END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.hatbazar_admin_list_marketplace_applications() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.hatbazar_admin_list_marketplace_applications() TO authenticated, postgres;
-REVOKE ALL ON FUNCTION public.hatbazar_admin_update_marketplace_status(UUID,TEXT,TEXT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_marketplace_status(UUID,TEXT,TEXT) TO authenticated, postgres;
-
 -- ==================== supabase/hatbazar_register_marketplace_profile.sql ====================
 -- Secure Supabase Auth profile registration for seller and reseller accounts.
 CREATE OR REPLACE FUNCTION public.hatbazar_register_marketplace_profile(
@@ -505,117 +498,65 @@ $function$;
 REVOKE ALL ON FUNCTION public.hatbazar_register_marketplace_profile(TEXT,TEXT,TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.hatbazar_register_marketplace_profile(TEXT,TEXT,TEXT) TO authenticated;
 
--- ==================== supabase/hatbazar_guard_product_base_price.sql ====================
--- Prevent non-admin sellers or public clients from setting a private wholesale/base price.
-CREATE OR REPLACE FUNCTION public.hatbazar_guard_product_base_price()
-RETURNS TRIGGER
+-- ==================== supabase/hatbazar_admin_marketplace_approvals.sql ====================
+-- Admin review queue and approval controls for real authenticated marketplace accounts.
+CREATE OR REPLACE FUNCTION public.hatbazar_admin_list_marketplace_applications()
+RETURNS TABLE(user_id UUID, full_name TEXT, phone TEXT, role TEXT, status TEXT, shop_name TEXT)
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO ''
 AS $function$
 BEGIN
   IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
-    NEW.base_price := NULL;
-  END IF;
-  RETURN NEW;
-END;
-$function$;
-
-DROP TRIGGER IF EXISTS hatbazar_guard_product_base_price_trigger ON public.products;
-CREATE TRIGGER hatbazar_guard_product_base_price_trigger
-BEFORE INSERT OR UPDATE OF base_price ON public.products
-FOR EACH ROW
-EXECUTE FUNCTION public.hatbazar_guard_product_base_price();
-
-REVOKE ALL ON FUNCTION public.hatbazar_guard_product_base_price() FROM PUBLIC, anon, authenticated;
-
--- ==================== supabase/hatbazar_approved_seller_policy.sql ====================
--- Enforce seller approval at the database boundary.
--- Existing permissive seller policies remain, but these restrictive policies
--- require an approved seller profile for product writes.
-DROP POLICY IF EXISTS "Approved sellers only insert products" ON public.products;
-CREATE POLICY "Approved sellers only insert products"
-ON public.products AS RESTRICTIVE
-FOR INSERT TO authenticated
-WITH CHECK (
-  public.is_admin()
-  OR (
-    seller_id = auth.uid()
-    AND EXISTS (
-      SELECT 1 FROM public.seller_profiles sp
-      WHERE sp.id = auth.uid() AND lower(sp.status) = 'approved'
-    )
-  )
-);
-
-DROP POLICY IF EXISTS "Approved sellers only update products" ON public.products;
-CREATE POLICY "Approved sellers only update products"
-ON public.products AS RESTRICTIVE
-FOR UPDATE TO authenticated
-USING (
-  public.is_admin()
-  OR (
-    seller_id = auth.uid()
-    AND EXISTS (
-      SELECT 1 FROM public.seller_profiles sp
-      WHERE sp.id = auth.uid() AND lower(sp.status) = 'approved'
-    )
-  )
-)
-WITH CHECK (
-  public.is_admin()
-  OR (
-    seller_id = auth.uid()
-    AND EXISTS (
-      SELECT 1 FROM public.seller_profiles sp
-      WHERE sp.id = auth.uid() AND lower(sp.status) = 'approved'
-    )
-  )
-);
-
-DROP POLICY IF EXISTS "Approved sellers only delete products" ON public.products;
-CREATE POLICY "Approved sellers only delete products"
-ON public.products AS RESTRICTIVE
-FOR DELETE TO authenticated
-USING (
-  public.is_admin()
-  OR (
-    seller_id = auth.uid()
-    AND EXISTS (
-      SELECT 1 FROM public.seller_profiles sp
-      WHERE sp.id = auth.uid() AND lower(sp.status) = 'approved'
-    )
-  )
-);
-
--- ==================== supabase/hatbazar_private_base_prices.sql ====================
--- Keep products.base_price private from public and normal authenticated clients.
--- Product listing remains available through explicit public columns only.
-REVOKE SELECT ON TABLE public.products FROM anon, authenticated;
-GRANT SELECT (
-  id, category_id, seller_id, name, name_bn, description,
-  price, stock, image_url, is_active, created_at
-) ON TABLE public.products TO anon, authenticated;
-
-CREATE OR REPLACE FUNCTION public.hatbazar_admin_product_base_prices()
-RETURNS TABLE(product_id UUID, base_price NUMERIC)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $function$
-BEGIN
-  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
-    RAISE EXCEPTION 'Only an authenticated administrator can view base prices';
+    RAISE EXCEPTION 'Only administrators can view marketplace applications';
   END IF;
 
   RETURN QUERY
-  SELECT p.id, p.base_price
-  FROM public.products AS p;
+  SELECT p.id, p.full_name, p.phone, p.role,
+         CASE WHEN p.role = 'seller' THEN sp.status ELSE rp.status END::TEXT,
+         sp.shop_name
+  FROM public.profiles p
+  LEFT JOIN public.seller_profiles sp ON sp.id = p.id AND p.role = 'seller'
+  LEFT JOIN public.reseller_profiles rp ON rp.id = p.id AND p.role = 'reseller'
+  WHERE p.role IN ('seller','reseller')
+  ORDER BY p.created_at DESC;
 END;
 $function$;
 
-REVOKE ALL ON FUNCTION public.hatbazar_admin_product_base_prices() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.hatbazar_admin_product_base_prices() TO authenticated, postgres;
+CREATE OR REPLACE FUNCTION public.hatbazar_admin_update_marketplace_status(
+  p_user_id UUID,
+  p_role TEXT,
+  p_status TEXT
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+BEGIN
+  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
+    RAISE EXCEPTION 'Only administrators can approve marketplace accounts';
+  END IF;
+  IF p_user_id IS NULL OR p_role IS NULL OR p_role NOT IN ('seller','reseller') OR p_status IS NULL OR p_status NOT IN ('pending','approved','rejected') THEN
+    RAISE EXCEPTION 'Invalid marketplace approval request';
+  END IF;
+
+  IF p_role = 'seller' THEN
+    UPDATE public.seller_profiles SET status = p_status WHERE id = p_user_id;
+  ELSE
+    UPDATE public.reseller_profiles SET status = p_status WHERE id = p_user_id;
+  END IF;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Marketplace application not found';
+  END IF;
+  RETURN pg_catalog.jsonb_build_object('success',TRUE,'user_id',p_user_id,'role',p_role,'status',p_status);
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.hatbazar_admin_list_marketplace_applications() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_admin_list_marketplace_applications() TO authenticated, postgres;
+REVOKE ALL ON FUNCTION public.hatbazar_admin_update_marketplace_status(UUID,TEXT,TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_marketplace_status(UUID,TEXT,TEXT) TO authenticated, postgres;
 
 -- ==================== supabase/hatbazar_reseller_margin.sql ====================
 -- Hatbazar reseller margin model: reseller profit is selling_price minus admin-set base_price.
@@ -870,3 +811,4 @@ REVOKE ALL ON FUNCTION public.hatbazar_reseller_request_payout(TEXT,TEXT,NUMERIC
 REVOKE ALL ON FUNCTION public.hatbazar_admin_update_reseller_payout(UUID,TEXT,TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_request_payout(TEXT,TEXT,NUMERIC) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_reseller_payout(UUID,TEXT,TEXT) TO authenticated, postgres;
+
