@@ -465,7 +465,14 @@ async function loadAIJobs(){
   const heading=document.createElement('strong');heading.textContent='Background AI কাজ';panel.appendChild(heading);
   data.forEach(job=>{
    const card=document.createElement('div');card.style.cssText='padding:10px;margin:8px 0;border:1px solid #d8e2dd;border-radius:10px';
-   const title=document.createElement('div');title.textContent=aiJobLabel(job);title.style.fontWeight='700';card.appendChild(title);
+   const titleRow=document.createElement('div');titleRow.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px';
+   const title=document.createElement('div');title.textContent=aiJobLabel(job);title.style.cssText='font-weight:700;flex:1;min-width:0';titleRow.appendChild(title);
+   if(job.status==='completed'){
+    const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='🗑️';del.title='সম্পন্ন কাজ মুছে ফেলুন';del.setAttribute('aria-label','সম্পন্ন AI কাজ মুছে ফেলুন');del.style.cssText='padding:6px 9px;min-width:36px;line-height:1';
+    del.addEventListener('click',async()=>{if(!confirm('এই সম্পন্ন AI কাজের রেকর্ড মুছে ফেলবেন? তৈরি হওয়া Product Form-এর তথ্য মুছবে না।'))return;del.disabled=true;try{const {error:deleteError}=await db.from('hatbazar_ai_jobs').delete().eq('id',job.id);if(deleteError)throw deleteError;await loadAIJobs();}catch(e){del.disabled=false;alert('কাজটি মুছে ফেলা যায়নি: '+(e.message||'অজানা সমস্যা'));}});
+    titleRow.appendChild(del);
+   }
+   card.appendChild(titleRow);
    const detail=document.createElement('div');detail.className='hint';detail.textContent=new Date(job.created_at).toLocaleString('bn-BD')+(job.error?' · '+job.error:'');card.appendChild(detail);
    const hasPartialBulk=job.job_type==='bulk'&&(job.result?.results||[]).length>0;
    if(job.status==='completed'||hasPartialBulk){
