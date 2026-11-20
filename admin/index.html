@@ -465,8 +465,8 @@ async function loadAIJobs(){
    const card=document.createElement('div');card.style.cssText='padding:10px;margin:8px 0;border:1px solid #d8e2dd;border-radius:10px';
    const titleRow=document.createElement('div');titleRow.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px';
    const title=document.createElement('div');title.textContent=aiJobLabel(job);title.style.cssText='font-weight:700;flex:1;min-width:0';titleRow.appendChild(title);
-   if(job.status==='completed'||job.status==='failed'){
-    const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='🗑️';del.title='AI কাজের রেকর্ড মুছে ফেলুন';del.setAttribute('aria-label','AI কাজের রেকর্ড মুছে ফেলুন');del.style.cssText='padding:6px 9px;min-width:36px;line-height:1';
+   {
+    const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='🗑️ Delete';del.title='এই AI কাজ মুছে ফেলুন';del.setAttribute('aria-label','এই AI কাজ মুছে ফেলুন');del.style.cssText='padding:7px 10px;min-width:76px;line-height:1;white-space:nowrap;flex-shrink:0';
     del.addEventListener('click',async()=>{if(!confirm('এই AI কাজের রেকর্ড মুছে ফেলবেন?'))return;del.disabled=true;try{const {error:deleteError}=await db.from('hatbazar_ai_jobs').delete().eq('id',job.id);if(deleteError)throw deleteError;await loadAIJobs();}catch(e){del.disabled=false;alert('কাজটি মুছে ফেলা যায়নি: '+(e.message||'অজানা সমস্যা'));}});
     titleRow.appendChild(del);
    }
