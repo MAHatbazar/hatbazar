@@ -345,51 +345,9 @@
 </head>
 <body class="min-h-screen flex flex-col text-slate-900 selection:bg-violet-600 selection:text-white">
 
-  <!-- =========================================================
-       ০. একদম সর্বোচ্চ উপরে স্লোলি চলা লাইভ নিউজ/অফার টিকার বার
-       ========================================================= -->
-  <div class="bg-[#09071d] text-amber-200 text-[11px] sm:text-xs border-b border-amber-400/25 overflow-hidden select-none">
-    <div class="max-w-7xl mx-auto flex items-center">
-      <span class="shrink-0 z-10 px-3 py-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white font-extrabold tracking-wide flex items-center gap-1.5 shadow-sm">
-        <span class="inline-block w-2 h-2 rounded-full bg-white animate-pulse"></span>
-        LIVE
-      </span>
-      <div class="flex-1 overflow-hidden py-1.5">
-        <div class="live-ticker-track whitespace-nowrap font-medium">
-          <div class="flex items-center gap-8 pr-8">
-            <span>✨ Hatbazar — আভিজাত্য ও আস্থার ঠিকানা • ২৪টি প্রিমিয়াম ক্যাটাগরি ফোল্ডারে নতুন কালেকশন চলছে</span>
-            <span>🚚 সারাদেশের ৬৪ জেলায় দ্রুত ডেলিভারি • ঢাকায় ৳৮০ এবং ঢাকার বাইরে ৳১৩০ কুরিয়ার চার্জ</span>
-            <span>🤝 সেলার ও রিসেলার রেজিস্ট্রেশন খোলা আছে • আজই যুক্ত হয়ে ব্যবসা শুরু করুন</span>
-            <span>🛡️ ১০০% অরিজিনাল পণ্য, ক্যাশ অন ডেলিভারি ও ২৪/৭ AI অ্যাসিস্ট সাপোর্ট</span>
-          </div>
-          <div class="flex items-center gap-8 pr-8" aria-hidden="true">
-            <span>✨ Hatbazar — আভিজাত্য ও আস্থার ঠিকানা • ২৪টি প্রিমিয়াম ক্যাটাগরি ফোল্ডারে নতুন কালেকশন চলছে</span>
-            <span>🚚 সারাদেশের ৬৪ জেলায় দ্রুত ডেলিভারি • ঢাকায় ৳৮০ এবং ঢাকার বাইরে ৳১৩০ কুরিয়ার চার্জ</span>
-            <span>🤝 সেলার ও রিসেলার রেজিস্ট্রেশন খোলা আছে • আজই যুক্ত হয়ে ব্যবসা শুরু করুন</span>
-            <span>🛡️ ১০০% অরিজিনাল পণ্য, ক্যাশ অন ডেলিভারি ও ২৪/৭ AI অ্যাসিস্ট সাপোর্ট</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================================================
-       ১. টপ ইউটিলিটি ও ট্রাস্ট বার
-       ========================================================= -->
-  <div class="bg-gradient-to-r from-[#1e1b4b] via-[#3b0764] to-[#4c0519] text-violet-50 text-[11px] sm:text-xs border-b border-violet-900/60">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-1.5 flex flex-wrap items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5 sm:gap-4 flex-wrap font-medium">
-        <span class="hidden md:inline-flex items-center gap-1">🚚 সারাদেশে দ্রুত হোম ডেলিভারি</span>
-      </div>
-      <div class="flex items-center gap-3 font-semibold">
-        <button type="button" onclick="navigateTo('partner')" class="hover:text-amber-300 transition">
-          🤝 সেলার / রিসেলার জয়েন করুন
-        </button>
-        <span class="text-violet-500">|</span>
-        <button type="button" onclick="openAiAssistantModal()" class="text-amber-300 hover:text-amber-200 transition">
-          💬 হেল্প ডেস্ক
-        </button>
-      </div>
+  <div class="bg-slate-900 text-white text-[11px] sm:text-xs border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-1.5 text-center font-semibold">
+      🚚 ডেলিভারি চার্জ: ঢাকায় ৳৮০, ঢাকার বাইরে ৳১৩০
     </div>
   </div>
 
@@ -620,28 +578,19 @@
                   >
                     🛍️ এখনই শপিং করুন
                   </button>
-                  <button
-                    type="button"
-                    id="heroLiveEditorBtn"
-                    onclick="navigateTo('liveEditor')"
-                    data-bn="✏️ লাইভ এডিট করুন"
-                    data-en="✏️ Edit Live Preview"
-                    class="hidden px-5 py-3 rounded-2xl bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs sm:text-sm font-bold transition"
-                  >
-                    ✏️ লাইভ এডিট করুন
-                  </button>
+                  
                 </div>
 
                 <div class="pt-2">
                   <div class="relative rounded-2xl overflow-hidden border border-white/25 bg-indigo-950/50 shadow-lg">
                     <div class="relative w-full h-44 sm:h-56 rounded-2xl overflow-hidden bg-slate-900">
                       <img
-                        src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=85"
-                        alt="Real clothing and lifestyle retail store interior"
+                        src="https://wagtpkukzutsxwhutznu.supabase.co/storage/v1/object/public/product-images/1795122102090-dtkh5u481ls.jpeg"
+                        alt="Hatbazar product photography"
                         loading="eager"
                         fetchpriority="high"
                         class="w-full h-full object-cover object-center"
-                        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=1600&q=80';"
+                        onerror="this.onerror=null;this.src='https://wagtpkukzutsxwhutznu.supabase.co/storage/v1/object/public/product-images/1795122102090-dtkh5u481ls.jpeg'"
                       />
                       <div class="absolute inset-0 bg-gradient-to-r from-slate-950/65 via-slate-950/25 to-transparent"></div>
                       <div class="absolute left-4 bottom-4 sm:left-6 sm:bottom-5 text-white drop-shadow-lg">
@@ -710,27 +659,7 @@
         <div id="homeTopCategoriesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"></div>
       </section>
 
-      <section aria-labelledby="flashDealsHeading" class="space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-xs">
-          <div class="flex items-center gap-2.5">
-            <span class="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-xs font-extrabold">
-              ⚡ FLASH SALE
-            </span>
-            <h2 id="flashDealsHeading" class="stylish-heading text-base sm:text-xl font-extrabold text-slate-900">
-              Top Selling Products
-            </h2>
-          </div>
-          <button
-            type="button"
-            onclick="navigateTo('shop')"
-            class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition"
-          >
-            আরও দেখুন →
-          </button>
-        </div>
-
-        <div id="flashDealsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
-      </section>
+      
 
       <!-- Premium brand experience sections: added without changing existing products or shopping flow -->
       <section id="homeBrandProof" class="rounded-3xl border border-orange-100 bg-gradient-to-r from-orange-50 via-white to-violet-50 p-5 sm:p-7">
@@ -885,10 +814,11 @@
           <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold">
             <span id="footerEmailWrap" class="hidden">📧 ইমেইল: <a id="footerEmailLink" href="#" class="text-violet-700 hover:underline font-bold"></a></span>
             <span id="footerPhoneWrap" class="hidden">📞 সাপোর্ট: <strong id="footerPhoneText" class="text-slate-800"></strong></span>
-            <span>↩️ রিটার্ন ও রিফান্ড সাপোর্ট সক্রিয়</span>
+            <span>📞 যোগাযোগের যাচাইকৃত ফোন ও ইমেইল শিগগিরই প্রকাশ করা হবে।</span>
+            <span>↩️ রিটার্ন ও রিফান্ড নীতিমালা প্রযোজ্য</span>
           </div>
           <div class="font-bold text-slate-800">
-            © All rights reserved to <span class="text-violet-700">Hatbazar</span>
+            © ২০২৬ Hatbazar
           </div>
         </div>
       </footer>
@@ -1823,16 +1753,8 @@
         </form>
 
         <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600 pt-1">
-          <span>
-            অ্যাডমিন লগ ইন শুধু এই ব্রাউজারের জন্য। ভুলে গেলে ফাইলের <code class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-950 font-bold">ADMIN_PASS_HASH_DEFAULT</code> বদলান।
-          </span>
-          <button
-            type="button"
-            onclick="handleChangeAdminPassword()"
-            class="font-extrabold text-violet-700 hover:underline"
-          >
-            ✏️ নিজের নতুন পাসওয়ার্ড সেট করুন
-          </button>
+          <span>অ্যাডমিন নিরাপদ লগইন ও পণ্য ব্যবস্থাপনার জন্য আলাদা অ্যাডমিন পোর্টাল ব্যবহার করুন।</span>
+          <a href="./admin/" class="font-extrabold text-violet-700 hover:underline">🔐 Admin Portal খুলুন</a>
         </div>
       </div>
 
@@ -4253,9 +4175,8 @@
       }
     }
 
-    const ADMIN_PASS_SALT = 'hatbazar-admin:';
-    const ADMIN_PASS_HASH_DEFAULT = '7d9dccfbc9c912399c83cca80529b8c424c852d1e4f01963a1e9460185d432dc';
-    let adminPassHash = ADMIN_PASS_HASH_DEFAULT;
+    // Admin authentication is handled only by Supabase Auth on /admin/.
+    // No client-side default password hash or browser-local admin password is used.
     let adminFailCount = 0;
     let adminLockUntil = 0;
     const ADMIN_MAX_ATTEMPTS = 3;
@@ -4264,20 +4185,6 @@
     let lastUploadedShareData = null;
     let lastOrderText = '';
     let pendingAdminFolderPhotoCatId = null;
-    async function sha256Hex(text) {
-      const data = new TextEncoder().encode(ADMIN_PASS_SALT + text);
-      const buf = await crypto.subtle.digest('SHA-256', data);
-      return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    async function verifyAdminPassword(typed) {
-      if (typeof typed !== 'string' || typed.length < 4) return false;
-      try {
-        return (await sha256Hex(typed)) === adminPassHash;
-      } catch (_err) {
-        return false;
-      }
-    }
 
     function adminLoginBlocked() {
       if (Date.now() < adminLockUntil) {
@@ -4774,7 +4681,7 @@
       '✨ Hatbazar — আভিজাত্য ও আস্থার ঠিকানা • ২৪টি প্রিমিয়াম ক্যাটাগরি ফোল্ডারে নতুন কালেকশন চলছে': '✨ Hatbazar — The Address of Elegance & Trust • New collections across 24 premium categories',
       '🚚 সারাদেশের ৬৪ জেলায় দ্রুত ডেলিভারি • ঢাকায় ৳৮০ এবং ঢাকার বাইরে ৳১৩০ কুরিয়ার চার্জ': '🚚 Fast delivery across all 64 districts • ৳80 in Dhaka and ৳130 outside Dhaka',
       '🤝 সেলার ও রিসেলার রেজিস্ট্রেশন খোলা আছে • আজই যুক্ত হয়ে ব্যবসা শুরু করুন': '🤝 Seller and reseller registration is open • Join today and start your business',
-      '🛡️ ১০০% অরিজিনাল পণ্য, ক্যাশ অন ডেলিভারি ও ২৪/৭ AI অ্যাসিস্ট সাপোর্ট': '🛡️ 100% genuine products, Cash on Delivery and 24/7 AI assistant support',
+      '🛡️ ক্যাশ অন ডেলিভারি ও সহজ অনলাইন অর্ডার': '🛡️ Cash on Delivery and easy online ordering',
       '🚚 সারাদেশে দ্রুত হোম ডেলিভারি': '🚚 Fast home delivery nationwide',
       '🤝 সেলার / রিসেলার জয়েন করুন': '🤝 Join as Seller / Reseller',
       '💬 হেল্প ডেস্ক': '💬 Help Desk',
@@ -5499,36 +5406,6 @@
           ? 'Logged out from Admin'
           : 'অ্যাডমিন থেকে লগ আউট করা হয়েছে'
       );
-    }
-
-    async function handleChangeAdminPassword() {
-      if (!isAdminSession()) {
-        showToast(
-          currentLang === 'en'
-            ? 'Login as Admin first to change password'
-            : 'পাসওয়ার্ড বদলাতে আগে অ্যাডমিন পাসওয়ার্ড দিয়ে লগ ইন করুন'
-        );
-        return;
-      }
-      const nextPass = window.prompt(
-        currentLang === 'en'
-          ? 'Enter your new Admin Password (min 8 chars). It is saved on this browser only:'
-          : 'আপনার নতুন অ্যাডমিন পাসওয়ার্ড লিখুন (কমপক্ষে ৮ অক্ষর)। এটা শুধু এই ব্রাউজারে সেভ হবে:'
-      );
-      if (!nextPass) return;
-      const trimmed = nextPass.trim();
-      if (trimmed.length < 8) {
-        showToast(currentLang === 'en' ? 'Password must be at least 8 characters' : 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে');
-        return;
-      }
-      try {
-        adminPassHash = await sha256Hex(trimmed);
-      } catch (_err) {
-        showToast(currentLang === 'en' ? 'Could not save password on this browser' : 'এই ব্রাউজারে পাসওয়ার্ড সেভ করা যায়নি');
-        return;
-      }
-      persistAppState();
-      showToast(currentLang === 'en' ? 'New Admin Password saved!' : 'নতুন অ্যাডমিন পাসওয়ার্ড সেভ হয়েছে!');
     }
 
     function updateAuthButtonLabel() {
@@ -6724,7 +6601,6 @@
       cart: 'hatbazar_cart_v4',
       sessionUser: 'hatbazar_session_user_v4',
       lang: 'hatbazar_lang_v4',
-      adminPassHash: 'hatbazar_admin_pass_hash_v1',
       orders: 'hatbazar_orders_v1',
       deliveryZone: 'hatbazar_delivery_zone_v1',
       partners: 'hatbazar_seller_partners_v1',
@@ -6732,6 +6608,9 @@
       liveEdits: 'hatbazar_live_edits_v1',
       supabaseCfg: 'hatbazar_supabase_cfg_v1'
     };
+
+    // Remove the retired browser-local admin hash left by older storefront builds.
+    try { localStorage.removeItem('hatbazar_admin_pass_hash_v1'); } catch (_err) {}
 
     const memoryFallbackStorage = {};
     function safeStorageGet(key) {
@@ -6758,7 +6637,6 @@
         safeStorageSet(STORAGE_KEYS.cart, JSON.stringify(cartItems));
         safeStorageSet(STORAGE_KEYS.sessionUser, JSON.stringify(currentSessionUser));
         safeStorageSet(STORAGE_KEYS.lang, currentLang);
-        safeStorageSet(STORAGE_KEYS.adminPassHash, adminPassHash);
         safeStorageSet(STORAGE_KEYS.orders, JSON.stringify(ordersData));
         safeStorageSet(STORAGE_KEYS.deliveryZone, JSON.stringify(deliveryZoneConfig));
         safeStorageSet(STORAGE_KEYS.partners, JSON.stringify(sellerPartnersData));
@@ -6784,11 +6662,6 @@
         const savedLang = safeStorageGet(STORAGE_KEYS.lang);
         if (savedLang === 'en' || savedLang === 'bn') {
           currentLang = savedLang;
-        }
-
-        const savedHash = safeStorageGet(STORAGE_KEYS.adminPassHash);
-        if (savedHash && typeof savedHash === 'string' && savedHash.length === 64) {
-          adminPassHash = savedHash;
         }
 
         const savedUser = safeStorageGet(STORAGE_KEYS.sessionUser);
@@ -7319,7 +7192,7 @@
         { keys: ['ব্যাংক', 'bank transfer', 'ব্যাংক ট্রান্সফার'], reply: 'হ্যাঁ, ব্যাংক ট্রান্সফারের মাধ্যমে পেমেন্ট করা যায়। অর্ডার কনফার্মের পর ব্যাংক অ্যাকাউন্টের বিস্তারিত তথ্য জানানো হয়।' },
         { keys: ['রিটার্ন', 'ফেরত', 'return', 'exchange', 'এক্সচেঞ্জ'], reply: 'পণ্য হাতে পাওয়ার ২৪ থেকে ৭২ ঘণ্টার মধ্যে ত্রুটিপূর্ণ, ক্ষতিগ্রস্ত বা ভুল পণ্যে রিটার্ন বা এক্সচেঞ্জের আবেদন করা যায়।' },
         { keys: ['রিফান্ড', 'টাকা ফেরত', 'refund'], reply: 'রিটার্ন যাচাই বা বাতিলকৃত অ্যাডভান্স পেমেন্টের ক্ষেত্রে ৩ থেকে ৭ কার্যদিবসের মধ্যে বিকাশ, নগদ বা নির্ধারিত মাধ্যমে রিফান্ড দেওয়া হয়।' },
-        { keys: ['অরিজিনাল', 'আসল', 'কোয়ালিটি', 'quality', 'original'], reply: 'Hatbazar-এ প্রতিটি পণ্য মান যাচাই করে লিস্ট করা হয়; আমরা ১০০% অরিজিনাল ও মানসম্মত পণ্য সরবরাহে প্রতিশ্রুতিবদ্ধ।' },
+        { keys: ['অরিজিনাল', 'আসল', 'কোয়ালিটি', 'quality', 'original'], reply: 'Hatbazar-এ প্রতিটি পণ্য মান যাচাই করে লিস্ট করা হয়; আমরা পণ্যের বিবরণ ও ছবি দেখে পছন্দের পণ্য বেছে নিন।' },
         { keys: ['সেলার', 'seller', 'নিজের পণ্য বিক্রি'], reply: 'নিজের পণ্য বিক্রি করতে "সেলার / রিসেলার" মেনু থেকে সেলার নির্বাচন করে রেজিস্ট্রেশন ফর্ম পূরণ করুন।' },
         { keys: ['রিসেলার', 'reseller', 'কমিশন', 'commission'], reply: 'রিসেলার হিসেবে যুক্ত হয়ে Hatbazar-এর পণ্য রিসেল করতে পারবেন এবং রিসেলার ড্যাশবোর্ডে কমিশন আয় ও উইথড্র হিসাব ট্র্যাক করা যায়।' },
         { keys: ['অর্ডার ট্র্যাক', 'অর্ডার হিস্ট্রি', 'order status', 'track order', 'order history'], reply: 'উপরের "অর্ডার হিস্ট্রি" ট্যাবে গিয়ে মোবাইল নম্বর বা অর্ডার আইডি (যেমন HB-) লিখে আপনার অর্ডারের বর্তমান স্ট্যাটাস দেখতে পারবেন।' },
