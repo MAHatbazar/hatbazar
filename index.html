@@ -3585,15 +3585,28 @@
           .select('id,product_id,order_reference,base_price,selling_price,quantity,profit_amount,created_at')
           .order('created_at', { ascending: false });
         if (salesError) throw salesError;
-        const withdrawals = resellerLedgerData.filter((entry) => entry.type === 'withdraw');
-        resellerLedgerData = (Array.isArray(sales) ? sales.map((row) => ({
+        const { data: payoutRows, error: payoutError } = await supabaseClient
+          .from('reseller_payout_requests')
+          .select('id,payout_method,payout_account,amount,status,created_at')
+          .order('created_at', { ascending: false });
+        if (payoutError) throw payoutError;
+        const saleEntries = (Array.isArray(sales) ? sales.map((row) => ({
           id: row.id,
           type: 'earning',
           ref: row.order_reference + ' · বিক্রয় ৳' + formatNum(row.selling_price) + ' × ' + row.quantity,
           amount: Number(row.profit_amount) || 0,
           status: 'earned',
           createdAt: row.created_at
-        })) : []).concat(withdrawals);
+        })) : []);
+        const payoutEntries = (Array.isArray(payoutRows) ? payoutRows.map((row) => ({
+          id: row.id,
+          type: 'withdraw',
+          ref: row.payout_method.toUpperCase() + ' (' + row.payout_account + ')',
+          amount: Number(row.amount) || 0,
+          status: row.status,
+          createdAt: row.created_at
+        })) : []);
+        resellerLedgerData = saleEntries.concat(payoutEntries);
         renderResellerDashboard();
         updateResellerMarginPreview();
       } catch (error) {
@@ -3636,11 +3649,12 @@
       }
     }
 
-    function handleResellerWithdrawRequest(e) {
+    async function handleResellerWithdrawRequest(e) {
       e.preventDefault();
       const method = document.getElementById('resellerWithdrawMethod')?.value || 'বিকাশ';
       const account = (document.getElementById('resellerWithdrawAccount')?.value || '').trim();
       const amount = Number(document.getElementById('resellerWithdrawAmount')?.value);
+      const methodMap = { 'বিকাশ': 'bkash', 'নগদ': 'nagad', 'ব্যাংক ট্রান্সফার': 'bank' };
 
       const totals = computeResellerTotals();
       if (!account || !Number.isFinite(amount) || amount <= 0) {
@@ -3655,24 +3669,25 @@
         );
         return;
       }
+      if (!cloudSyncEnabled || !supabaseClient) {
+        showToast('উইথড্র রিকোয়েস্ট সংরক্ষণে Supabase সংযোগ প্রয়োজন।');
+        return;
+      }
 
-      resellerLedgerData.unshift({
-        id: `rl-${Date.now()}`,
-        type: 'withdraw',
-        ref: `${method} (${account})`,
-        amount,
-        status: 'pending_payout',
-        createdAt: new Date().toISOString()
-      });
-
-      e.target.reset();
-      renderResellerDashboard();
-      persistAppState();
-      showToast(
-        currentLang === 'en'
-          ? `Withdraw request for ৳${amount} submitted!`
-          : `৳${formatNum(amount)} উইথড্র রিকোয়েস্ট জমা হয়েছে!`
-      );
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_request_payout', {
+          p_payout_method: methodMap[method] || '',
+          p_payout_account: account,
+          p_amount: amount
+        });
+        if (error || !data?.success) throw error || new Error('Payout request was rejected.');
+        e.target.reset();
+        resellerCloudLoadedAt = 0;
+        await refreshResellerCloudData();
+        showToast('উইথড্র রিকোয়েস্ট ডেটাবেজে জমা হয়েছে।');
+      } catch (error) {
+        showToast('উইথড্র রিকোয়েস্ট জমা হয়নি: ' + (error?.message || 'রিসেলার অনুমোদন বা ব্যালেন্স পরীক্ষা করুন।'));
+      }
     }
 
     function computeResellerTotals() {
@@ -3681,7 +3696,7 @@
       for (const entry of resellerLedgerData) {
         const amt = Number(entry.amount) || 0;
         if (entry.type === 'withdraw') {
-          withdrawn += amt;
+          if (entry.status !== 'rejected') withdrawn += amt;
         } else {
           earned += amt;
         }
@@ -3721,7 +3736,9 @@
                 </div>
                 <div class="text-[11px] text-slate-500">
                   ${new Date(row.createdAt || Date.now()).toLocaleDateString('bn-BD')} • ${
-                    isWithdraw ? 'পেন্ডিং পে-আউট' : 'ক্রেডিটেড'
+                    isWithdraw
+                      ? (row.status === 'paid' ? 'পরিশোধিত' : row.status === 'approved' ? 'অনুমোদিত' : row.status === 'rejected' ? 'বাতিল' : 'পেন্ডিং')
+                      : 'ক্রেডিটেড'
                   }
                 </div>
               </div>
