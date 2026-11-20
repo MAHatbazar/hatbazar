@@ -209,6 +209,9 @@ Save করার পর Facebook Page-এ পোস্ট করুন (শু�
 <input id="bulkImageFiles" type="file" accept="image/*" multiple>
 <p class="hint">প্রথম ছবি প্রথম Product Row-তে, দ্বিতীয় ছবি দ্বিতীয় Row-তে যাবে। প্রতি Row-তে একাধিক ছবি দিতে Choose Images ব্যবহার করুন। প্রতিটি ছবি সর্বোচ্চ ৫ MB।</p>
 <div id="bulkImageStatus" class="hint"></div>
+<button id="bulkAiGenerateBtn" type="button" class="secondary full" onclick="analyzeBulkImagesWithAI()">✨ নির্বাচিত সব ছবি থেকে একসঙ্গে Product Details তৈরি করুন</button>
+<p class="hint">একবারে সর্বোচ্চ ২০টি ছবি নির্বাচন করুন। AI প্রতিটি ছবি আলাদাভাবে বিশ্লেষণ করে একই সিরিয়ালে ২০টি editable Product Row তৈরি করবে। সব তথ্য যাচাই ও Price/Stock পূরণ করে তারপর Save করবেন।</p>
+<div id="bulkAiStatus" class="hint" aria-live="polite"></div>
 </div>
 
 <div class="top">
@@ -398,7 +401,6 @@ async function generateAIProductDetails(){
 $('aiGenerateBtn').addEventListener('click',generateAIProductDetails);
 function selectedAISizes(){
  return [...document.querySelectorAll('[data-ai-size]:checked')].map(x=>x.value);}
-
 async function facebookRequest(action,method='GET',body=null){
  const {data,error}=await db.auth.getSession();
  if(error||!data.session)throw new Error('Admin login session পাওয়া যায়নি। আবার Login করুন।');
@@ -797,8 +799,7 @@ async function editProduct(id){
 
  editingProduct=data;
  aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''}; $('aiGeneratedDetails').textContent='সংরক্ষিত AI তথ্য লোড হয়েছে।';
- $('aiSizesPanel').innerHTML=aiProductMeta.sizes.length?'<strong>Size অপশন (প্রয়োজনমতো পরিবর্তন করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>':'এই পণ্যে Size অপশন সংরক্ষিত নেই।';
- $('name').value=data.name||'';
+ $('aiSizesPanel').innerHTML=aiProductMeta.sizes.length?'<strong>Size অপশন (প্রয়োজনমতো পরিবর্তন করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>':'এই পণ্যে Size অপশন সংরক্ষিত নেই।'; $('name').value=data.name||'';
  $('name_bn').value=data.name_bn||'';
  $('description').value=data.description||'';
 
@@ -1019,6 +1020,7 @@ function addBulkRow(v={}){
  const d=document.createElement('div');
  d.className='bulk-row';
  d._imageFiles=[];
+ d._aiMeta={attributes:{},sizes:[],description_en:"",description_bn:""};
 
  d.innerHTML=`
   <span class="row-number">${bulkCount}</span>
@@ -1087,14 +1089,17 @@ function clearBulkRows(){
 
 $('bulkImageFiles').addEventListener('change',function(){
  const files=Array.from(this.files||[]);
- const rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
+ let rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
 
  if(!files.length)return;
-
- if(files.length>rows.length){
-  alert('ছবির সংখ্যা পণ্যের সারির চেয়ে বেশি হয়েছে। আগে প্রয়োজনীয় Product Row যোগ করুন।');
+ if(files.length>20){
+  alert('একবারে সর্বোচ্চ ২০টি ছবি নির্বাচন করুন।');
   this.value='';
   return;
+ }
+ while(rows.length<files.length){
+  addBulkRow();
+  rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
  }
 
  for(const file of files){
@@ -1119,6 +1124,83 @@ function updateBulkImageStatus(){
 
  $('bulkImageStatus').textContent=
   count+'টি Product Row-তে মোট '+total+'টি ছবি নির্বাচন করা হয়েছে।';
+}
+
+async function analyzeBulkImagesWithAI(){
+ const rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
+ const targets=rows.filter(row=>(row._imageFiles||[]).length>0);
+ if(!targets.length){
+  $('bulkAiStatus').textContent='আগে একসঙ্গে ছবি নির্বাচন করুন অথবা প্রতিটি Row-তে Choose Images দিন।';
+  return;
+ }
+ if(targets.length>20){
+  $('bulkAiStatus').textContent='একবারে সর্বোচ্চ ২০টি ছবির AI বিশ্লেষণ করা যাবে।';
+  return;
+ }
+ const {data,error}=await db.auth.getSession();
+ if(error||!data.session){
+  $('bulkAiStatus').textContent='Admin session পাওয়া যায়নি। আবার Login করুন।';
+  return;
+ }
+ const btn=$('bulkAiGenerateBtn');
+ btn.disabled=true;
+ let completed=0,failed=[];
+ try{
+  for(let i=0;i<targets.length;i++){
+   const row=targets[i],file=row._imageFiles[0];
+   const rowNo=[...$('bulkRows').querySelectorAll('.bulk-row')].indexOf(row)+1;
+   const problem=validImage(file);
+   if(problem){failed.push('সারি '+rowNo+': '+problem);continue;}
+   $('bulkAiStatus').textContent='AI বিশ্লেষণ করছে '+(i+1)+'/'+targets.length+' (সারি '+rowNo+'): '+file.name;
+   const dataUrl=await new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result||''));
+    reader.onerror=()=>reject(new Error('ছবি পড়া যায়নি।'));
+    reader.readAsDataURL(file);
+   });
+   const imageBase64=String(dataUrl).split(',')[1]||'';
+   const response=await fetch(SUPABASE_URL+'/functions/v1/hatbazar-ai-product',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+data.session.access_token,'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({
+     mime_type:file.type||'image/jpeg',
+     image_base64:imageBase64,
+     categories:categories.map(x=>({name:x.name,name_bn:x.name_bn}))
+    })
+   });
+   const result=await response.json().catch(()=>({error:'Server response পড়া যায়নি।'}));
+   if(!response.ok)throw new Error('সারি '+rowNo+': '+(result.error||'AI তথ্য তৈরি করতে পারেনি।'));
+   const set=(key,value)=>{
+    const input=row.querySelector('[data-field="'+key+'"]');
+    if(input)input.value=value??'';
+   };
+   set('name',result.name||'');
+   set('name_bn',result.name_bn||'');
+   set('category_id',result.category_id||'');
+   const desc=[
+    result.description_en||'',
+    (result.features_en||[]).length?'Features: '+result.features_en.join('; '):'',
+    result.description_bn||'',
+    (result.features_bn||[]).length?'বৈশিষ্ট্য: '+result.features_bn.join('; '):'',
+    result.attributes&&Object.keys(result.attributes).length?'Attributes: '+Object.entries(result.attributes).map(([k,v])=>k+': '+v).join(', '):'',
+    result.sizes?.length?'Available size options: '+result.sizes.join(', '):''
+   ].filter(Boolean).join('\n\n');
+   set('description',desc);
+   row._aiMeta={
+    attributes:result.attributes||{},
+    sizes:result.sizes||[],
+    description_en:result.description_en||'',
+    description_bn:result.description_bn||''
+   };
+   row.dataset.aiReady='true';
+   completed++;
+  }
+  $('bulkAiStatus').textContent=completed+'টি Product-এর AI তথ্য তৈরি হয়েছে। '+(failed.length?'সমস্যা: '+failed.join(' | '):'এখন প্রতিটি Row দেখে Edit করুন, Price, Base Price ও Stock দিন।');
+ }catch(err){
+  $('bulkAiStatus').textContent=completed+'টি Product বিশ্লেষণ হয়েছে। পরেরটিতে সমস্যা: '+(err.message||'AI অনুরোধ ব্যর্থ হয়েছে।');
+ }finally{
+  btn.disabled=false;
+ }
 }
 
 /* EXCEL TEMPLATE */
@@ -1198,7 +1280,6 @@ function importExcel(){
    const headers=data[0].map(norm);
    const findIndex=aliases=>
     headers.findIndex(h=>aliases.map(norm).includes(h));
-
    const columns={
     name:findIndex([
      'Product Name (English)','Product Name English',
@@ -1356,7 +1437,8 @@ async function saveBulkProducts(){
     stock:Number(stock),
     description:get('description')||null,
     category_id:category_id||null,
-    _imageFiles:imageFiles
+    _imageFiles:imageFiles,
+    _aiMeta:row._aiMeta||{attributes:{},sizes:[],description_en:'',description_bn:''}
    });
   }
  });
@@ -1407,6 +1489,10 @@ async function saveBulkProducts(){
     base_price:product.base_price,
     stock:product.stock,
     description:product.description,
+    description_en:product._aiMeta?.description_en||null,
+    description_bn:product._aiMeta?.description_bn||null,
+    attributes:product._aiMeta?.attributes||{},
+    sizes:product._aiMeta?.sizes||[],
     category_id:product.category_id,
     is_active:true,
     image_url:imageUrls.length?imageUrls[0]:null
