@@ -155,10 +155,13 @@ DECLARE
   v_available NUMERIC(12,2);
   v_request_id UUID;
 BEGIN
-  IF auth.uid() IS NULL OR NOT EXISTS (
-    SELECT 1 FROM public.reseller_profiles rp
-    WHERE rp.id = auth.uid() AND lower(rp.status) = 'approved'
-  ) THEN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Only approved resellers can request payouts';
+  END IF;
+  PERFORM 1 FROM public.reseller_profiles rp
+  WHERE rp.id = auth.uid() AND lower(rp.status) = 'approved'
+  FOR UPDATE;
+  IF NOT FOUND THEN
     RAISE EXCEPTION 'Only approved resellers can request payouts';
   END IF;
 
