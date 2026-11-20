@@ -70,10 +70,12 @@ BEGIN
     RAISE EXCEPTION 'Invalid delivery zone';
   END IF;
 
-  v_delivery_fee := COALESCE(p_delivery_fee, -1);
-  IF v_delivery_fee < 0 OR v_delivery_fee > 5000 THEN
-    RAISE EXCEPTION 'Invalid delivery fee';
-  END IF;
+  -- Delivery fee is calculated on the server, never trusted from the browser.
+  v_delivery_fee := CASE p_delivery_zone
+    WHEN 'inside' THEN 80
+    WHEN 'outside' THEN 130
+    ELSE NULL
+  END;
 
   IF EXISTS (
     SELECT 1
