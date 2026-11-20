@@ -56,7 +56,7 @@ BEGIN
   END IF;
 
   v_payment_method := pg_catalog.lower(pg_catalog.btrim(p_payment_method));
-  IF v_payment_method NOT IN ('cod', 'bkash', 'nagad', 'rocket', 'bank') THEN
+  IF v_payment_method IS NULL OR v_payment_method NOT IN ('cod', 'bkash', 'nagad', 'rocket', 'bank') THEN
     RAISE EXCEPTION 'Invalid payment method';
   END IF;
 
@@ -66,7 +66,7 @@ BEGIN
     RAISE EXCEPTION 'Transaction reference is required for online payment';
   END IF;
 
-  IF p_delivery_zone NOT IN ('inside', 'outside') THEN
+  IF p_delivery_zone IS NULL OR p_delivery_zone NOT IN ('inside', 'outside') THEN
     RAISE EXCEPTION 'Invalid delivery zone';
   END IF;
 
