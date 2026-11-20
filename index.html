@@ -2883,6 +2883,8 @@
         }
         orderRecord.id = data.order_code || data.order_id;
         orderRecord.orderUuid = data.order_id;
+        orderRecord.subtotal = Number(data.subtotal) || orderRecord.subtotal;
+        orderRecord.deliveryFee = Number(data.delivery_fee) || 0;
         orderRecord.totalAmount = Number(data.total_amount) || orderRecord.totalAmount;
         orderRecord.createdAt = data.created_at || new Date().toISOString();
         return { success: true, data };
