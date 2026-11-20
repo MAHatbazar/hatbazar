@@ -2703,27 +2703,34 @@
         cloudSyncEnabled = true;
         const { data } = await supabaseClient.auth.getSession();
         supabaseUser = data?.session?.user || null;
-        if (currentSessionUser?.role === 'অ্যাডমিন') {
-          if (!supabaseUser?.id) {
-            currentSessionUser = null;
-            supabaseProfile = null;
-            persistAppState();
-          } else {
-            const { data: profile, error: profileError } = await supabaseClient
-              .from('profiles')
-              .select('id,role')
-              .eq('id', supabaseUser.id)
-              .maybeSingle();
-            if (profileError || profile?.role !== 'admin') {
+        if (supabaseUser?.id) {
+          const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('id,role,full_name,phone')
+            .eq('id', supabaseUser.id)
+            .maybeSingle();
+          const expectedRole = currentSessionUser?.role === 'অ্যাডমিন'
+            ? 'admin'
+            : currentSessionUser?.role === 'রিসেলার'
+            ? 'reseller'
+            : currentSessionUser?.role === 'সেলার'
+            ? 'seller'
+            : null;
+          if (profileError || !profile || (expectedRole && profile.role !== expectedRole)) {
+            if (expectedRole) {
               await supabaseClient.auth.signOut();
               supabaseUser = null;
-              supabaseProfile = null;
               currentSessionUser = null;
               persistAppState();
-            } else {
-              supabaseProfile = profile;
             }
+            supabaseProfile = null;
+          } else {
+            supabaseProfile = profile;
           }
+        } else if (['অ্যাডমিন','সেলার','রিসেলার'].includes(currentSessionUser?.role)) {
+          currentSessionUser = null;
+          supabaseProfile = null;
+          persistAppState();
         }
         updateAuthButtonLabel();
         syncDiscountAdminPermission();
