@@ -153,6 +153,7 @@
       border-radius: 9999px;
     }
   </style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="min-h-screen flex flex-col text-slate-900 selection:bg-violet-600 selection:text-white">
 
@@ -924,6 +925,35 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label for="newItemTitle" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের নাম *</label>
+                    <input id="newItemTitle" type="text" required maxlength="180" placeholder="পণ্যের নাম লিখুন" class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+                  </div>
+                  <div>
+                    <label for="newItemTitleEn" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের নাম (English)</label>
+                    <input id="newItemTitleEn" type="text" maxlength="180" placeholder="Product name in English" class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+                  </div>
+                  <div>
+                    <label for="newItemPrice" class="block text-xs font-bold text-slate-700 mb-1">বিক্রয় মূল্য (৳) *</label>
+                    <input id="newItemPrice" type="number" min="1" step="0.01" required placeholder="1200" class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+                  </div>
+                  <div>
+                    <label for="newItemStock" class="block text-xs font-bold text-slate-700 mb-1">স্টক পরিমাণ *</label>
+                    <input id="newItemStock" type="number" min="0" step="1" value="25" required class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+                  </div>
+                  <div>
+                    <label for="newItemDiscount" class="block text-xs font-bold text-slate-700 mb-1">ডিসকাউন্ট (%)</label>
+                    <input id="newItemDiscount" type="number" min="0" max="90" step="1" value="0" class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+                  </div>
+                  <div id="newItemBasePriceWrap" class="hidden">
+                    <label for="newItemBasePrice" class="block text-xs font-bold text-slate-700 mb-1">গোপন বেস/হোলসেল মূল্য (৳)</label>
+                    <input id="newItemBasePrice" type="number" min="0" step="0.01" placeholder="অ্যাডমিনের জন্য" class="w-full rounded-xl bg-white border border-amber-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+                    <p class="text-[10px] text-amber-800 mt-1">এই মূল্য ক্রেতা ও সাধারণ সেলারদের দেখানো হবে না।</p>
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label for="newItemDesc" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের বিবরণ</label>
+                    <textarea id="newItemDesc" rows="2" maxlength="2000" placeholder="পণ্যের বিস্তারিত লিখুন" class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none"></textarea>
+                  </div>
                   <div class="sm:col-span-2">
                     <label for="newItemImageFile" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের ছবি (JPG/PNG/WEBP, সর্বোচ্চ ৫MB)</label>
                     <div class="flex items-center gap-2">
@@ -933,6 +963,10 @@
                         <button type="button" onclick="clearProductImageSelection('newItemImageFile', 'newItemPreviewWrap', 'newItemPreviewImg')" title="ছবি মুছুন" class="px-1.5 py-0.5 rounded-lg text-[11px] font-extrabold text-rose-600 hover:bg-rose-50">✕</button>
                       </div>
                     </div>
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label for="newItemGalleryFiles" class="block text-xs font-bold text-slate-700 mb-1">অতিরিক্ত গ্যালারি ছবি (মূল ছবিসহ মোট সর্বোচ্চ ১০টি, প্রতিটি ৫MB পর্যন্ত)</label>
+                    <input id="newItemGalleryFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onchange="handleAdditionalGallerySelection(event)" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-fuchsia-600 file:text-white" /><p id="newItemGalleryStatus" class="mt-1 text-[10px] text-slate-500">মূল ছবি নির্বাচন করলে সর্বোচ্চ ৯টি অতিরিক্ত ছবি দিন।</p>
                   </div>
                   <div class="sm:col-span-2">
                     <label for="newItemVideoFile" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের ভিডিও আপলোড (MP4/WEBM/MOV, সর্বোচ্চ ২৫MB)</label>
@@ -949,6 +983,16 @@
                   </button>
                 </div>
               </form>
+              <section id="bulkProductImportPanel" class="rounded-2xl bg-white border border-emerald-200 p-4 space-y-3">
+                <div class="flex items-center justify-between gap-2"><h4 class="text-sm font-extrabold text-emerald-950">📊 Excel দিয়ে একসঙ্গে পণ্য যোগ করুন</h4><span class="text-[10px] font-bold text-emerald-700">শুধু Admin</span></div>
+                <p class="text-[11px] text-slate-600">Excel (.xlsx/.xls) বা CSV ফাইল দিন। Category, English/Bangla নাম, Selling Price, Base Price, Stock Quantity ও Description দিন। Preview-তে প্রতিটি পণ্যের সর্বোচ্চ ১০টি ছবি বেছে নিতে পারবেন।</p>
+                <button type="button" onclick="downloadBulkProductTemplate()" class="text-xs font-bold text-violet-700 underline">Excel Template ডাউনলোড</button>
+                <input id="bulkProductExcelFile" type="file" accept=".xlsx,.xls,.csv" class="block w-full text-xs text-slate-600 file:mr-2 file:rounded-xl file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:font-bold file:text-white" />
+                <button type="button" onclick="previewBulkProductExcel()" class="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white">ফাইল Preview করুন</button>
+                <div id="bulkProductPreview" class="hidden space-y-3"></div>
+                <button id="bulkProductImportButton" type="button" onclick="importBulkProductsFromPreview()" class="hidden w-full rounded-xl bg-violet-700 px-4 py-2.5 text-xs font-extrabold text-white">সব পণ্য Supabase-এ সেভ করুন</button>
+                <p id="bulkProductImportStatus" class="text-[11px] text-slate-600"></p>
+              </section>
             </div>
 
             <div class="lg:col-span-7 space-y-3">
@@ -1043,11 +1087,11 @@
 
             <div>
               <label for="deliveryZone" class="block text-xs font-bold text-slate-700 mb-1">ডেলিভারি জোন *</label>
-              <select id="deliveryZone" onchange="updateCartSummary()" class="w-full rounded-xl bg-violet-50 border border-violet-300 px-3 py-2 text-xs sm:text-sm font-extrabold text-violet-950 outline-none">
+              <select id="deliveryZone" onchange="updateCartSummary()" disabled aria-describedby="deliveryZoneHelp" class="w-full rounded-xl bg-violet-50 border border-violet-300 px-3 py-2 text-xs sm:text-sm font-extrabold text-violet-950 outline-none disabled:opacity-100 disabled:cursor-not-allowed">
                 <option value="inside">ঢাকার ভেতরে (৳৮০)</option>
                 <option value="outside">ঢাকার বাইরে (৳১৩০)</option>
               </select>
-              <p class="text-[11px] text-slate-600 font-medium mt-1">পণ্যের ওজন এবং স্থানের উপর ভিত্তি করে কুরিয়ার চার্জ পরিবর্তন হতে পারে।</p>
+              <p id="deliveryZoneHelp" class="text-[11px] text-slate-600 font-medium mt-1">জেলা ও উপজেলা অনুযায়ী ডেলিভারি জোন স্বয়ংক্রিয়ভাবে নির্ধারিত হয়।</p>
             </div>
 
             <div>
@@ -1068,8 +1112,8 @@
             </div>
 
             <div id="paymentTrxFieldWrap" class="hidden">
-              <label for="paymentTrxId" class="block text-xs font-bold text-slate-700 mb-1">ট্রানজেকশন আইডি (TrxID — ঐচ্ছিক)</label>
-              <input id="paymentTrxId" type="text" placeholder="যেমন: 9ABC123XYZ" class="w-full rounded-xl bg-amber-50/60 border border-amber-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+              <label for="paymentTrxId" class="block text-xs font-bold text-slate-700 mb-1">ট্রানজেকশন আইডি (TrxID — অনলাইন পেমেন্টে আবশ্যক)</label>
+              <input id="paymentTrxId" type="text" maxlength="120" autocomplete="off" placeholder="যেমন: 9ABC123XYZ" class="w-full rounded-xl bg-amber-50/60 border border-amber-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
             </div>
 
             <button type="submit" class="w-full py-3 rounded-2xl text-sm font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md transition">
@@ -1254,7 +1298,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
-          <div data-bn="মোট রিসেল কমিশন আয়" data-en="Total Commission Earned" class="text-xs font-bold text-slate-500">মোট রিসেল কমিশন আয়</div>
+          <div data-bn="মোট রিসেল কমিশন আয়" data-en="Total Profit Earned" class="text-xs font-bold text-slate-500">মোট রিসেল কমিশন আয়</div>
           <div id="resellerTotalCommission" class="text-2xl font-black text-fuchsia-700 mt-1">৳০</div>
         </div>
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
@@ -1273,32 +1317,38 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-6 bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-          <h3 data-bn="➕ নতুন রিসেল সেলস লগ ও কমিশন যুক্ত করুন" data-en="➕ Log Reseller Sale & Commission" class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
+          <h3 data-bn="➕ রিসেলার বিক্রয় ও লাভের হিসাব যুক্ত করুন" data-en="➕ Log Reseller Sale & Profit" class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
             ➕ নতুন রিসেল সেলস লগ ও কমিশন যুক্ত করুন
           </h3>
           <form onsubmit="handleAddResellerSale(event)" class="space-y-3">
             <div>
-              <label for="resellerOrderRef" data-bn="পণ্য বা অর্ডার রেফারেন্স *" data-en="Product or Order Reference *" class="block text-xs font-bold text-slate-700 mb-1">পণ্য বা অর্ডার রেফারেন্স *</label>
-              <input id="resellerOrderRef" type="text" required placeholder="যেমন: ডিজাইনার থ্রি-পিস (অর্ডার #HB-102)" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
+              <label for="resellerSaleProduct" class="block text-xs font-bold text-slate-700 mb-1">পণ্য নির্বাচন করুন *</label>
+              <select id="resellerSaleProduct" required onchange="updateResellerMarginPreview()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600">
+                <option value="">অনুমোদিত পণ্যের তালিকা লোড হচ্ছে...</option>
+              </select>
+            </div>
+            <div>
+              <label for="resellerOrderRef" class="block text-xs font-bold text-slate-700 mb-1">আপনার অর্ডার/বিক্রয় রেফারেন্স *</label>
+              <input id="resellerOrderRef" type="text" required maxlength="120" placeholder="যেমন: Customer Order #102" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label for="resellerSaleAmount" data-bn="বিক্রয় মূল্য (৳) *" data-en="Sale Amount (৳) *" class="block text-xs font-bold text-slate-700 mb-1">বিক্রয় মূল্য (৳) *</label>
-                <input id="resellerSaleAmount" type="number" min="1" required placeholder="2250" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
+                <label for="resellerSaleAmount" class="block text-xs font-bold text-slate-700 mb-1">প্রতি পিস বিক্রয় মূল্য (৳) *</label>
+                <input id="resellerSaleAmount" type="number" min="0.01" step="0.01" required placeholder="2250" oninput="updateResellerMarginPreview()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
               </div>
               <div>
-                <label for="resellerCommissionRate" data-bn="কমিশন হার (%)" data-en="Commission Rate (%)" class="block text-xs font-bold text-slate-700 mb-1">কমিশন হার (%)</label>
-                <input id="resellerCommissionRate" type="number" min="1" max="50" value="12" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
+                <label for="resellerSaleQuantity" class="block text-xs font-bold text-slate-700 mb-1">পরিমাণ *</label>
+                <input id="resellerSaleQuantity" type="number" min="1" max="1000" step="1" value="1" required oninput="updateResellerMarginPreview()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
               </div>
             </div>
-            <button type="submit" data-bn="+ কমিশন রেকর্ডে যোগ করুন" data-en="+ Add to Commission Ledger" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-700 hover:to-violet-700 text-white transition">
-              + কমিশন রেকর্ডে যোগ করুন
+            <div id="resellerMarginPreview" class="rounded-xl bg-fuchsia-50 border border-fuchsia-100 p-3 text-xs font-bold text-fuchsia-950">পণ্য নির্বাচন করলে আপনার সম্ভাব্য লাভ দেখাবে।</div>
+            <button type="submit" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-700 hover:to-violet-700 text-white transition">
+              + বিক্রয় ও লাভের হিসাব সংরক্ষণ করুন
             </button>
-          </form>
-        </div>
+          </form>        </div>
 
         <div class="lg:col-span-6 bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-          <h3 data-bn="💸 কমিশন উইথড্র / পে-আউট রিকোয়েস্ট" data-en="💸 Commission Withdraw / Payout Request" class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
+          <h3 data-bn="💸 লাভের টাকা উইথড্র / পে-আউট রিকোয়েস্ট" data-en="💸 Commission Withdraw / Payout Request" class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
             💸 কমিশন উইথড্র / পে-আউট রিকোয়েস্ট
           </h3>
           <form onsubmit="handleResellerWithdrawRequest(event)" class="space-y-3">
@@ -1347,7 +1397,7 @@
           <h2 data-bn="অর্ডার হিস্ট্রি ও ট্র্যাকিং" data-en="Order History & Tracking" class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-sky-900 via-blue-800 to-violet-700 bg-clip-text text-transparent">
             অর্ডার হিস্ট্রি ও ট্র্যাকিং
           </h2>
-          <p data-bn="মোবাইল নম্বর বা অর্ডার আইডি দিয়ে আপনার পূর্বের ও চলমান সকল অর্ডারের স্ট্যাটাস ও পেমেন্ট যাচাই দেখুন।" data-en="Search by mobile number or order ID to check order status, payment verification, and delivery details." class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
+          <p data-bn="অর্ডার নম্বর ও অর্ডারের সময় দেওয়া মোবাইল নম্বর একসঙ্গে দিয়ে অর্ডারের অবস্থা ও পেমেন্ট যাচাই দেখুন।" data-en="Enter both your order code and the mobile number used at checkout to check order and payment status." class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
             মোবাইল নম্বর বা অর্ডার আইডি দিয়ে আপনার পূর্বের ও চলমান সকল অর্ডারের স্ট্যাটাস ও পেমেন্ট যাচাই দেখুন।
           </p>
         </div>
@@ -1363,17 +1413,26 @@
       </div>
 
       <div class="bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 items-stretch gap-3">
           <input
             id="orderHistoryPhoneFilter"
             type="tel"
-            oninput="renderCustomerOrderHistory()"
-            placeholder="মোবাইল নম্বর বা অর্ডার আইডি দিয়ে ফিল্টার করুন (যেমন: 017XXXXXXXX বা HB-)..."
-            class="flex-1 rounded-xl bg-slate-50 border border-slate-300 focus:border-sky-600 focus:bg-white px-4 py-2.5 text-sm outline-none"
+            inputmode="numeric"
+            autocomplete="tel"
+            placeholder="অর্ডারের মোবাইল নম্বর (01XXXXXXXXX)"
+            class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-sky-600 focus:bg-white px-4 py-2.5 text-sm outline-none"
+          />
+          <input
+            id="orderHistoryCodeFilter"
+            type="text"
+            autocomplete="off"
+            autocapitalize="characters"
+            placeholder="অর্ডার কোড (HB-...)"
+            class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-sky-600 focus:bg-white px-4 py-2.5 text-sm outline-none"
           />
           <button
             type="button"
-            onclick="renderCustomerOrderHistory()"
+            onclick="lookupCustomerOrder()"
             data-bn="🔍 অর্ডার খুঁজুন"
             data-en="🔍 Search Orders"
             class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-sky-600 hover:bg-sky-700 text-white transition"
@@ -1603,12 +1662,12 @@
 
         <form id="adminPasswordLoginForm" onsubmit="handleAdminPasswordLogin(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
           <div class="sm:col-span-4">
-            <label for="adminUsernameInput" class="block text-xs font-bold text-slate-700 mb-1">অ্যাডমিন নাম / ইউজারনেম *</label>
+            <label for="adminUsernameInput" class="block text-xs font-bold text-slate-700 mb-1">Supabase অ্যাডমিন ইমেইল *</label>
             <input
               id="adminUsernameInput"
-              type="text"
-              placeholder="যেমন: Asif Munshi বা admin"
-              autocomplete="username"
+              type="email"
+              placeholder="admin@example.com"
+              autocomplete="email"
               class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-violet-600 focus:bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none"
             />
           </div>
@@ -1719,6 +1778,19 @@
             </p>
           </div>
           <div id="adminSellerApprovalsContainer" class="space-y-2.5"></div>
+        </div>
+
+        <div class="lg:col-span-12 bg-white rounded-3xl border border-violet-200 p-5 sm:p-6 shadow-xs space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-base font-extrabold text-slate-900">💸 রিসেলার পেআউট অনুমোদন</h3>
+              <p class="text-xs text-slate-500">রিসেলারদের জমা দেওয়া লাভের টাকা উত্তোলনের অনুরোধ যাচাই ও আপডেট করুন।</p>
+            </div>
+            <button type="button" onclick="refreshAdminResellerPayouts()" class="px-3 py-2 rounded-xl text-xs font-extrabold bg-violet-50 text-violet-800 border border-violet-200">রিফ্রেশ</button>
+          </div>
+          <div id="adminResellerPayoutsContainer" class="space-y-2.5">
+            <div class="text-xs text-slate-500">পেআউট অনুরোধ লোড হচ্ছে...</div>
+          </div>
         </div>
 
         <div class="lg:col-span-5 bg-white rounded-3xl border border-violet-200 p-5 sm:p-6 shadow-xs space-y-4">
@@ -1933,8 +2005,16 @@
           <input id="authUserName" type="text" required placeholder="যেমন: আসিফ মুন্সী" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
         </div>
         <div>
-          <label for="authUserPhoneOrEmail" class="block text-xs font-bold text-slate-700 mb-1">মোবাইল বা ইমেইল *</label>
+          <label for="authUserPhoneOrEmail" class="block text-xs font-bold text-slate-700 mb-1">অ্যাকাউন্টের যোগাযোগ / অ্যাডমিন ইমেইল *</label>
           <input id="authUserPhoneOrEmail" type="text" required placeholder="01XXXXXXXXX বা name@email.com" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+        </div>
+        <div id="modalMarketplacePhoneWrap" class="hidden">
+          <label for="authUserPhone" class="block text-xs font-bold text-slate-700 mb-1">বাংলাদেশি মোবাইল নম্বর *</label>
+          <input id="authUserPhone" type="tel" inputmode="numeric" placeholder="01XXXXXXXXX" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+        </div>
+        <div id="modalMarketplacePasswordWrap" class="hidden">
+          <label for="authUserPassword" class="block text-xs font-bold text-slate-700 mb-1">পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর) *</label>
+          <input id="authUserPassword" type="password" minlength="8" autocomplete="new-password" placeholder="পাসওয়ার্ড দিন" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
         </div>
         <div>
           <label for="authUserRole" class="block text-xs font-bold text-slate-700 mb-1">অ্যাকাউন্টের ধরন</label>
@@ -1947,7 +2027,7 @@
         </div>
         <div id="modalAdminPasswordWrap" class="hidden">
           <label for="authModalAdminPassword" class="block text-xs font-bold text-amber-900 mb-1">অ্যাডমিন পাসওয়ার্ড *</label>
-          <input id="authModalAdminPassword" type="password" placeholder="অ্যাডমিন পাসওয়ার্ড দিন" autocomplete="current-password" class="w-full rounded-xl bg-amber-50 border border-amber-300 px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-violet-600" />
+          <input id="authModalAdminPassword" type="password" placeholder="Supabase পাসওয়ার্ড দিন" autocomplete="current-password" class="w-full rounded-xl bg-amber-50 border border-amber-300 px-3.5 py-2 text-sm text-slate-900 outline-none focus:border-violet-600" />
         </div>
         <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-extrabold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white transition">
           লগ ইন / সাইন আপ সম্পন্ন করুন
@@ -2235,8 +2315,8 @@
 
     const SITE_CONFIG = {
       whatsappNumber: '',
-      supportPhone: '01700-000000',
-      supportEmail: 'support@hatbazar.com.bd',
+      supportPhone: '',
+      supportEmail: '',
       bkashNumber: '',
       nagadNumber: '',
       rocketNumber: '',
@@ -2259,6 +2339,10 @@
     let supabaseProfile = null;
     let cloudSyncEnabled = false;
     let ordersData = [];
+    let pendingBulkProductRows = [];
+    let resellerCatalogCache = [];
+    let resellerCloudLoadedAt = 0;
+    let marketplaceProfileLoadedAt = 0;
 
     let deliveryZoneConfig = {
       insideFee: 80,
@@ -2376,18 +2460,33 @@
         return;
       }
 
-      if (crumbTitle) crumbTitle.textContent = foundProduct.title;
+      if (crumbTitle) crumbTitle.textContent = currentLang === 'en' ? (foundProduct.titleEn || CATEGORY_PRODUCT_ENGLISH[ownerCategory?.id] || foundProduct.title) : foundProduct.title;
       const isOutOfStock = (Number(foundProduct.stock) || 0) <= 0;
       const t = LANG_TEXT_MAP[currentLang];
+      const productImages = [...new Set([
+        foundProduct.image,
+        ...(Array.isArray(foundProduct.gallery) ? foundProduct.gallery : [])
+      ].filter((url) => typeof url === 'string' && /^https?:\/\//i.test(url)))].slice(0, 10);
+      const mainProductImage = productImages[0] || foundProduct.image || getCategoryPhotoFallback(foundProduct.title);
 
       container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
           <div class="md:col-span-5">
             <img
-              src="${escapeHtml(foundProduct.image || getCategoryPhotoFallback(foundProduct.title))}"
+              id="productDetailMainImage"
+              src="${escapeHtml(mainProductImage)}"
               alt="${escapeHtml(foundProduct.title)}"
               class="w-full h-72 sm:h-80 rounded-2xl object-cover border border-violet-100 shadow-xs"
             />
+            ${productImages.length > 1 ? `
+              <div class="grid grid-cols-5 gap-2 mt-2">
+                ${productImages.map((imageUrl) => `
+                  <button type="button" data-act="pdp-image" data-image-url="${escapeHtml(imageUrl)}" class="rounded-xl overflow-hidden border border-violet-100 hover:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <img src="${escapeHtml(imageUrl)}" alt="Product image" class="w-full h-16 object-cover" />
+                  </button>
+                `).join('')}
+              </div>
+            ` : ''}
           </div>
           <div class="md:col-span-7 space-y-4">
             <div class="flex flex-wrap items-center gap-2">
@@ -2497,7 +2596,7 @@
       }
     }
 
-    function handleSaveDeliveryZoneConfig(e) {
+    async function handleSaveDeliveryZoneConfig(e) {
       e.preventDefault();
       if (!isAdminSession()) {
         showToast(
@@ -2517,6 +2616,21 @@
       const steadfastInsideFee = Math.max(0, Number(document.getElementById('cfgSteadfastInsideFee')?.value ?? inFee) || 0);
       const steadfastOutsideFee = Math.max(0, Number(document.getElementById('cfgSteadfastOutsideFee')?.value ?? outFee) || 0);
 
+      if (cloudSyncEnabled && supabaseClient) {
+        const { data: savedSettings, error: settingsError } = await supabaseClient.rpc('hatbazar_admin_update_delivery_settings', {
+          p_inside_fee: inFee,
+          p_outside_fee: outFee,
+          p_inside_eta: inEta,
+          p_outside_eta: outEta
+        });
+        if (settingsError || !savedSettings) {
+          showToast(currentLang === 'en'
+            ? 'Delivery settings were not saved to the database: ' + (settingsError?.message || 'Unknown error')
+            : 'ডেলিভারি সেটিংস ডেটাবেজে সেভ হয়নি: ' + (settingsError?.message || 'সমস্যা হয়েছে'));
+          return;
+        }
+      }
+
       deliveryZoneConfig = {
         insideFee: inFee,
         outsideFee: outFee,
@@ -2531,9 +2645,13 @@
       updateCartSummary();
       persistAppState();
       showToast(
-        currentLang === 'en'
-          ? 'Delivery zone & courier settings saved!'
-          : 'ডেলিভারি জোন ও Redx/Steadfast কুরিয়ার চার্জ সেভ হয়েছে!'
+        cloudSyncEnabled
+          ? (currentLang === 'en'
+              ? 'Delivery zone & courier settings saved to the database!'
+              : 'ডেলিভারি জোন ও কুরিয়ার চার্জ ডেটাবেজে সেভ হয়েছে!')
+          : (currentLang === 'en'
+              ? 'Saved locally only. Connect the cloud database for live checkout.'
+              : 'শুধু এই ডিভাইসে সেভ হয়েছে। লাইভ চেকআউটের জন্য ক্লাউড সংযোগ প্রয়োজন।')
       );
     }
 
@@ -2547,6 +2665,31 @@
         : 'guest';
       const modeLabel = cloudSyncEnabled ? 'Supabase ক্লাউড' : 'লোকাল স্টোরেজ';
       badge.textContent = `মোড: ${modeLabel} • রোল: ${roleLabel}`;
+    }
+
+    async function pullDeliveryZoneSettingsFromSupabase() {
+      if (!cloudSyncEnabled || !supabaseClient) return false;
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_get_delivery_settings');
+        if (error || !data) {
+          console.warn('Hatbazar delivery settings fetch failed:', error?.message || 'No settings returned');
+          return false;
+        }
+        deliveryZoneConfig = {
+          ...deliveryZoneConfig,
+          insideFee: Number(data.inside_fee ?? deliveryZoneConfig.insideFee),
+          outsideFee: Number(data.outside_fee ?? deliveryZoneConfig.outsideFee),
+          insideEta: String(data.inside_eta || deliveryZoneConfig.insideEta),
+          outsideEta: String(data.outside_eta || deliveryZoneConfig.outsideEta)
+        };
+        persistAppState();
+        syncDeliveryZoneSelectLabels();
+        updateCartSummary();
+        return true;
+      } catch (settingsError) {
+        console.warn('Hatbazar delivery settings fetch failed:', settingsError?.message || settingsError);
+        return false;
+      }
     }
 
     async function initSupabaseIntegration() {
@@ -2570,6 +2713,38 @@
         cloudSyncEnabled = true;
         const { data } = await supabaseClient.auth.getSession();
         supabaseUser = data?.session?.user || null;
+        if (supabaseUser?.id) {
+          const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('id,role,full_name,phone')
+            .eq('id', supabaseUser.id)
+            .maybeSingle();
+          const expectedRole = currentSessionUser?.role === 'অ্যাডমিন'
+            ? 'admin'
+            : currentSessionUser?.role === 'রিসেলার'
+            ? 'reseller'
+            : currentSessionUser?.role === 'সেলার'
+            ? 'seller'
+            : null;
+          if (profileError || !profile || (expectedRole && profile.role !== expectedRole)) {
+            if (expectedRole) {
+              await supabaseClient.auth.signOut();
+              supabaseUser = null;
+              currentSessionUser = null;
+              persistAppState();
+            }
+            supabaseProfile = null;
+          } else {
+            supabaseProfile = profile;
+          }
+        } else if (['অ্যাডমিন','সেলার','রিসেলার'].includes(currentSessionUser?.role)) {
+          currentSessionUser = null;
+          supabaseProfile = null;
+          persistAppState();
+        }
+        updateAuthButtonLabel();
+        syncDiscountAdminPermission();
+        await pullDeliveryZoneSettingsFromSupabase();
         await pullProductsFromSupabase();
         await pullCentralOrdersFromSupabase();
         renderSupabaseStatusBadge();
@@ -2628,11 +2803,24 @@
       if (!cloudSyncEnabled || !supabaseClient) return null;
       try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) return null;
-        supabaseUser = data?.user || null;
-        await pullProductsFromSupabase();
+        if (error || !data?.user?.id) return null;
+        const { data: profile, error: profileError } = await supabaseClient
+          .from('profiles')
+          .select('id,role')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        if (profileError || profile?.role !== 'admin') {
+          await supabaseClient.auth.signOut();
+          supabaseUser = null;
+          supabaseProfile = null;
+          return null;
+        }
+        supabaseUser = data.user;
+        supabaseProfile = profile;
         return supabaseUser;
       } catch (_err) {
+        supabaseUser = null;
+        supabaseProfile = null;
         return null;
       }
     }
@@ -2645,54 +2833,98 @@
         const { error: upErr } = await supabaseClient.storage
           .from(SUPABASE_CONFIG.storageBucket)
           .upload(safePath, file, { upsert: true });
-        if (upErr) return fallbackDataUrl;
+        if (upErr) throw new Error(upErr.message || 'Image upload failed');
         const { data: pubData } = supabaseClient.storage
           .from(SUPABASE_CONFIG.storageBucket)
           .getPublicUrl(safePath);
         return pubData?.publicUrl || fallbackDataUrl;
-      } catch (_err) {
-        return fallbackDataUrl;
+      } catch (uploadError) {
+        console.error('Hatbazar image upload failed:', uploadError?.message || uploadError);
+        throw uploadError;
       }
     }
 
+    const SUPABASE_CATEGORY_IDS_BY_FRONTEND_ID = {
+      'cat-01': 'aee389fa-b863-41b3-9f81-ae076a906c2d',
+      'cat-02': 'a7790e28-ec46-423a-b668-fc33eb6da9b1',
+      'cat-03': 'bdab9f55-27e2-4176-9dfa-08e1e42c97ee',
+      'cat-04': 'e6120406-3a47-4367-9943-02fff3c67b9c',
+      'cat-05': 'a60d47a1-b38f-473c-aa1a-19461d0b3ea9',
+      'cat-06': '173349c0-2c35-4154-8258-b931d5117f84',
+      'cat-07': 'c001c6d7-144f-435d-94dc-727eb59b874b',
+      'cat-08': '1e67b0d4-1bfd-4a0e-bf0a-2dd5567731b1',
+      'cat-09': '408db14e-28c7-4a6b-bb06-45bc75212836',
+      'cat-10': '82eae233-ef62-45d8-89ae-39a7e5ca51a6',
+      'cat-11': 'e34e94a3-d1e1-4b41-9138-d62886c0ef75',
+      'cat-12': 'd604a29b-9fd5-43d6-ae7a-3c87a213c93f',
+      'cat-13': 'c7d6dd3c-820c-4e62-9166-b279bdcd8de8',
+      'cat-14': '76d56749-f3a9-41ea-ab91-fed988052afb',
+      'cat-15': '8a9ae3c3-0a8e-42ff-84b7-94d54fdb5919',
+      'cat-16': '34641659-f958-4a50-898d-05ece59e53dc',
+      'cat-17': '2c554d10-3a75-4c65-8efd-ae231d9fb3cf',
+      'cat-18': '7149d889-f11a-473a-aaf5-9d2dfd912c12',
+      'cat-19': 'eca859fa-e1b6-4e2f-88ec-7c36ac40969c',
+      'cat-20': '7b072790-9b26-4e96-860e-59f7317d7572',
+      'cat-21': '6fe7b0a1-59c2-4636-80bf-106c42de1f1e',
+      'cat-22': '5686ed30-9f02-4b7f-90e1-9eb673475378',
+      'cat-23': 'beace772-1df2-4a87-9eff-6fb15b27e965',
+      'cat-24': '95b099ef-c83f-4ff0-9a67-eefc2ac7fbd0'
+    };
+
+    function createUuid() {
+      if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+      const bytes = new Uint8Array(16);
+      window.crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+      return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+    }
+
+    function isUuid(value) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+    }
+
+    function getSupabaseCategoryId(cat) {
+      if (!cat) return null;
+      return SUPABASE_CATEGORY_IDS_BY_FRONTEND_ID[cat.id] || null;
+    }
+
+    function getFrontendCategoryBySupabaseId(categoryId) {
+      const entry = Object.entries(SUPABASE_CATEGORY_IDS_BY_FRONTEND_ID).find(([, id]) => id === categoryId);
+      return entry ? categoriesData.find((c) => c.id === entry[0]) : null;
+    }
+
     function applyCloudProductsToCategories(rows) {
-      if (!Array.isArray(rows) || rows.length === 0) return false;
+      if (!Array.isArray(rows)) return false;
       let applied = false;
       for (const row of rows) {
-        if (!row || !row.id || !row.category_id) continue;
-        const cat = categoriesData.find((c) => c.id === row.category_id);
+        if (!row?.id || !row.category_id) continue;
+        const cat = getFrontendCategoryBySupabaseId(row.category_id);
         if (!cat) continue;
         if (!Array.isArray(cat.items)) cat.items = [];
-
-        const fallbackImg = makeSvgVisual(
-          row.title || cat.name,
-          cat.emoji,
-          cat.c1,
-          cat.c2,
-          cat.accent,
-          cat.id
-        );
+        const productTitle = String(row.name_bn || row.name || '').trim();
+        const fallbackImg = makeSvgVisual(productTitle || cat.name, cat.emoji, cat.c1, cat.c2, cat.accent, cat.id);
         const mappedItem = {
           id: String(row.id),
-          title: String(row.title || ''),
+          title: productTitle,
+          titleEn: String(row.name || productTitle).trim(),
           price: Number(row.price) || 0,
-          finalPrice: Number(row.final_price ?? row.price) || 0,
-          discountPercent: Number(row.discount_percent || 0),
-          discountAmount: Number(row.discount_amount || 0),
-          stock: Number.isFinite(Number(row.stock)) ? Math.max(0, Number(row.stock)) : 25,
+          finalPrice: Number(row.price) || 0,
+          basePrice: Number(row.base_price) || 0,
+          sellerId: row.seller_id || null,
+          discountPercent: 0,
+          discountAmount: 0,
+          stock: Number.isFinite(Number(row.stock)) ? Math.max(0, Number(row.stock)) : 0,
           desc: String(row.description || ''),
-          image: row.image_url && String(row.image_url).trim() ? String(row.image_url).trim() : fallbackImg
+          image: row.image_url && String(row.image_url).trim() ? String(row.image_url).trim() : fallbackImg,
+          gallery: Array.isArray(row.gallery) ? row.gallery : []
         };
-
-        const idx = cat.items.findIndex((i) => i.id === mappedItem.id);
-        if (idx >= 0) {
-          cat.items[idx] = { ...cat.items[idx], ...mappedItem };
-        } else {
-          cat.items.unshift(mappedItem);
-        }
+        const idx = cat.items.findIndex((item) => item.id === mappedItem.id);
+        if (idx >= 0) cat.items[idx] = { ...cat.items[idx], ...mappedItem };
+        else cat.items.unshift(mappedItem);
         applied = true;
       }
-
       if (applied) {
         persistAppState();
         renderCategoriesGrid();
@@ -2712,11 +2944,45 @@
       try {
         const { data, error } = await supabaseClient
           .from(SUPABASE_CONFIG.tables.products)
-          .select('*')
-          .order('updated_at', { ascending: false });
-        if (error || !Array.isArray(data)) return false;
+          .select('id,category_id,seller_id,name,name_bn,description,price,stock,image_url,is_active,created_at')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+        if (error || !Array.isArray(data)) {
+          console.error('Hatbazar product sync failed:', error?.message || 'Invalid response');
+          return false;
+        }
+        if (isAdminSession()) {
+          const { data: basePriceRows, error: basePriceError } = await supabaseClient.rpc('hatbazar_admin_product_base_prices');
+          if (!basePriceError && Array.isArray(basePriceRows)) {
+            const basePriceById = Object.fromEntries(basePriceRows.map((row) => [row.product_id, Number(row.base_price) || 0]));
+            for (const row of data) row.base_price = basePriceById[row.id] || 0;
+          } else if (basePriceError) {
+            console.warn('Private base prices are not available to admin yet:', basePriceError.message);
+          }
+        }
+        if (data.length) {
+          const productIds = data.map((row) => row.id);
+          const { data: imageRows, error: imageError } = await supabaseClient
+            .from('product_images')
+            .select('product_id,image_url,sort_order')
+            .in('product_id', productIds)
+            .order('sort_order', { ascending: true });
+          if (!imageError && Array.isArray(imageRows)) {
+            const galleryByProduct = {};
+            for (const imageRow of imageRows) {
+              (galleryByProduct[imageRow.product_id] ||= []).push(imageRow.image_url);
+            }
+            for (const row of data) {
+              row.gallery = galleryByProduct[row.id] || [];
+              if (!row.image_url && row.gallery.length) row.image_url = row.gallery[0];
+            }
+          } else if (imageError) {
+            console.warn('Hatbazar product gallery could not be loaded:', imageError.message);
+          }
+        }
         return applyCloudProductsToCategories(data);
-      } catch (_err) {
+      } catch (err) {
+        console.error('Hatbazar product sync failed:', err?.message || err);
         return false;
       }
     }
@@ -2726,39 +2992,141 @@
       if (!cloudSyncEnabled || !supabaseClient || !itemObj) return false;
       try {
         const cat = categoriesData.find((c) => c.id === catId);
+        const categoryId = getSupabaseCategoryId(cat);
+        if (!categoryId) {
+          console.error('Hatbazar product sync: category mapping missing for', cat?.name || catId);
+          return false;
+        }
+        if (!isUuid(itemObj.id)) itemObj.id = createUuid();
         const payload = {
-          id: String(itemObj.id),
-          category_id: String(catId || ''),
-          category_name: cat ? String(cat.name) : '',
-          title: String(itemObj.title || ''),
-          price: Number(itemObj.price) || 0,
-          final_price: Number(itemObj.finalPrice ?? itemObj.price) || 0,
-          discount_percent: Number(itemObj.discountPercent || 0),
-          discount_amount: Number(itemObj.discountAmount || 0),
-          stock: Number.isFinite(Number(itemObj.stock)) ? Math.max(0, Number(itemObj.stock)) : 25,
+          id: itemObj.id,
+          category_id: categoryId,
+          seller_id: itemObj.sellerId || (isAdminSession() ? null : (supabaseUser?.id || null)),
+          name: String(itemObj.titleEn || itemObj.title || '').trim(),
+          name_bn: String(itemObj.title || '').trim(),
           description: String(itemObj.desc || ''),
-          image_url:
-            itemObj.image && !String(itemObj.image).startsWith('data:')
-              ? String(itemObj.image)
-              : '',
-          updated_at: new Date().toISOString()
+          price: Number(itemObj.finalPrice ?? itemObj.price) || 0,
+          base_price: Number(itemObj.basePrice) > 0 ? Number(itemObj.basePrice) : null,
+          stock: Number.isFinite(Number(itemObj.stock)) ? Math.max(0, Math.floor(Number(itemObj.stock))) : 0,
+          image_url: itemObj.image && !String(itemObj.image).startsWith('data:')
+            ? String(itemObj.image) : null,
+          is_active: true
         };
         const { error } = await supabaseClient
           .from(SUPABASE_CONFIG.tables.products)
           .upsert(payload, { onConflict: 'id' });
-        return !error;
-      } catch (_err) {
+        if (error) {
+          console.error('Hatbazar product upsert failed:', error.message);
+          return false;
+        }
+
+        // Admin-managed product gallery rows are stored separately from the cover image.
+        if (isAdminSession()) {
+          const galleryUrls = [...new Set([
+            itemObj.image,
+            ...(Array.isArray(itemObj.gallery) ? itemObj.gallery : [])
+          ].filter((url) => typeof url === 'string' && /^https?:\/\//i.test(url)))].slice(0, 10);
+          const { error: clearGalleryError } = await supabaseClient
+            .from('product_images')
+            .delete()
+            .eq('product_id', itemObj.id);
+          if (clearGalleryError) {
+            console.error('Hatbazar gallery cleanup failed:', clearGalleryError.message);
+            return false;
+          }
+          if (galleryUrls.length) {
+            const galleryRows = galleryUrls.map((imageUrl, index) => ({
+              product_id: itemObj.id, image_url: imageUrl, sort_order: index
+            }));
+            const { error: imageInsertError } = await supabaseClient
+              .from('product_images')
+              .insert(galleryRows);
+            if (imageInsertError) {
+              console.error('Hatbazar gallery save failed:', imageInsertError.message);
+              return false;
+            }
+          }
+        }
+        return true;
+      } catch (err) {
+        console.error('Hatbazar product upsert failed:', err?.message || err);
         return false;
       }
     }
 
     async function persistOrderToSupabase(orderRecord) {
-      persistAppState();
-      if (!cloudSyncEnabled || !supabaseClient) return;
+      if (!cloudSyncEnabled || !supabaseClient) {
+        return { success: false, error: 'Cloud database is not connected.' };
+      }
+
+      // Existing orders may only be changed through the admin-only RPC.
+      if (orderRecord?.orderUuid) {
+        if (!isAdminSession()) {
+          return { success: false, error: 'Only an administrator can update an existing order.' };
+        }
+        try {
+          const { data, error } = await supabaseClient.rpc('hatbazar_admin_update_order', {
+            p_order_id: orderRecord.orderUuid,
+            p_order_status: orderRecord._pendingOrderStatus ?? null,
+            p_payment_verified: typeof orderRecord._pendingPaymentVerified === 'boolean'
+              ? orderRecord._pendingPaymentVerified
+              : null
+          });
+          if (error || !data?.success) {
+            return { success: false, error: error?.message || 'Order update was rejected.' };
+          }
+          return { success: true, data };
+        } catch (updateError) {
+          return { success: false, error: updateError?.message || 'Network error while updating the order.' };
+        }
+      }
+
+      if (!orderRecord?._isNewCheckout) {
+        return { success: false, error: 'This order is not linked to a cloud order record.' };
+      }
+
+      const paymentMap = {
+        'ক্যাশ অন ডেলিভারি': 'cod',
+        'বিকাশ': 'bkash',
+        'নগদ': 'nagad',
+        'রকেট': 'rocket',
+        'ব্যাংক ট্রান্সফার': 'bank'
+      };
+      const rpcItems = (orderRecord.items || []).map((item) => ({
+        product_id: item.id,
+        quantity: Number(item.qty) || 1
+      }));
+      if (!rpcItems.length || rpcItems.some((item) => !isUuid(item.product_id))) {
+        return { success: false, error: 'Cart contains a product that is not synced to the cloud yet.' };
+      }
       try {
-        await supabaseClient.from(SUPABASE_CONFIG.tables.orders).upsert(orderRecord);
-      } catch (_err) {
-        // লোকাল রেকর্ডে ইতিমধ্যে সেভ আছে
+        const { data, error } = await supabaseClient.rpc('hatbazar_checkout_v2', {
+          p_customer_name: orderRecord.customerName,
+          p_phone: orderRecord.customerPhone,
+          p_address: orderRecord.address,
+          p_payment_method: paymentMap[orderRecord.paymentMethod] || '',
+          p_items: rpcItems,
+          p_district: orderRecord.district,
+          p_upazila: orderRecord.upazila,
+          p_delivery_zone: orderRecord.deliveryZone,
+          p_delivery_fee: Number(orderRecord.deliveryFee) || 0,
+          p_payment_trx_id: orderRecord.paymentTrxId || null,
+          p_reseller_id: supabaseProfile?.role === 'reseller' ? (supabaseUser?.id || null) : null
+        });
+        if (error || !data?.success) {
+          console.error('Hatbazar checkout failed:', error?.message || data?.message || 'Unknown error');
+          return { success: false, error: error?.message || data?.message || 'Order could not be saved.' };
+        }
+        orderRecord.id = data.order_code || data.order_id;
+        orderRecord.orderUuid = data.order_id;
+        delete orderRecord._isNewCheckout;
+        orderRecord.subtotal = Number(data.subtotal) || orderRecord.subtotal;
+        orderRecord.deliveryFee = Number(data.delivery_fee) || 0;
+        orderRecord.totalAmount = Number(data.total_amount) || orderRecord.totalAmount;
+        orderRecord.createdAt = data.created_at || new Date().toISOString();
+        return { success: true, data };
+      } catch (rpcError) {
+        return { success: false, error: rpcError?.message || 'Network error while saving the order.' };
       }
     }
 
@@ -2767,14 +3135,52 @@
       try {
         const { data, error } = await supabaseClient
           .from(SUPABASE_CONFIG.tables.orders)
-          .select('*')
-          .order('createdAt', { ascending: false });
-        if (!error && Array.isArray(data) && data.length > 0) {
-          ordersData = data;
-          persistAppState();
+          .select('id,order_code,customer_name,phone,address,district,upazila,delivery_zone,subtotal,delivery_fee,total_amount,payment_method,payment_trx_id,payment_verified,payment_status,order_status,created_at')
+          .order('created_at', { ascending: false });
+        if (error || !Array.isArray(data)) {
+          console.error('Hatbazar order fetch failed:', error?.message || 'Invalid response');
+          return ordersData;
         }
-      } catch (_err) {
-        // fallback to local ordersData
+        const ids = data.map((order) => order.id);
+        let itemsByOrder = {};
+        if (ids.length) {
+          const { data: itemRows, error: itemError } = await supabaseClient
+            .from('order_items')
+            .select('order_id,product_id,product_name,quantity,unit_price')
+            .in('order_id', ids);
+          if (!itemError && Array.isArray(itemRows)) {
+            for (const row of itemRows) {
+              (itemsByOrder[row.order_id] ||= []).push({
+                id: row.product_id,
+                title: row.product_name,
+                price: Number(row.unit_price) || 0,
+                qty: Number(row.quantity) || 1
+              });
+            }
+          }
+        }
+        ordersData = data.map((row) => ({
+          id: row.order_code || row.id,
+          orderUuid: row.id,
+          customerName: row.customer_name,
+          customerPhone: row.phone,
+          address: row.address,
+          district: row.district || '',
+          upazila: row.upazila || '',
+          deliveryZone: row.delivery_zone || '',
+          subtotal: Number(row.subtotal) || 0,
+          deliveryFee: Number(row.delivery_fee) || 0,
+          totalAmount: Number(row.total_amount) || 0,
+          paymentMethod: row.payment_method || '',
+          paymentTrxId: row.payment_trx_id || '',
+          paymentVerified: Boolean(row.payment_verified),
+          orderStatus: row.order_status || 'pending',
+          createdAt: row.created_at,
+          items: itemsByOrder[row.id] || []
+        }));
+        persistAppState();
+      } catch (err) {
+        console.error('Hatbazar order fetch failed:', err?.message || err);
       }
       return ordersData;
     }
@@ -2826,11 +3232,25 @@
       }
       const ord = ordersData.find((o) => o.id === orderId);
       if (!ord) return;
+      const previousStatus = ord.orderStatus;
       ord.orderStatus = nextStatus;
-      if (nextStatus === 'confirmed' || nextStatus === 'delivered') {
-        ord.paymentVerified = true;
+      ord._pendingOrderStatus = nextStatus;
+      const saveResult = await persistOrderToSupabase(ord);
+      delete ord._pendingOrderStatus;
+      if (!saveResult.success) {
+        ord.orderStatus = previousStatus;
+        showToast(currentLang === 'en' ? 'Order update failed: ' + saveResult.error : 'অর্ডার আপডেট হয়নি: ' + saveResult.error);
+        return;
       }
-      await persistOrderToSupabase(ord);
+      if (nextStatus === 'cancelled' && previousStatus !== 'cancelled') {
+        for (const orderedItem of (ord.items || [])) {
+          for (const category of categoriesData) {
+            const product = (category.items || []).find((item) => item.id === orderedItem.id);
+            if (product) product.stock = Math.max(0, Number(product.stock) || 0) + (Number(orderedItem.qty) || 1);
+          }
+        }
+        persistAppState();
+      }
       renderCentralOrdersList();
       renderCustomerOrderHistory();
       refreshAdminStats();
@@ -2844,8 +3264,16 @@
       }
       const ord = ordersData.find((o) => o.id === orderId);
       if (!ord) return;
+      const previousVerified = ord.paymentVerified;
       ord.paymentVerified = !ord.paymentVerified;
-      await persistOrderToSupabase(ord);
+      ord._pendingPaymentVerified = ord.paymentVerified;
+      const saveResult = await persistOrderToSupabase(ord);
+      delete ord._pendingPaymentVerified;
+      if (!saveResult.success) {
+        ord.paymentVerified = previousVerified;
+        showToast(currentLang === 'en' ? 'Payment update failed: ' + saveResult.error : 'পেমেন্ট আপডেট হয়নি: ' + saveResult.error);
+        return;
+      }
       renderCentralOrdersList();
       renderCustomerOrderHistory();
       showToast(
@@ -2905,6 +3333,7 @@
                   <option value="confirmed" ${ord.orderStatus === 'confirmed' ? 'selected' : ''}>কনফার্মড</option>
                   <option value="shipped" ${ord.orderStatus === 'shipped' ? 'selected' : ''}>কুরিয়ারে পাঠানো হয়েছে</option>
                   <option value="delivered" ${ord.orderStatus === 'delivered' ? 'selected' : ''}>ডেলিভারি সম্পন্ন</option>
+                  <option value="cancelled" ${ord.orderStatus === 'cancelled' ? 'selected' : ''}>অর্ডার বাতিল</option>
                 </select>
                 <button
                   type="button"
@@ -2960,6 +3389,28 @@
         return;
       }
 
+      // Sellers may submit products only after server-side approval.
+      if (!isAdminSession()) {
+        if (currentSessionUser?.role !== 'সেলার' || !cloudSyncEnabled || !supabaseClient || !supabaseUser?.id) {
+          showToast('পণ্য যোগ করতে Supabase-এ লগইন করা অনুমোদিত সেলার অ্যাকাউন্ট প্রয়োজন।');
+          return;
+        }
+        try {
+          const { data: sellerProfile, error: sellerProfileError } = await supabaseClient
+            .from('seller_profiles')
+            .select('status')
+            .eq('id', supabaseUser.id)
+            .maybeSingle();
+          if (sellerProfileError || sellerProfile?.status?.toLowerCase() !== 'approved') {
+            showToast('আপনার সেলার অ্যাকাউন্ট এখনো অনুমোদিত হয়নি। অনুমোদনের পর পণ্য যোগ করতে পারবেন।');
+            return;
+          }
+        } catch (_sellerCheckError) {
+          showToast('সেলার অনুমোদন যাচাই করা যায়নি। পরে আবার চেষ্টা করুন।');
+          return;
+        }
+      }
+
       const defaultVisual = makeSvgVisual(title, cat.emoji, cat.c1, cat.c2, cat.accent, cat.id);
       let imageSrc = defaultVisual;
       const file = imgInput?.files?.[0];
@@ -2972,14 +3423,14 @@
         try {
           const compressedDataUrl = await compressImageFile(file, 900, 0.72);
           imageSrc = await uploadProductImageToSupabase(file, compressedDataUrl);
-        } catch (_err) {
-          showToast(currentLang === 'en' ? 'Could not read image; using default visual' : 'ছবি পড়া যায়নি; ডিফল্ট ছবি ব্যবহার করা হলো');
-          imageSrc = defaultVisual;
+        } catch (uploadError) {
+          showToast(currentLang === 'en' ? 'Image upload failed. Product was not added.' : 'ছবি আপলোড হয়নি, পণ্য যোগ করা হয়নি।');
+          return;
         }
       }
 
       const newItem = {
-        id: `${cat.id}-seller-${Date.now()}`,
+        id: createUuid(),
         title,
         price,
         finalPrice: price,
@@ -2991,8 +3442,14 @@
       };
 
       if (!Array.isArray(cat.items)) cat.items = [];
+      if (cloudSyncEnabled) {
+        const saved = await syncProductToSupabase(cat.id, newItem);
+        if (!saved) {
+          showToast(currentLang === 'en' ? 'Product could not be saved to the database.' : 'পণ্যটি ডেটাবেজে সেভ হয়নি।');
+          return;
+        }
+      }
       cat.items.unshift(newItem);
-      await syncProductToSupabase(cat.id, newItem);
       e.target.reset();
       clearProductImageSelection('sellerQuickImageFile', 'sellerQuickPreviewWrap', 'sellerQuickPreviewImg');
       const stockInput = document.getElementById('sellerQuickStock');
@@ -3032,7 +3489,44 @@
       );
     }
 
+    async function refreshCurrentMarketplaceProfile() {
+      if (!cloudSyncEnabled || !supabaseClient || !supabaseUser?.id ||
+          !['সেলার', 'রিসেলার'].includes(currentSessionUser?.role) ||
+          Date.now() - marketplaceProfileLoadedAt < 60000) return;
+      try {
+        const isSeller = currentSessionUser.role === 'সেলার';
+        const table = isSeller ? 'seller_profiles' : 'reseller_profiles';
+        const { data, error } = await supabaseClient
+          .from(table)
+          .select(isSeller ? 'id,shop_name,status' : 'id,status')
+          .eq('id', supabaseUser.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (data) {
+          const entry = {
+            id: data.id,
+            name: currentSessionUser.name || '',
+            phone: currentSessionUser.contact || '',
+            shopName: isSeller ? (data.shop_name || currentSessionUser.name || '') : (currentSessionUser.name || ''),
+            district: '',
+            role: isSeller ? 'seller' : 'reseller',
+            status: data.status || 'pending',
+            notes: ''
+          };
+          const existingIndex = sellerPartnersData.findIndex((item) => item.id === data.id);
+          if (existingIndex >= 0) sellerPartnersData[existingIndex] = { ...sellerPartnersData[existingIndex], ...entry };
+          else sellerPartnersData.unshift(entry);
+        }
+        marketplaceProfileLoadedAt = Date.now();
+        renderSellerDashboard();
+      } catch (profileError) {
+        marketplaceProfileLoadedAt = 0;
+        console.warn('Marketplace profile status could not be loaded:', profileError?.message || profileError);
+      }
+    }
+
     function renderSellerDashboard() {
+      refreshCurrentMarketplaceProfile();
       populateSellerQuickCategorySelect();
 
       let totalProducts = 0;
@@ -3109,85 +3603,232 @@
       }
     }
 
-    function renderAdminSellerApprovals() {
+    async function refreshAdminResellerPayouts() {
+      const container = document.getElementById('adminResellerPayoutsContainer');
+      if (!container || !isAdminSession()) return;
+      if (!cloudSyncEnabled || !supabaseClient) {
+        container.innerHTML = '<div class="text-xs text-amber-700">Supabase সংযোগ প্রয়োজন।</div>';
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient
+          .from('reseller_payout_requests')
+          .select('id,reseller_id,payout_method,payout_account,amount,status,created_at,admin_note')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        if (!Array.isArray(data) || !data.length) {
+          container.innerHTML = '<div class="text-xs text-slate-500">কোনো পেআউট অনুরোধ নেই।</div>';
+          return;
+        }
+        container.innerHTML = data.map((row) => {
+          const statusLabel = row.status === 'paid' ? 'পরিশোধিত' : row.status === 'approved' ? 'অনুমোদিত' : row.status === 'rejected' ? 'বাতিল' : 'পেন্ডিং';
+          const actions = row.status === 'pending'
+            ? `<button type="button" onclick="updateAdminResellerPayoutStatus('${escapeHtml(row.id)}','approved')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white font-bold">অনুমোদন</button>
+               <button type="button" onclick="updateAdminResellerPayoutStatus('${escapeHtml(row.id)}','rejected')" class="px-2.5 py-1.5 rounded-lg bg-rose-600 text-white font-bold">বাতিল</button>`
+            : row.status === 'approved'
+            ? `<button type="button" onclick="updateAdminResellerPayoutStatus('${escapeHtml(row.id)}','paid')" class="px-2.5 py-1.5 rounded-lg bg-violet-600 text-white font-bold">পরিশোধিত চিহ্নিত করুন</button>
+               <button type="button" onclick="updateAdminResellerPayoutStatus('${escapeHtml(row.id)}','rejected')" class="px-2.5 py-1.5 rounded-lg bg-rose-600 text-white font-bold">বাতিল</button>`
+            : '';
+          return `<div class="rounded-xl border border-slate-200 bg-slate-50 p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="space-y-1">
+              <div class="font-extrabold text-slate-900">৳${formatNum(row.amount)} · ${escapeHtml(row.payout_method)} · ${escapeHtml(row.payout_account)}</div>
+              <div class="text-slate-500">রিসেলার: ${escapeHtml(row.reseller_id)} · ${new Date(row.created_at).toLocaleString('bn-BD')}</div>
+              <div class="font-bold">স্ট্যাটাস: ${statusLabel}${row.admin_note ? ' · ' + escapeHtml(row.admin_note) : ''}</div>
+            </div>
+            <div class="flex flex-wrap gap-2">${actions}</div>
+          </div>`;
+        }).join('');
+      } catch (error) {
+        container.innerHTML = '<div class="text-xs text-rose-700">পেআউট তালিকা লোড হয়নি: ' + escapeHtml(error?.message || 'Database error') + '</div>';
+      }
+    }
+
+    async function updateAdminResellerPayoutStatus(requestId, status) {
+      if (!isAdminSession() || !cloudSyncEnabled || !supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_admin_update_reseller_payout', {
+          p_request_id: requestId,
+          p_status: status,
+          p_admin_note: null
+        });
+        if (error || !data?.success) throw error || new Error('Payout update failed.');
+        await refreshAdminResellerPayouts();
+        showToast('রিসেলার পেআউট স্ট্যাটাস আপডেট হয়েছে।');
+      } catch (error) {
+        showToast('পেআউট আপডেট হয়নি: ' + (error?.message || 'Database error'));
+      }
+    }
+
+    async function renderAdminSellerApprovals() {
+      refreshAdminResellerPayouts();
       const container = document.getElementById('adminSellerApprovalsContainer');
       if (!container) return;
-      if (sellerPartnersData.length === 0) {
-        container.innerHTML = `<div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500">কোনো আবেদন নেই।</div>`;
-        return;
+      let cloudApplications = [];
+      if (isAdminSession() && cloudSyncEnabled && supabaseClient) {
+        const { data, error } = await supabaseClient.rpc('hatbazar_admin_list_marketplace_applications');
+        if (error) console.warn('Marketplace applications could not be loaded:', error.message);
+        else cloudApplications = Array.isArray(data) ? data : [];
       }
-
-      container.innerHTML = sellerPartnersData
-        .map((p) => {
-          const badgeClass =
-            p.status === 'approved'
-              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-              : p.status === 'rejected'
-              ? 'bg-rose-100 text-rose-800 border-rose-300'
-              : 'bg-amber-100 text-amber-900 border-amber-300';
-          const statusLabel =
-            p.status === 'approved'
-              ? '✅ অনুমোদিত'
-              : p.status === 'rejected'
-              ? '❌ বাতিল'
-              : '⏳ পেন্ডিং';
-          return `
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 flex flex-wrap items-center justify-between gap-2.5 text-xs">
-              <div class="space-y-0.5">
-                <div class="font-extrabold text-slate-900 text-sm">${escapeHtml(p.shopName)} <span class="px-2 py-0.5 rounded-full text-[10px] border ${badgeClass}">${statusLabel}</span></div>
-                <div class="text-slate-600 font-semibold">${escapeHtml(p.name)} • ${escapeHtml(p.phone)} • ${escapeHtml(p.district)} (${p.role === 'reseller' ? 'রিসেলার' : 'সেলার'})</div>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <button type="button" onclick="setPartnerApprovalStatus('${escapeHtml(p.id)}', 'approved')" class="px-3 py-1.5 rounded-xl font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white transition">
-                  ✓ Approve
-                </button>
-                <button type="button" onclick="setPartnerApprovalStatus('${escapeHtml(p.id)}', 'rejected')" class="px-3 py-1.5 rounded-xl font-extrabold bg-rose-600 hover:bg-rose-700 text-white transition">
-                  ✕ Reject
-                </button>
-              </div>
-            </div>
-          `;
-        })
-        .join('');
+      const cloudHtml = cloudApplications.map((app) => {
+        const roleLabel = app.role === 'reseller' ? 'রিসেলার' : 'সেলার';
+        const status = app.status || 'pending';
+        const statusLabel = status === 'approved' ? 'অনুমোদিত' : status === 'rejected' ? 'বাতিল' : 'পেন্ডিং';
+        const badge = status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-amber-100 text-amber-900 border-amber-300';
+        return '<div class="rounded-2xl border border-violet-200 bg-violet-50/50 p-3.5 flex flex-wrap items-center justify-between gap-2.5 text-xs">'+
+          '<div class="space-y-0.5"><div class="font-extrabold text-slate-900 text-sm">'+escapeHtml(app.full_name||'নাম নেই')+' <span class="px-2 py-0.5 rounded-full text-[10px] border '+badge+'">'+statusLabel+'</span></div>'+
+          '<div class="text-slate-600 font-semibold">'+escapeHtml(app.phone||'')+' · '+roleLabel+(app.shop_name?' · '+escapeHtml(app.shop_name):'')+'</div></div>'+
+          '<div class="flex items-center gap-1.5">'+
+          '<button type="button" onclick="setMarketplaceAccountStatus(\''+escapeHtml(app.user_id)+'\',\''+app.role+'\',\'approved\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-emerald-600 text-white">Approve</button>'+
+          '<button type="button" onclick="setMarketplaceAccountStatus(\''+escapeHtml(app.user_id)+'\',\''+app.role+'\',\'rejected\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-rose-600 text-white">Reject</button></div></div>';
+      }).join('');
+      const localHtml = sellerPartnersData.map((p) => {
+        const badge = p.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : p.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-amber-100 text-amber-900 border-amber-300';
+        const label = p.status === 'approved' ? 'অনুমোদিত' : p.status === 'rejected' ? 'বাতিল' : 'পেন্ডিং';
+        return '<div class="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 flex flex-wrap items-center justify-between gap-2.5 text-xs">'+
+          '<div class="space-y-0.5"><div class="font-extrabold text-slate-900 text-sm">'+escapeHtml(p.shopName)+' <span class="px-2 py-0.5 rounded-full text-[10px] border '+badge+'">'+label+'</span></div>'+
+          '<div class="text-slate-600 font-semibold">'+escapeHtml(p.name)+' · '+escapeHtml(p.phone)+' · '+(p.role==='reseller'?'রিসেলার':'সেলার')+'</div></div>'+
+          '<div class="flex items-center gap-1.5"><button type="button" onclick="setPartnerApprovalStatus(\''+escapeHtml(p.id)+'\',\'approved\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-emerald-600 text-white">Approve</button>'+
+          '<button type="button" onclick="setPartnerApprovalStatus(\''+escapeHtml(p.id)+'\',\'rejected\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-rose-600 text-white">Reject</button></div></div>';
+      }).join('');
+      const applicationHtml = isAdminSession() && cloudSyncEnabled && supabaseClient ? cloudHtml : localHtml;
+      container.innerHTML = applicationHtml || '<div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500">কোনো আবেদন নেই।</div>';
     }
 
-    function handleAddResellerSale(e) {
+    async function setMarketplaceAccountStatus(userId, role, status) {
+      if (!isAdminSession() || !cloudSyncEnabled || !supabaseClient) {
+        showToast('অ্যাডমিন লগইন ও Supabase সংযোগ প্রয়োজন।');
+        return;
+      }
+      const { data, error } = await supabaseClient.rpc('hatbazar_admin_update_marketplace_status', {
+        p_user_id: userId, p_role: role, p_status: status
+      });
+      if (error || !data?.success) {
+        showToast('স্ট্যাটাস আপডেট হয়নি: ' + (error?.message || 'আবার চেষ্টা করুন।'));
+        return;
+      }
+      await renderAdminSellerApprovals();
+      showToast(status === 'approved' ? 'অ্যাকাউন্ট অনুমোদিত হয়েছে।' : status === 'rejected' ? 'আবেদন বাতিল হয়েছে।' : 'স্ট্যাটাস আপডেট হয়েছে।');
+    }
+
+    function updateResellerMarginPreview() {
+      const productId = document.getElementById('resellerSaleProduct')?.value;
+      const price = Number(document.getElementById('resellerSaleAmount')?.value);
+      const quantity = Number(document.getElementById('resellerSaleQuantity')?.value || 1);
+      const product = resellerCatalogCache.find((item) => item.product_id === productId);
+      const preview = document.getElementById('resellerMarginPreview');
+      if (!preview) return;
+      if (!product) { preview.textContent = 'পণ্য নির্বাচন করলে আপনার সম্ভাব্য লাভ দেখাবে।'; return; }
+      const margin = price - Number(product.base_price || 0);
+      const totalProfit = margin * quantity;
+      preview.textContent = margin < 0
+        ? 'বিক্রয় মূল্য বেস মূল্যের চেয়ে কম হতে পারবে না।'
+        : 'গোপন বেস মূল্য: ৳' + formatNum(product.base_price) + ' · প্রতি পিস লাভ: ৳' + formatNum(margin) + ' · মোট লাভ: ৳' + formatNum(totalProfit);
+    }
+
+    async function refreshResellerCloudData() {
+      if (!cloudSyncEnabled || !supabaseClient || Date.now() - resellerCloudLoadedAt < 60000) return;
+      try {
+        const { data: catalog, error: catalogError } = await supabaseClient.rpc('hatbazar_reseller_catalog');
+        if (catalogError) throw catalogError;
+        resellerCatalogCache = Array.isArray(catalog) ? catalog : [];
+        const select = document.getElementById('resellerSaleProduct');
+        if (select) {
+          select.innerHTML = '<option value="">পণ্য নির্বাচন করুন</option>' + resellerCatalogCache.map((item) =>
+            '<option value="' + escapeHtml(item.product_id) + '">' +
+            escapeHtml(item.product_name_bn || item.product_name) + ' · বেস ৳' + formatNum(item.base_price) +
+            '</option>'
+          ).join('');
+        }
+        const { data: sales, error: salesError } = await supabaseClient
+          .from('reseller_sales')
+          .select('id,product_id,order_reference,base_price,selling_price,quantity,profit_amount,created_at')
+          .order('created_at', { ascending: false });
+        if (salesError) throw salesError;
+        const { data: payoutRows, error: payoutError } = await supabaseClient
+          .from('reseller_payout_requests')
+          .select('id,payout_method,payout_account,amount,status,created_at')
+          .order('created_at', { ascending: false });
+        if (payoutError) throw payoutError;
+        const saleEntries = (Array.isArray(sales) ? sales.map((row) => ({
+          id: row.id,
+          type: 'earning',
+          ref: row.order_reference + ' · বিক্রয় ৳' + formatNum(row.selling_price) + ' × ' + row.quantity,
+          amount: Number(row.profit_amount) || 0,
+          status: 'earned',
+          createdAt: row.created_at
+        })) : []);
+        const { data: checkoutSales, error: checkoutSalesError } = await supabaseClient
+          .from('reseller_ledger')
+          .select('order_id,product_id,base_price,selling_price,quantity,created_at')
+          .order('created_at', { ascending: false });
+        if (checkoutSalesError) throw checkoutSalesError;
+        const checkoutEntries = (Array.isArray(checkoutSales) ? checkoutSales.map((row) => ({
+          id: row.order_id + ':' + row.product_id,
+          type: 'earning',
+          ref: 'অর্ডার ' + row.order_id + ' · বিক্রয় ৳' + formatNum(row.selling_price) + ' × ' + row.quantity,
+          amount: Math.max(0, (Number(row.selling_price) - Number(row.base_price)) * Number(row.quantity)),
+          status: 'earned',
+          createdAt: row.created_at
+        })) : []);
+        const payoutEntries = (Array.isArray(payoutRows) ? payoutRows.map((row) => ({
+          id: row.id,
+          type: 'withdraw',
+          ref: row.payout_method.toUpperCase() + ' (' + row.payout_account + ')',
+          amount: Number(row.amount) || 0,
+          status: row.status,
+          createdAt: row.created_at
+        })) : []);
+        resellerLedgerData = saleEntries.concat(checkoutEntries, payoutEntries);
+        resellerCloudLoadedAt = Date.now();
+        renderResellerDashboard();
+        updateResellerMarginPreview();
+      } catch (error) {
+        resellerCloudLoadedAt = 0;
+        console.warn('Reseller cloud data unavailable:', error?.message || error);
+        const select = document.getElementById('resellerSaleProduct');
+        if (select) select.innerHTML = '<option value="">রিসেলার অনুমোদন ও ডেটাবেস সেটআপ প্রয়োজন</option>';
+      }
+    }
+
+    async function handleAddResellerSale(e) {
       e.preventDefault();
+      const productId = document.getElementById('resellerSaleProduct')?.value || '';
       const ref = (document.getElementById('resellerOrderRef')?.value || '').trim();
       const saleAmount = Number(document.getElementById('resellerSaleAmount')?.value);
-      const rate = Math.min(50, Math.max(1, Number(document.getElementById('resellerCommissionRate')?.value) || 12));
-      if (!ref || !Number.isFinite(saleAmount) || saleAmount <= 0) {
-        showToast(currentLang === 'en' ? 'Enter valid order reference and amount' : 'সঠিক অর্ডার রেফারেন্স ও বিক্রয় মূল্য দিন');
+      const quantity = Number(document.getElementById('resellerSaleQuantity')?.value || 1);
+      if (!productId || !ref || !Number.isFinite(saleAmount) || saleAmount <= 0 || !Number.isInteger(quantity) || quantity < 1) {
+        showToast('পণ্য, অর্ডার রেফারেন্স, সঠিক বিক্রয় মূল্য ও পরিমাণ দিন।');
         return;
       }
-
-      const commission = Math.round((saleAmount * rate) / 100);
-      resellerLedgerData.unshift({
-        id: `rl-${Date.now()}`,
-        type: 'earning',
-        ref: `${ref} (বিক্রয় ৳${saleAmount}, ${rate}%)`,
-        amount: commission,
-        status: 'earned',
-        createdAt: new Date().toISOString()
-      });
-
-      e.target.reset();
-      const rateInput = document.getElementById('resellerCommissionRate');
-      if (rateInput) rateInput.value = '12';
-      renderResellerDashboard();
-      persistAppState();
-      showToast(
-        currentLang === 'en'
-          ? `Added ৳${commission} commission!`
-          : `৳${formatNum(commission)} কমিশন যুক্ত হয়েছে!`
-      );
+      if (!cloudSyncEnabled || !supabaseClient) {
+        showToast('রিসেলার বিক্রির হিসাব সংরক্ষণে Supabase সংযোগ প্রয়োজন।');
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_record_sale', {
+          p_product_id: productId,
+          p_order_reference: ref,
+          p_selling_price: saleAmount,
+          p_quantity: quantity
+        });
+        if (error || !data?.success) throw error || new Error('Sale could not be recorded.');
+        e.target.reset();
+        const qtyInput = document.getElementById('resellerSaleQuantity');
+        if (qtyInput) qtyInput.value = '1';
+        resellerCloudLoadedAt = 0;
+        await refreshResellerCloudData();
+        showToast('বিক্রয় সংরক্ষিত। আপনার লাভ ৳' + formatNum(data.profit_amount) + '।');
+      } catch (error) {
+        showToast('বিক্রয় সংরক্ষণ হয়নি: ' + (error?.message || 'রিসেলার অনুমোদন বা SQL Migration পরীক্ষা করুন।'));
+      }
     }
 
-    function handleResellerWithdrawRequest(e) {
+    async function handleResellerWithdrawRequest(e) {
       e.preventDefault();
       const method = document.getElementById('resellerWithdrawMethod')?.value || 'বিকাশ';
       const account = (document.getElementById('resellerWithdrawAccount')?.value || '').trim();
       const amount = Number(document.getElementById('resellerWithdrawAmount')?.value);
+      const methodMap = { 'বিকাশ': 'bkash', 'নগদ': 'nagad', 'ব্যাংক ট্রান্সফার': 'bank' };
 
       const totals = computeResellerTotals();
       if (!account || !Number.isFinite(amount) || amount <= 0) {
@@ -3202,24 +3843,25 @@
         );
         return;
       }
+      if (!cloudSyncEnabled || !supabaseClient) {
+        showToast('উইথড্র রিকোয়েস্ট সংরক্ষণে Supabase সংযোগ প্রয়োজন।');
+        return;
+      }
 
-      resellerLedgerData.unshift({
-        id: `rl-${Date.now()}`,
-        type: 'withdraw',
-        ref: `${method} (${account})`,
-        amount,
-        status: 'pending_payout',
-        createdAt: new Date().toISOString()
-      });
-
-      e.target.reset();
-      renderResellerDashboard();
-      persistAppState();
-      showToast(
-        currentLang === 'en'
-          ? `Withdraw request for ৳${amount} submitted!`
-          : `৳${formatNum(amount)} উইথড্র রিকোয়েস্ট জমা হয়েছে!`
-      );
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_request_payout', {
+          p_payout_method: methodMap[method] || '',
+          p_payout_account: account,
+          p_amount: amount
+        });
+        if (error || !data?.success) throw error || new Error('Payout request was rejected.');
+        e.target.reset();
+        resellerCloudLoadedAt = 0;
+        await refreshResellerCloudData();
+        showToast('উইথড্র রিকোয়েস্ট ডেটাবেজে জমা হয়েছে।');
+      } catch (error) {
+        showToast('উইথড্র রিকোয়েস্ট জমা হয়নি: ' + (error?.message || 'রিসেলার অনুমোদন বা ব্যালেন্স পরীক্ষা করুন।'));
+      }
     }
 
     function computeResellerTotals() {
@@ -3228,7 +3870,7 @@
       for (const entry of resellerLedgerData) {
         const amt = Number(entry.amount) || 0;
         if (entry.type === 'withdraw') {
-          withdrawn += amt;
+          if (entry.status !== 'rejected') withdrawn += amt;
         } else {
           earned += amt;
         }
@@ -3241,6 +3883,8 @@
     }
 
     function renderResellerDashboard() {
+      refreshCurrentMarketplaceProfile();
+      refreshResellerCloudData();
       const totals = computeResellerTotals();
       const totalEl = document.getElementById('resellerTotalCommission');
       const availEl = document.getElementById('resellerAvailableBalance');
@@ -3252,7 +3896,7 @@
       const listEl = document.getElementById('resellerLedgerList');
       if (!listEl) return;
       if (resellerLedgerData.length === 0) {
-        listEl.innerHTML = `<div class="text-xs text-slate-500">কোনো কমিশন বা পে-আউট রেকর্ড নেই।</div>`;
+        listEl.innerHTML = `<div class="text-xs text-slate-500">কোনো বিক্রয় লাভ বা পে-আউট রেকর্ড নেই।</div>`;
         return;
       }
 
@@ -3263,11 +3907,13 @@
             <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 flex items-center justify-between gap-3 text-xs sm:text-sm">
               <div>
                 <div class="font-extrabold text-slate-900">
-                  ${isWithdraw ? '💸 উইথড্র রিকোয়েস্ট' : '💰 কমিশন আয়'} — ${escapeHtml(row.ref)}
+                  ${isWithdraw ? '💸 উইথড্র রিকোয়েস্ট' : '💰 বিক্রয় লাভ'} — ${escapeHtml(row.ref)}
                 </div>
                 <div class="text-[11px] text-slate-500">
                   ${new Date(row.createdAt || Date.now()).toLocaleDateString('bn-BD')} • ${
-                    isWithdraw ? 'পেন্ডিং পে-আউট' : 'ক্রেডিটেড'
+                    isWithdraw
+                      ? (row.status === 'paid' ? 'পরিশোধিত' : row.status === 'approved' ? 'অনুমোদিত' : row.status === 'rejected' ? 'বাতিল' : 'পেন্ডিং')
+                      : 'ক্রেডিটেড'
                   }
                 </div>
               </div>
@@ -3284,16 +3930,7 @@
       const container = document.getElementById('customerOrderHistoryList');
       if (!container) return;
 
-      const rawFilter = (document.getElementById('orderHistoryPhoneFilter')?.value || '').trim();
-      const normalizedFilter = normalizeBdPhone(rawFilter) || rawFilter;
-
-      const filteredOrders = !normalizedFilter
-        ? ordersData
-        : ordersData.filter(
-            (o) =>
-              String(o.customerPhone || '').includes(normalizedFilter) ||
-              String(o.id || '').toLowerCase().includes(normalizedFilter.toLowerCase())
-          );
+      const filteredOrders = Array.isArray(ordersData) ? ordersData : [];
 
       if (!Array.isArray(filteredOrders) || filteredOrders.length === 0) {
         container.innerHTML = `
@@ -3354,6 +3991,75 @@
           `;
         })
         .join('');
+    }
+
+    async function lookupCustomerOrder() {
+      const phoneInput = document.getElementById('orderHistoryPhoneFilter');
+      const codeInput = document.getElementById('orderHistoryCodeFilter');
+      const container = document.getElementById('customerOrderHistoryList');
+      const phone = normalizeBdPhone((phoneInput?.value || '').trim());
+      const orderCode = (codeInput?.value || '').trim().toUpperCase();
+
+      if (!phone || !/^01[0-9]{9}$/.test(phone) || !/^HB-[0-9]{6}-[A-F0-9]{16}$/.test(orderCode)) {
+        showToast(currentLang === 'en'
+          ? 'Enter the valid mobile number and complete order code.'
+          : 'সঠিক মোবাইল নম্বর ও সম্পূর্ণ অর্ডার কোড লিখুন।');
+        return;
+      }
+      if (!cloudSyncEnabled || !supabaseClient) {
+        showToast(currentLang === 'en'
+          ? 'Cloud order lookup is unavailable right now.'
+          : 'এই মুহূর্তে ক্লাউড অর্ডার খোঁজার সুবিধা পাওয়া যাচ্ছে না।');
+        return;
+      }
+
+      if (container) {
+        container.innerHTML = '<div class="rounded-xl bg-slate-50 p-4 text-center text-sm text-slate-500">অর্ডার খোঁজা হচ্ছে...</div>';
+      }
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_lookup_order', {
+          p_order_code: orderCode,
+          p_phone: phone
+        });
+        if (error) throw error;
+        if (!data?.found) {
+          if (container) container.innerHTML = `<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center text-sm text-amber-800">${currentLang === 'en' ? 'No matching order was found. Check the order code and mobile number.' : 'এই অর্ডার কোড ও মোবাইল নম্বরের সঙ্গে কোনো অর্ডার পাওয়া যায়নি।'}</div>`;
+          return;
+        }
+
+        const statusMap = {
+          pending: currentLang === 'en' ? 'Pending' : 'অপেক্ষমাণ',
+          pending_verification: currentLang === 'en' ? 'Pending verification' : 'যাচাইাধীন',
+          confirmed: currentLang === 'en' ? 'Confirmed' : 'নিশ্চিত',
+          processing: currentLang === 'en' ? 'Processing' : 'প্রসেসিং',
+          shipped: currentLang === 'en' ? 'Shipped' : 'কুরিয়ারে পাঠানো হয়েছে',
+          delivered: currentLang === 'en' ? 'Delivered' : 'ডেলিভারি সম্পন্ন',
+          cancelled: currentLang === 'en' ? 'Cancelled' : 'বাতিল'
+        };
+        const items = Array.isArray(data.items) ? data.items : [];
+        const itemsHtml = items.map(item =>
+          `<li>${escapeHtml(item.product_name || '')} × ${formatNum(item.quantity || 0)}</li>`
+        ).join('');
+        const paymentLabel = data.payment_status === 'paid'
+          ? (currentLang === 'en' ? 'Paid' : 'পরিশোধিত')
+          : (currentLang === 'en' ? 'Pending verification' : 'যাচাইাধীন');
+        if (container) {
+          container.innerHTML = `
+            <div class="rounded-2xl border border-sky-200 bg-sky-50/50 p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <strong class="text-sky-950">#${escapeHtml(data.order_code)}</strong>
+                <span class="rounded-full bg-white border border-sky-200 px-3 py-1 text-xs font-bold">${escapeHtml(statusMap[data.order_status] || data.order_status || '')}</span>
+              </div>
+              <div class="text-sm text-slate-700">${currentLang === 'en' ? 'Payment' : 'পেমেন্ট'}: <strong>${escapeHtml(paymentLabel)}</strong></div>
+              <div class="text-sm text-slate-700">${currentLang === 'en' ? 'Items' : 'পণ্য'}:<ul class="list-disc pl-5 mt-1">${itemsHtml}</ul></div>
+              <div class="text-base font-black text-violet-900">${currentLang === 'en' ? 'Total' : 'সর্বমোট'}: ৳${formatNum(data.total_amount || 0)}</div>
+              <div class="text-xs text-slate-500">${data.created_at ? new Date(data.created_at).toLocaleString(currentLang === 'en' ? 'en-GB' : 'bn-BD') : ''}</div>
+            </div>`;
+        }
+      } catch (lookupError) {
+        console.error('Hatbazar order lookup failed:', lookupError?.message || lookupError);
+        if (container) container.innerHTML = `<div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-center text-sm text-rose-700">${currentLang === 'en' ? 'Could not retrieve this order. Please try again.' : 'অর্ডারটি খুঁজে পাওয়া যায়নি। আবার চেষ্টা করুন।'}</div>`;
+      }
     }
 
     const ADMIN_PASS_SALT = 'hatbazar-admin:';
@@ -3623,6 +4329,24 @@
       }
     }
 
+    function handleAdditionalGallerySelection(event) {
+      const input = event?.target;
+      if (!input) return;
+      const hasMain = Boolean(document.getElementById('newItemImageFile')?.files?.length);
+      const limit = hasMain ? 9 : 10;
+      const status = document.getElementById('newItemGalleryStatus');
+      if ((input.files?.length || 0) > limit) {
+        input.value = '';
+        if (status) status.textContent = currentLang === 'en'
+          ? `Select at most ${limit} additional images (10 total including the main image).`
+          : `মূল ছবিসহ সর্বোচ্চ ১০টি ছবি। অতিরিক্ত ছবি সর্বোচ্চ ${formatNum(limit)}টি নির্বাচন করুন।`;
+        return;
+      }
+      if (status) status.textContent = currentLang === 'en'
+        ? `${input.files.length} additional image(s) selected. Maximum total: 10.`
+        : `${formatNum(input.files.length)}টি অতিরিক্ত ছবি নির্বাচন করা হয়েছে। মূল ছবিসহ সর্বোচ্চ ১০টি।`;
+    }
+
     async function handleProductImagePreviewChange(event, wrapId, imgId) {
       const inputEl = event?.target;
       const file = inputEl?.files?.[0];
@@ -3833,6 +4557,410 @@
       persistAppState();
     }
 
+    const STATIC_EN_TRANSLATIONS = {
+      'Hatbazar — আভিজাত্য ও আস্থার ঠিকানা': 'Hatbazar — The Address of Elegance & Trust',
+      '✨ Hatbazar — আভিজাত্য ও আস্থার ঠিকানা • ২৪টি প্রিমিয়াম ক্যাটাগরি ফোল্ডারে নতুন কালেকশন চলছে': '✨ Hatbazar — The Address of Elegance & Trust • New collections across 24 premium categories',
+      '🚚 সারাদেশের ৬৪ জেলায় দ্রুত ডেলিভারি • ঢাকায় ৳৮০ এবং ঢাকার বাইরে ৳১৩০ কুরিয়ার চার্জ': '🚚 Fast delivery across all 64 districts • ৳80 in Dhaka and ৳130 outside Dhaka',
+      '🤝 সেলার ও রিসেলার রেজিস্ট্রেশন খোলা আছে • আজই যুক্ত হয়ে ব্যবসা শুরু করুন': '🤝 Seller and reseller registration is open • Join today and start your business',
+      '🛡️ ১০০% অরিজিনাল পণ্য, ক্যাশ অন ডেলিভারি ও ২৪/৭ AI অ্যাসিস্ট সাপোর্ট': '🛡️ 100% genuine products, Cash on Delivery and 24/7 AI assistant support',
+      '🚚 সারাদেশে দ্রুত হোম ডেলিভারি': '🚚 Fast home delivery nationwide',
+      '🤝 সেলার / রিসেলার জয়েন করুন': '🤝 Join as Seller / Reseller',
+      '💬 হেল্প ডেস্ক': '💬 Help Desk',
+      '— আভিজাত্য ও আস্থার ঠিকানা': '— The Address of Elegance & Trust',
+      'খুঁজুন': 'Search',
+      '🔐 সাইন আপ / লগ ইন': '🔐 Sign Up / Log In',
+      'AI অ্যাসিস্ট': 'AI Assistant',
+      '🛒 কার্ট': '🛒 Cart',
+      '🏠 হোম পেজ': '🏠 Home',
+      '📂 সকল ক্যাটাগরি': '📂 All Categories',
+      '🤝 সেলার / রিসেলার': '🤝 Seller / Reseller',
+      '🏪 সেলার ড্যাশবোর্ড': '🏪 Seller Dashboard',
+      '💼 রিসেলার ড্যাশবোর্ড': '💼 Reseller Dashboard',
+      '🧾 অর্ডার হিস্ট্রি': '🧾 Order History',
+      '📜 নীতিমালা': '📜 Policies',
+      '🛡️ অ্যাডমিন প্যানেল': '🛡️ Admin Panel',
+      '✏️ এডিটেবল প্রিভিউ এডিটর': '✏️ Editable Preview Editor',
+      '🛍️ চেকআউট ও অর্ডার': '🛍️ Checkout & Order',
+      '⚡ ডান সাইড স্লাইড অর্ডার প্যানেল': '⚡ Slide-out Order Panel',
+      '🛍️ কার্ট ও দ্রুত অর্ডার': '🛍️ Cart & Quick Order',
+      '☰ জনপ্রিয় ক্যাটাগরি': '☰ Popular Categories',
+      'সব ২৪টি ক্যাটাগরি দেখুন →': 'View all 24 categories →',
+      '👑 এক্সক্লুসিভ কালেকশন ২০২৬ • সেরা অফার': '👑 Exclusive Collection 2026 • Best Offers',
+      'ফ্যাশন, স্মার্ট গ্যাজেট, হোম ডেকর ও নিত্যপ্রয়োজনীয় সব প্রিমিয়াম পণ্য এখন ২৪টি সাজানো ক্যাটাগরি ফোল্ডারে। সারাদেশের ৬৪ জেলায় দ্রুত হোম ডেলিভারি।': 'Premium fashion, smart gadgets, home decor and daily essentials in 24 organized category folders. Fast home delivery across all 64 districts.',
+      '🛍️ এখনই শপিং করুন': '🛍️ Shop Now',
+      '✏️ লাইভ এডিট করুন': '✏️ Edit Live',
+      '✨ প্রিমিয়াম শপিং অভিজ্ঞতা': '✨ Premium Shopping Experience',
+      'ফ্যাশন • স্মার্ট গ্যাজেট • হোম ডেকর • স্কিন কেয়ার': 'Fashion • Smart Gadgets • Home Decor • Skin Care',
+      'ফ্যাশন': 'Fashion',
+      'গ্যাজেট': 'Gadgets',
+      'অ্যাক্সেসরিজ': 'Accessories',
+      'গিফট ও কেয়ার': 'Gifts & Care',
+      'স্টোর হাইলাইট': 'Store Highlights',
+      '৬৪ জেলা': '64 Districts',
+      '২৪ ক্যাটাগরি': '24 Categories',
+      'ফোল্ডার সিস্টেম': 'Category Folders',
+      'ফ্ল্যাশ ডিল': 'Flash Deals',
+      'স্পেশাল ডিসকাউন্ট': 'Special Discounts',
+      'ক্যাশ অন ডেলিভারি': 'Cash on Delivery',
+      'পণ্য হাতে পেয়ে পেমেন্ট': 'Pay when you receive your order',
+      'সহজ রিটার্ন': 'Easy Returns',
+      'ঝামেলাহীন এক্সচেঞ্জ': 'Hassle-free Exchange',
+      'দ্রুত ডেলিভারি': 'Fast Delivery',
+      'নিরাপদ পেমেন্ট': 'Secure Payments',
+      '২৪ ঘণ্টা সাপোর্ট': '24/7 Support',
+      'ঢাকা ৳৮০ • বাইরে ৳১৩০': 'Dhaka ৳80 • Outside ৳130',
+      'COD, বিকাশ ও নগদ': 'COD, bKash & Nagad',
+      '৭২ ঘণ্টার মধ্যে সুবিধা': 'Support within 72 hours',
+      'AI ও হেল্প ডেস্ক': 'AI & Help Desk',
+      '⭐ জনপ্রিয় ক্যাটাগরি ফোল্ডার': '⭐ Popular Category Folders',
+      'পছন্দের ক্যাটাগরিতে ক্লিক করে সরাসরি ভেতরের পণ্য দেখুন': 'Select a category to explore its products',
+      'সব ২৪ ক্যাটাগরি →': 'All 24 Categories →',
+      'আজকের সেরা ফ্ল্যাশ ডিল': 'Today’s Best Flash Deals',
+      'আরও দেখুন →': 'See More →',
+      '📜 শর্তাবলি, রিটার্ন ও রিফান্ড, আমাদের গল্প, ২৪ ঘণ্টা সার্ভিস এবং কুরিয়ার সার্ভিস চার্জ': '📜 Terms, Returns & Refunds, Our Story, 24/7 Service and Delivery Charges',
+      'সম্পূর্ণ নীতিমালা →': 'Full Policies →',
+      '১. শর্তাবলি': '1. Terms & Conditions',
+      'সঠিক নাম, নম্বর ও ঠিকানায় স্টক সাপেক্ষে অর্ডার কনফার্ম হয়।': 'Orders are confirmed subject to stock availability and valid name, phone number and address.',
+      '২. রিটার্ন পলিসি': '2. Return Policy',
+      '২৪-৭২ ঘণ্টার মধ্যে ত্রুটিপূর্ণ বা ভুল পণ্যে সহজ রিটার্ন সুবিধা।': 'Easy returns for defective or incorrect products within 24–72 hours.',
+      '৩. রিফান্ড পলিসি': '3. Refund Policy',
+      'যাচাই শেষে বিকাশ, নগদ বা ব্যাংকে দ্রুত রিফান্ড দেওয়া হয়।': 'Refunds are issued to bKash, Nagad or bank after verification.',
+      '৪. আমাদের গল্প': '4. Our Story',
+      '২৪ ক্যাটাগরিতে মানসম্মত পণ্য ও আস্থার শপিং অভিজ্ঞতা।': 'Quality products across 24 categories and a shopping experience built on trust.',
+      '৫. ২৪ ঘণ্টা সার্ভিস': '5. 24/7 Service',
+      'অর্ডার, রিসেলার ও AI অ্যাসিস্ট্যান্টে ২৪ ঘণ্টা সেবা চালু।': '24/7 assistance for orders, resellers and the AI assistant.',
+      '৬. কুরিয়ার সার্ভিস চার্জ': '6. Delivery Charges',
+      'ঢাকায়': 'In Dhaka',
+      'এবং বাইরে': 'and Outside Dhaka',
+      'কুরিয়ার চার্জ। পণ্যের ওজন এবং স্থানের উপর ভিত্তি করে কুরিয়ার চার্জ পরিবর্তন হতে পারে।': 'delivery charge. Charges may vary depending on product weight and destination.',
+      '📧 ইমেইল:': '📧 Email:',
+      '📞 সাপোর্ট:': '📞 Support:',
+      '↩️ রিটার্ন ও রিফান্ড সাপোর্ট সক্রিয়': '↩️ Returns & Refund Support Available',
+      '📂 ২৪টি ক্যাটাগরি ফোল্ডার সিস্টেম': '📂 24-Category Folder System',
+      'সকল ক্যাটাগরি ফোল্ডার ও পণ্য': 'All Category Folders & Products',
+      'যেকোনো ফোল্ডারে ক্লিক করে ভেতরের পণ্য দেখুন, কার্টে নিন অথবা নতুন পণ্য ও ছবি যোগ করুন।': 'Open any folder to view products, add items to your cart, or add new products and photos.',
+      '➕ / − ক্যাটাগরি বাড়ানো বা কমানো (শুধুমাত্র অ্যাডমিন)': '➕ / − Add or Remove Categories (Admin Only)',
+      '🔒 অ্যাডমিন হিসেবে লগ ইন করলে + বাটন দিয়ে নতুন ক্যাটাগরি যোগ করতে এবং − বাটন দিয়ে ক্যাটাগরি কমাতে পারবেন।': '🔒 Admins can use the + button to add categories and the − button to remove them.',
+      '+ ক্যাটাগরি বাড়ান': '+ Add Category',
+      '− ক্যাটাগরি কমান': '− Remove Category',
+      '🖼️ ছবি আপলোড': '🖼️ Upload Image',
+      '✏️ নাম বদলান': '✏️ Rename',
+      '🖼️ এই ফোল্ডারের ছবি আপলোড (শুধুমাত্র অ্যাডমিন):': '🖼️ Upload this folder’s cover (Admin only):',
+      '🔒 অ্যাডমিন লগ ইন থাকলে সরাসরি এই ফোল্ডারের ছবি বদলাতে পারবেন।': '🔒 Admins can change this folder’s cover image while logged in.',
+      '← ফোল্ডারে ফিরে যান': '← Back to Folders',
+      '📘 ফেসবুকে শেয়ার করুন': '📘 Share on Facebook',
+      '🔗 লিংক কপি': '🔗 Copy Link',
+      '📂 এই ফোল্ডারটি বর্তমানে খালি (Empty Folder)': '📂 This folder is currently empty',
+      'পাশের ফর্ম থেকে এই ফোল্ডারের ভেতরে নতুন পণ্য, মূল্য, স্টক ও ছবি সহজেই যুক্ত করুন।': 'Use the form beside this panel to add products, prices, stock and photos to this folder.',
+      '➕ এই ফোল্ডারে নতুন পণ্য ও ছবি যুক্ত করুন': '➕ Add Products & Photos to This Folder',
+      '🔒 ডিসকাউন্ট শুধুমাত্র অ্যাডমিন দিতে পারবেন (অন্যদের জন্য লক)': '🔒 Only Admins can apply discounts (locked for others)',
+      'পণ্যের নাম *': 'Product Name *',
+      'পণ্যের নাম (English)': 'Product Name (English)',
+      'বিক্রয় মূল্য (৳) *': 'Selling Price (৳) *',
+      'স্টক পরিমাণ *': 'Stock Quantity *',
+      'ডিসকাউন্ট (%)': 'Discount (%)',
+      'গোপন বেস/হোলসেল মূল্য (৳)': 'Private Base / Wholesale Price (৳)',
+      'এই মূল্য ক্রেতা ও সাধারণ সেলারদের দেখানো হবে না।': 'This price is hidden from customers and regular sellers.',
+      'পণ্যের বিবরণ': 'Product Description',
+      'পণ্যের ছবি (JPG/PNG/WEBP, সর্বোচ্চ ৫MB)': 'Product Image (JPG/PNG/WEBP, max 5 MB)',
+      'অতিরিক্ত গ্যালারি ছবি (সর্বোচ্চ ১০টি, প্রতিটি ৫MB পর্যন্ত)': 'Additional Gallery Images (up to 10, max 5 MB each)',
+      'পণ্যের ভিডিও আপলোড (MP4/WEBM/MOV, সর্বোচ্চ ২৫MB)': 'Upload Product Video (MP4/WEBM/MOV, max 25 MB)',
+      '+ ফোল্ডারে যোগ করুন': '+ Add to Folder',
+      '📊 Excel দিয়ে একসঙ্গে পণ্য যোগ করুন': '📊 Add Products in Bulk with Excel',
+      'শুধু Admin': 'Admin Only',
+      'Excel Template ডাউনলোড': 'Download Excel Template',
+      'ফাইল Preview করুন': 'Preview File',
+      'সব পণ্য Supabase-এ সেভ করুন': 'Save All Products to Supabase',
+      '🛍️ কার্ট ও সারাদেশে ডেলিভারি চেকআউট': '🛍️ Cart & Nationwide Delivery Checkout',
+      'শপিং কার্ট ও অর্ডার কনফার্মেশন': 'Shopping Cart & Order Confirmation',
+      '৬৪ জেলা ও উপজেলা নির্বাচন করুন, ডেলিভারি জোন চার্জ দেখুন এবং ক্যাশ অন ডেলিভারি বা মোবাইল পেমেন্টে অর্ডার করুন।': 'Select your district and upazila, review delivery charges, and order with Cash on Delivery or mobile payment.',
+      '➡️ ডান স্লাইডে খুলুন': '➡️ Open Slide-out Panel',
+      '+ আরও পণ্য যোগ করুন': '+ Add More Products',
+      '🧾 অর্ডার সামারি ও গ্রাহক তথ্য': '🧾 Order Summary & Customer Details',
+      'পণ্যের সাবটোটাল': 'Items Subtotal',
+      'কুরিয়ার ডেলিভারি চার্জ': 'Delivery Charge',
+      'সর্বমোট পরিশোধযোগ্য': 'Total Payable',
+      'আপনার নাম *': 'Your Name *',
+      'মোবাইল নম্বর (01XXXXXXXXX) *': 'Mobile Number (01XXXXXXXXX) *',
+      'জেলা (৬৪ জেলা) *': 'District (64 Districts) *',
+      'উপজেলা / থানা *': 'Upazila / Police Station *',
+      'ডেলিভারি জোন *': 'Delivery Zone *',
+      'ঢাকার ভেতরে (৳৮০)': 'Inside Dhaka (৳80)',
+      'ঢাকার বাইরে (৳১৩০)': 'Outside Dhaka (৳130)',
+      'বিস্তারিত ঠিকানা (বাড়ি/রোড/এলাকা) *': 'Full Address (House/Road/Area) *',
+      'পেমেন্ট মাধ্যম *': 'Payment Method *',
+      'ক্যাশ অন ডেলিভারি (COD)': 'Cash on Delivery (COD)',
+      'বিকাশ (bKash)': 'bKash',
+      'নগদ (Nagad)': 'Nagad',
+      'রকেট (Rocket)': 'Rocket',
+      'ব্যাংক ট্রান্সফার (Bank Transfer)': 'Bank Transfer',
+      'ট্রানজেকশন আইডি (TrxID — অনলাইন পেমেন্টে আবশ্যক)': 'Transaction ID (TrxID — required for online payments)',
+      '✅ অর্ডার কনফার্ম করুন': '✅ Confirm Order',
+      '🔎 পণ্য বিস্তারিত তথ্য': '🔎 Product Details',
+      'প্রোডাক্ট ডিটেইলস': 'Product Details',
+      '📂 ক্যাটাগরি ফোল্ডার': '📂 Category Folder',
+      '← হোমে ফিরুন': '← Back to Home',
+      'সেলার ড্যাশবোর্ড ও পণ্য/স্টক ব্যবস্থাপনা': 'Seller Dashboard & Product / Stock Management',
+      'সেলার অনুমোদন স্ট্যাটাস দেখুন, ফোল্ডারে নতুন পণ্য যুক্ত করুন এবং সেলার অর্ডার ও স্টক পরিচালনা করুন।': 'Check seller approval status, add products to folders, and manage seller orders and stock.',
+      '+ সেলার আবেদন': '+ Seller Application',
+      'সেলার অনুমোদন স্ট্যাটাস': 'Seller Approval Status',
+      '⏳ যাচাইাধীন': '⏳ Pending Review',
+      'মোট লিস্টেড পণ্য': 'Total Listed Products',
+      'মোট স্টক ইউনিট': 'Total Stock Units',
+      'আনুমানিক সেলার সেলস': 'Estimated Seller Sales',
+      '📦 দ্রুত পণ্য যুক্ত করুন (Quick Seller Product Listing)': '📦 Quick Product Listing',
+      'যেকোনো ক্যাটাগরি ফোল্ডারে সরাসরি নতুন পণ্য ও স্টক যোগ করুন।': 'Add new products and stock directly to any category folder.',
+      'ক্যাটাগরি ফোল্ডার *': 'Category Folder *',
+      'মূল্য (৳) *': 'Price (৳) *',
+      'স্টক': 'Stock',
+      'পণ্যের ছবি': 'Product Image',
+      '+ যোগ': '+ Add',
+      '📋 সেলার আবেদন তালিকা ও স্ট্যাটাস': '📋 Seller Applications & Status',
+      'রিসেলার ড্যাশবোর্ড ও কমিশন আয় ম্যানেজমেন্ট': 'Reseller Dashboard & Earnings Management',
+      'রিসেল অর্ডার ট্র্যাক করুন, কমিশন হিসাব দেখুন এবং উইথড্র বা পে-আউট রিকোয়েস্ট পাঠান।': 'Track reseller orders, review earnings and submit withdrawal or payout requests.',
+      'মোট রিসেল কমিশন আয়': 'Total Reseller Earnings',
+      'উইথড্রযোগ্য ব্যালেন্স': 'Available Balance',
+      'উইথড্রকৃত / পেন্ডিং পে-আউট': 'Withdrawn / Pending Payout',
+      'কমিশন রেট': 'Commission Rate',
+      '➕ নতুন রিসেল সেলস লগ ও কমিশন যুক্ত করুন': '➕ Record Reseller Sale & Earnings',
+      'পণ্য নির্বাচন করুন *': 'Select Product *',
+      'অনুমোদিত পণ্যের তালিকা লোড হচ্ছে...': 'Loading approved product list...',
+      'আপনার অর্ডার/বিক্রয় রেফারেন্স *': 'Your Order / Sales Reference *',
+      'প্রতি পিস বিক্রয় মূল্য (৳) *': 'Selling Price per Unit (৳) *',
+      'পরিমাণ *': 'Quantity *',
+      'পণ্য নির্বাচন করলে আপনার সম্ভাব্য লাভ দেখাবে।': 'Your estimated profit will appear after selecting a product.',
+      '+ বিক্রয় ও লাভের হিসাব সংরক্ষণ করুন': '+ Save Sale & Profit Record',
+      '💸 কমিশন উইথড্র / পে-আউট রিকোয়েস্ট': '💸 Withdrawal / Payout Request',
+      'পে-আউট মাধ্যম': 'Payout Method',
+      'বিকাশ': 'bKash',
+      'নগদ': 'Nagad',
+      'ব্যাংক ট্রান্সফার': 'Bank Transfer',
+      'অ্যাকাউন্ট / মোবাইল নম্বর *': 'Account / Mobile Number *',
+      'উইথড্র পরিমাণ (৳) *': 'Withdrawal Amount (৳) *',
+      'উইথড্র রিকোয়েস্ট পাঠান': 'Submit Withdrawal Request',
+      '📊 রিসেলার কমিশন ও পে-আউট লেজার': '📊 Reseller Earnings & Payout Ledger',
+      'অর্ডার হিস্ট্রি ও ট্র্যাকিং': 'Order History & Tracking',
+      'মোবাইল নম্বর বা অর্ডার আইডি দিয়ে আপনার পূর্বের ও চলমান সকল অর্ডারের স্ট্যাটাস ও পেমেন্ট যাচাই দেখুন।': 'Check the status and payment verification of your past and current orders using your mobile number or order ID.',
+      '🔍 অর্ডার খুঁজুন': '🔍 Find Order',
+      '📜 সম্পূর্ণ নীতিমালা (Full Policy Pages)': '📜 Complete Policies',
+      'Hatbazar শর্তাবলি, ডেলিভারি, রিটার্ন ও রিফান্ড নীতিমালা': 'Hatbazar Terms, Delivery, Returns & Refund Policy',
+      'সারাদেশের ৬৪ জেলার ডেলিভারি জোন, কুরিয়ার চার্জ, রিটার্ন ও রিফান্ডের বিস্তারিত নিয়মাবলি।': 'Detailed rules for delivery zones across 64 districts, delivery charges, returns and refunds.',
+      '১. সাধারণ শর্তাবলি ও ব্যবহারের নিয়ম': '1. General Terms & Conditions',
+      '২. ডেলিভারি জোন ও কুরিয়ার চার্জ নীতিমালা': '2. Delivery Zones & Charges',
+      'ঢাকার ভেতরে (Inside Dhaka):': 'Inside Dhaka:',
+      'ঢাকার বাইরে (Outside Dhaka / ৬৪ জেলা):': 'Outside Dhaka (64 districts):',
+      'কুরিয়ার চার্জ': 'Delivery Charge',
+      'ক্যাশ অন ডেলিভারি (COD), বিকাশ ও নগদ পেমেন্ট সুবিধা উপলব্ধ।': 'Cash on Delivery (COD), bKash and Nagad payment options are available.',
+      'বিশেষ দ্রষ্টব্য:': 'Please Note:',
+      '৩. রিটার্ন ও এক্সচেঞ্জ নীতিমালা': '3. Returns & Exchange Policy',
+      '৪. রিফান্ড নীতিমালা ও প্রসেসিং সময়': '4. Refund Policy & Processing Time',
+      '🤝 পার্টনার রেজিস্ট্রেশন': '🤝 Partner Registration',
+      'সেলার ও রিসেলার রেজিস্ট্রেশন ফর্ম': 'Seller & Reseller Registration Form',
+      'নিচের ড্রপডাউন থেকে সেলার বা রিসেলার নির্বাচন করে রেজিস্ট্রেশন ফর্ম পূরণ করুন।': 'Choose Seller or Reseller from the dropdown and complete the registration form.',
+      'অ্যাকাউন্টের ধরন নির্বাচন করুন (ড্রপডাউন) *': 'Select Account Type *',
+      '🏪 সেলার (নিজের পণ্য বিক্রি করতে চাই)': '🏪 Seller (I want to sell my own products)',
+      '📦 রিসেলার (Hatbazar-এর পণ্য রিসেল করতে চাই)': '📦 Reseller (I want to resell Hatbazar products)',
+      'সেলার হিসেবে নিজের পণ্য লিস্ট করে সারাদেশে বিক্রি করতে পারবেন।': 'As a seller, you can list your own products and sell nationwide.',
+      'আপনার পূর্ণ নাম *': 'Your Full Name *',
+      'মোবাইল নম্বর *': 'Mobile Number *',
+      'শপ / পেজ বা ব্যবসার নাম *': 'Shop / Page or Business Name *',
+      'জেলা *': 'District *',
+      'পণ্যের ধরন বা অতিরিক্ত তথ্য': 'Product Type or Additional Information',
+      '✅ রেজিস্ট্রেশন আবেদন জমা দিন': '✅ Submit Registration',
+      '🛡️ কেন্দ্রীয় কন্ট্রোল, অর্ডার যাচাই ও স্টক': '🛡️ Central Control, Order Verification & Stock',
+      'Hatbazar অ্যাডমিন প্যানেল': 'Hatbazar Admin Panel',
+      '২৪ ক্যাটাগরি ফোল্ডার, কেন্দ্রীয় অর্ডার লিস্ট, পেমেন্ট ও অর্ডার যাচাই এবং স্টক আপডেট পরিচালনা করুন।': 'Manage 24 category folders, central orders, payment verification and stock updates.',
+      '🔑 অ্যাডমিন লগ ইন ফর্ম (নাম / ইউজারনেম, মোবাইল নম্বর ও পাসওয়ার্ড)': '🔑 Admin Login Form (Name / Username, Mobile Number & Password)',
+      'নিচে আপনার অ্যাডমিন নাম/ইউজারনেম, মোবাইল নম্বর এবং অ্যাডমিন পাসওয়ার্ড লিখে লগ ইন করুন।': 'Enter your admin name/username, mobile number and admin password below to log in.',
+      '🔒 লকড (অ্যাডমিন নয়)': '🔒 Locked (Not Admin)',
+      'Supabase অ্যাডমিন ইমেইল *': 'Supabase Admin Email *',
+      'অ্যাডমিন মোবাইল নম্বর *': 'Admin Mobile Number *',
+      'অ্যাডমিন পাসওয়ার্ড *': 'Admin Password *',
+      '🔓 অ্যাডমিন লগ ইন': '🔓 Admin Login',
+      'লগ আউট': 'Log Out',
+      '✏️ নিজের নতুন পাসওয়ার্ড সেট করুন': '✏️ Set a New Password',
+      'মোট ক্যাটাগরি ফোল্ডার': 'Total Category Folders',
+      'ফোল্ডারে যুক্ত পণ্য': 'Products in Folders',
+      'মোট অর্ডার রেকর্ড': 'Total Order Records',
+      'বর্তমান কার্ট আইটেম': 'Current Cart Items',
+      'অ্যাকাউন্ট স্ট্যাটাস': 'Account Status',
+      'লগ আউট অবস্থায়': 'Logged Out',
+      '📦 কেন্দ্রীয় অর্ডার লিস্ট ও পেমেন্ট যাচাই (Central Orders & Verification)': '📦 Central Orders & Payment Verification',
+      'গ্রাহকদের অর্ডার, বিকাশ/নগদ TrxID, পেমেন্ট ভেরিফিকেশন এবং অর্ডার স্ট্যাটাস আপডেট করুন।': 'Review customer orders, bKash/Nagad transaction IDs, payment verification and order status.',
+      '🔄 অর্ডার রিফ্রেশ করুন': '🔄 Refresh Orders',
+      '✅ সেলার ও রিসেলার অনুমোদন সিস্টেম (Seller Approval System)': '✅ Seller & Reseller Approval System',
+      'আবেদনকৃত সেলার বা রিসেলার অ্যাকাউন্ট অনুমোদন (Approve) বা বাতিল (Reject) করুন।': 'Approve or reject seller and reseller applications.',
+      '💸 রিসেলার পেআউট অনুমোদন': '💸 Reseller Payout Approval',
+      'রিসেলারদের জমা দেওয়া লাভের টাকা উত্তোলনের অনুরোধ যাচাই ও আপডেট করুন।': 'Review and update reseller withdrawal requests.',
+      'রিফ্রেশ': 'Refresh',
+      'পেআউট অনুরোধ লোড হচ্ছে...': 'Loading payout requests...',
+      '🚚 ডেলিভারি জোন ও চার্জ ম্যানেজমেন্ট (Delivery Zone Management)': '🚚 Delivery Zone & Charge Management',
+      'ঢাকার ভেতরে ও বাইরে কুরিয়ার চার্জ এবং আনুমানিক ডেলিভারি সময় আপডেট করুন।': 'Update delivery charges and estimated delivery times for inside and outside Dhaka.',
+      '📦 Redx ও Steadfast কুরিয়ার চার্জ (শুধুমাত্র অ্যাডমিন)': '📦 Redx & Steadfast Courier Charges (Admin Only)',
+      '🚚 Redx কুরিয়ার চার্জ': '🚚 Redx Courier Charges',
+      'ঢাকার ভেতরে (৳)': 'Inside Dhaka (৳)',
+      'ঢাকার বাইরে (৳)': 'Outside Dhaka (৳)',
+      '⚡ Steadfast কুরিয়ার চার্জ': '⚡ Steadfast Courier Charges',
+      '📌 বিশেষ দ্রষ্টব্য:': '📌 Please Note:',
+      'পণ্যের ওজন এবং স্থানের উপর ভিত্তি করে সার্ভিস চার্জ ও কুরিয়ার চার্জ পরিবর্তন হতে পারে।': 'Service and courier charges may vary by product weight and destination.',
+      '🔒 Redx ও Steadfast কুরিয়ার রেট কার্ড শুধুমাত্র অ্যাডমিন দেখতে ও সেট করতে পারবেন।': '🔒 Only admins can view and configure Redx and Steadfast courier rates.',
+      'ঢাকার ভেতরে চার্জ (৳)': 'Inside Dhaka Charge (৳)',
+      'ঢাকার বাইরে চার্জ (৳)': 'Outside Dhaka Charge (৳)',
+      'ঢাকা ডেলিভারি সময়': 'Dhaka Delivery Time',
+      'বাইরে ডেলিভারি সময়': 'Outside Dhaka Delivery Time',
+      'ডেলিভারি জোন সেটিংস সেভ করুন': 'Save Delivery Zone Settings',
+      '☁️ Supabase সংযোগ সেটিংস (URL ও Anon Key)': '☁️ Supabase Connection Settings (URL & Anon Key)',
+      'আপনার Supabase প্রজেক্টের URL ও Anon Key দিলে ক্লাউড সিঙ্ক ও অর্ডার সংরক্ষণ সক্রিয় হবে; না দিলে লোকাল মোডেই কাজ চলবে।': 'Enter your Supabase project URL and Anon Key to enable cloud sync and order storage. Otherwise, the site will run in local mode.',
+      'URL/Key দেওয়া হয়নি (লোকাল মোড)': 'URL/Key not set (Local Mode)',
+      'সংযুক্ত করুন': 'Connect',
+      '✏️ লাইভ এডিটেবল প্রিভিউ এডিটর': '✏️ Live Editable Preview Editor',
+      'হিরো টেক্সট ও কাস্টম CSS লাইভ এডিটর': 'Hero Text & Custom CSS Live Editor',
+      'এখানে শিরোনাম, ট্যাগলাইন, হিরো বিবরণ বা কাস্টম CSS পরিবর্তন করে সাথে সাথে প্রিভিউ আপডেট করুন।': 'Edit the title, tagline, hero description or custom CSS and preview changes instantly.',
+      '↺ রিসেট করুন': '↺ Reset',
+      '← প্রিভিউ দেখুন': '← View Preview',
+      'ব্র্যান্ড নাম': 'Brand Name',
+      'ব্র্যান্ড ট্যাগলাইন': 'Brand Tagline',
+      'হিরো সাব-হেডিং': 'Hero Subheading',
+      'হিরো বর্ণনা': 'Hero Description',
+      'কাস্টম CSS (ঐচ্ছিক)': 'Custom CSS (Optional)',
+      '▶ প্রিভিউ আপডেট ও সেভ করুন': '▶ Update & Save Preview',
+      '🔐 সাইন আপ / অ্যাডমিন লগ ইন': '🔐 Sign Up / Admin Login',
+      'আপনার নাম *': 'Your Name *',
+      'অ্যাকাউন্টের যোগাযোগ / অ্যাডমিন ইমেইল *': 'Account Contact / Admin Email *',
+      'বাংলাদেশি মোবাইল নম্বর *': 'Bangladeshi Mobile Number *',
+      'পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর) *': 'Password (at least 8 characters) *',
+      'অ্যাকাউন্টের ধরন': 'Account Type',
+      'গ্রাহক (সাইন আপ)': 'Customer (Sign Up)',
+      'সেলার': 'Seller',
+      'রিসেলার': 'Reseller',
+      'অ্যাডমিন (পাসওয়ার্ড প্রয়োজন)': 'Admin (Password Required)',
+      'লগ ইন / সাইন আপ সম্পন্ন করুন': 'Complete Login / Sign Up',
+      'Hatbazar AI অ্যাসিস্ট': 'Hatbazar AI Assistant',
+      'ডান সাইড স্লাইড • প্রশ্ন লিখুন ও দ্রুত উত্তর নিন': 'Slide-out Assistant • Ask a question and get a quick answer',
+      'ক্যাটাগরি কোথায় পাব?': 'Where can I find categories?',
+      'কুরিয়ার চার্জ কত?': 'How much is the delivery charge?',
+      'সেলার/রিসেলার হব কীভাবে?': 'How can I become a seller or reseller?',
+      'স্বাগতম! আমি Hatbazar AI অ্যাসিস্ট। পণ্য, ২৪টি ক্যাটাগরি, ৬৪ জেলা ডেলিভারি চার্জ, রিটার্ন বা সেলার/রিসেলার রেজিস্ট্রেশন নিয়ে যেকোনো প্রশ্ন করতে পারেন।': 'Welcome! I am the Hatbazar AI Assistant. Ask me about products, 24 categories, delivery charges across 64 districts, returns, or seller/reseller registration.',
+      'পাঠান': 'Send',
+      'পণ্যের নাম লিখুন...': 'Enter product name...',
+      'পণ্য বা ২৪টি ক্যাটাগরির নাম লিখে খুঁজুন...': 'Search products or any of the 24 categories...',
+      'পণ্য খুঁজুন': 'Search products',
+      'কার্ট দেখুন': 'View cart',
+      'কার্ট ও অর্ডার স্লাইড': 'Cart and order panel',
+      'স্লাইড বন্ধ করুন': 'Close panel',
+      'অ্যাডমিন লগ ইন শুধু এই ব্রাউজারের জন্য। ভুলে গেলে ফাইলের ': 'Admin login is limited to this browser. If you forget the password, change ',
+      ' বদলান।': ' in the project file.',
+
+      'Excel (.xlsx/.xls) বা CSV ফাইল দিন। Category, English/Bangla নাম, Selling Price, Base Price, Stock Quantity ও Description দিন। Preview-তে প্রতিটি পণ্যের সর্বোচ্চ ১০টি ছবি বেছে নিতে পারবেন।': 'Upload an Excel (.xlsx/.xls) or CSV file. Include Category, English/Bangla Name, Selling Price, Base Price, Stock Quantity and Description. You can select up to 10 images per product in the preview.',
+      'পণ্যের ওজন এবং স্থানের উপর ভিত্তি করে কুরিয়ার চার্জ পরিবর্তন হতে পারে।': 'Delivery charges may vary depending on product weight and destination.',
+      'Hatbazar-এ অর্ডার করার সময় গ্রাহককে সঠিক নাম, সচল মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা প্রদান করতে হবে। স্টক প্রাপ্যতা ও ঠিকানা যাচাইয়ের সাপেক্ষে অর্ডার কনফার্ম করা হয়। প্রতারণামূলক বা অসম্পূর্ণ অর্ডার বাতিল করার অধিকার Hatbazar সংরক্ষণ করে।': 'When placing an order on Hatbazar, customers must provide their correct name, active mobile number and complete address. Orders are confirmed subject to stock and address verification. Hatbazar reserves the right to cancel fraudulent or incomplete orders.',
+      '(আনুমানিক ১–৩ কার্যদিবস)।': '(Estimated 1–3 business days).',
+      '(আনুমানিক ২–৫ কার্যদিবস)।': '(Estimated 2–5 business days).',
+      'পণ্য হাতে পাওয়ার ২৪ থেকে ৭২ ঘণ্টার মধ্যে কোনো পণ্য ত্রুটিপূর্ণ, ক্ষতিগ্রস্ত বা অর্ডারকৃত পণ্যের চেয়ে ভিন্ন হলে সহজেই রিটার্ন বা এক্সচেঞ্জের আবেদন করা যাবে। পণ্য অব্যবহৃত, অক্ষত এবং মূল প্যাকেজিং ও ট্যাগসহ থাকতে হবে।': 'Within 24 to 72 hours of receiving an item, customers may request a return or exchange if it is defective, damaged or different from what was ordered. The item must be unused, intact and include its original packaging and tags.',
+      'অ্যাডভান্স পেমেন্টকৃত অর্ডার স্টক না থাকায় বাতিল হলে অথবা রিটার্নকৃত পণ্য আমাদের ওয়্যারহাউসে যাচাই সম্পন্ন হলে ৩ থেকে ৭ কার্যদিবসের মধ্যে বিকাশ, নগদ বা নির্ধারিত মাধ্যমে রিফান্ড সম্পন্ন করা হয়।': 'If a prepaid order is cancelled due to unavailable stock, or after a returned item is inspected at our warehouse, refunds are processed within 3 to 7 business days through bKash, Nagad or the designated method.'
+    };
+
+    function applyStaticTextTranslations(root = document.body) {
+      if (!root) return;
+      const nodes = [];
+      if (root.nodeType === Node.TEXT_NODE) nodes.push(root);
+      else {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+      }
+      nodes.forEach((node) => {
+        const parent = node.parentElement;
+        if (!parent || parent.closest('script, style, textarea, [data-bn][data-en]')) return;
+        if (!Object.prototype.hasOwnProperty.call(node, '__hatbazarOriginalBn')) {
+          node.__hatbazarOriginalBn = node.nodeValue;
+        }
+        const original = node.__hatbazarOriginalBn;
+        const trimmed = original.trim();
+        const translated = STATIC_EN_TRANSLATIONS[trimmed];
+        if (currentLang === 'en' && translated) {
+          node.nodeValue = original.replace(trimmed, translated);
+        } else if (currentLang === 'bn') {
+          node.nodeValue = original;
+        }
+      });
+
+      const attrMap = {
+        placeholder: {
+          'পণ্য বা ২৪টি ক্যাটাগরির নাম লিখে খুঁজুন...': 'Search products or any of the 24 categories...',
+          'পণ্যের নাম লিখুন': 'Enter product name',
+          'অ্যাডমিনের জন্য': 'For Admin',
+          'পণ্যের বিস্তারিত লিখুন': 'Enter product details',
+          'যেমন: মেহেদী হাসান': 'Example: Mehedi Hasan',
+          'বাড়ি নম্বর, রোড, সেক্টর বা ল্যান্ডমার্ক লিখুন...': 'Enter house number, road, sector or landmark...',
+          'যেমন: 9ABC123XYZ': 'Example: 9ABC123XYZ',
+          'যেমন: প্রিমিয়াম কটন শার্ট': 'Example: Premium cotton shirt',
+          'যেমন: Customer Order #102': 'Example: Customer Order #102',
+          'মোবাইল নম্বর বা অর্ডার আইডি দিয়ে ফিল্টার করুন (যেমন: 017XXXXXXXX বা HB-)...': 'Filter by mobile number or order ID (e.g. 017XXXXXXXX or HB-)...',
+          'যেমন: তানভীর আহমেদ': 'Example: Tanvir Ahmed',
+          'যেমন: রয়্যাল কালেকশন BD': 'Example: Royal Collection BD',
+          'আপনি কোন ধরনের পণ্য নিয়ে কাজ করতে চান তা লিখুন...': 'Describe the type of products you want to work with...',
+          'যেমন: #homeView { border-radius: 24px; }': 'Example: #homeView { border-radius: 24px; }',
+          'যেমন: আসিফ মুন্সী': 'Example: Asif Munshi',
+          '01XXXXXXXXX বা name@email.com': '01XXXXXXXXX or name@email.com',
+          'পাসওয়ার্ড দিন': 'Enter password',
+          'Supabase পাসওয়ার্ড দিন': 'Enter Supabase password',
+          'আপনার প্রশ্ন লিখুন...': 'Type your question...'
+        },
+        'aria-label': {
+          'পণ্য খুঁজুন': 'Search products',
+          'কার্ট দেখুন': 'View cart',
+          'কার্ট ও অর্ডার স্লাইড': 'Cart and order panel',
+          'স্লাইড বন্ধ করুন': 'Close panel',
+          'সাইন আপ / লগ ইন': 'Sign Up / Log In',
+          'বন্ধ করুন': 'Close',
+          'Hatbazar AI অ্যাসিস্ট': 'Hatbazar AI Assistant'
+        },
+        title: {
+          'এই ফোল্ডারের ছবি আপলোড করুন': 'Upload this folder’s cover image',
+          'ছবি মুছুন': 'Delete image',
+          'ভিডিও মুছুন': 'Delete video',
+          'ক্লিয়ার করুন': 'Clear'
+        }
+      };
+      document.querySelectorAll('[placeholder], [aria-label], [title]').forEach((el) => {
+        ['placeholder', 'aria-label', 'title'].forEach((attr) => {
+          if (!el.hasAttribute(attr)) return;
+          const originalKey = '__hatbazarOriginal_' + attr.replace(/[^a-z]/g, '');
+          if (!el[originalKey]) el[originalKey] = el.getAttribute(attr);
+          const original = el[originalKey];
+          const translated = attrMap[attr]?.[original];
+          if (currentLang === 'en' && translated) el.setAttribute(attr, translated);
+          else if (currentLang === 'bn') el.setAttribute(attr, original);
+        });
+      });
+
+      const pageTitle = document.querySelector('title');
+      if (pageTitle) pageTitle.textContent = currentLang === 'en'
+        ? 'Hatbazar — The Address of Elegance & Trust'
+        : 'Hatbazar — আভিজাত্য ও আস্থার ঠিকানা';
+      const description = document.querySelector('meta[name="description"]');
+      if (description) description.content = currentLang === 'en'
+        ? 'Hatbazar — Fashion, gadgets, home decor and daily essentials across 24 categories. Nationwide home delivery and Cash on Delivery.'
+        : 'Hatbazar — ২৪টি ক্যাটাগরিতে ফ্যাশন, গ্যাজেট, হোম ডেকর ও নিত্যপ্রয়োজনীয় পণ্য। সারাদেশে হোম ডেলিভারি, ক্যাশ অন ডেলিভারি.';
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) ogTitle.content = pageTitle?.textContent || '';
+      const ogDescription = document.querySelector('meta[property="og:description"]');
+      if (ogDescription) ogDescription.content = description?.content || '';
+      const ogLocale = document.querySelector('meta[property="og:locale"]');
+      if (ogLocale) ogLocale.content = currentLang === 'en' ? 'en_US' : 'bn_BD';
+
+      if (!window.__hatbazarStaticTranslationObserver && document.body && window.MutationObserver) {
+        window.__hatbazarStaticTranslationObserver = new MutationObserver((records) => {
+          records.forEach((record) => record.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+              applyStaticTextTranslations(node);
+            }
+          }));
+        });
+        window.__hatbazarStaticTranslationObserver.observe(document.body, { childList: true, subtree: true });
+      }
+    }
+
     function applyFullPageLanguage() {
       document.documentElement.lang = currentLang === 'en' ? 'en' : 'bn';
       const langBtnLabel = document.getElementById('langToggleLabel');
@@ -3862,27 +4990,50 @@
       syncDiscountAdminPermission();
       renderSupabaseStatusBadge();
       applyEditablePreviewState();
+      applyStaticTextTranslations();
       if (activeFolderId) {
         const cat = categoriesData.find((c) => c.id === activeFolderId);
-        if (cat) renderFolderItems(cat);
+        if (cat) {
+          const folderTitle = document.getElementById('activeFolderTitle');
+          const folderDesc = document.getElementById('activeFolderDesc');
+          const folderBadge = document.getElementById('folderBadge');
+          const folderCover = document.getElementById('activeFolderCoverImg');
+          if (folderTitle) folderTitle.textContent = getCategoryName(cat);
+          if (folderDesc) folderDesc.textContent = getCategoryDescription(cat);
+          if (folderBadge) folderBadge.textContent = `${cat.emoji || '📂'} ${LANG_TEXT_MAP[currentLang].folderBadgePrefix}`;
+          if (folderCover) {
+            folderCover.src = getRealisticFolderImage(cat);
+            folderCover.alt = getCategoryName(cat);
+          }
+          renderFolderItems(cat);
+        }
       }
     }
 
     function toggleModalAdminPasswordField() {
       const roleVal = document.getElementById('authUserRole')?.value;
-      const wrap = document.getElementById('modalAdminPasswordWrap');
-      if (!wrap) return;
-      if (roleVal === 'অ্যাডমিন') {
-        wrap.classList.remove('hidden');
-      } else {
-        wrap.classList.add('hidden');
-      }
+      const adminWrap = document.getElementById('modalAdminPasswordWrap');
+      const marketplacePasswordWrap = document.getElementById('modalMarketplacePasswordWrap');
+      const marketplacePhoneWrap = document.getElementById('modalMarketplacePhoneWrap');
+      const marketplaceRole = roleVal === 'সেলার' || roleVal === 'রিসেলার';
+      adminWrap?.classList.toggle('hidden', roleVal !== 'অ্যাডমিন');
+      marketplacePasswordWrap?.classList.toggle('hidden', !marketplaceRole);
+      marketplacePhoneWrap?.classList.toggle('hidden', !marketplaceRole);
+      const passwordInput = document.getElementById('authUserPassword');
+      const phoneInput = document.getElementById('authUserPhone');
+      if (passwordInput) passwordInput.required = marketplaceRole;
+      if (phoneInput) phoneInput.required = marketplaceRole;
     }
 
     function handleAuthButtonClick() {
       if (currentSessionUser) {
         currentSessionUser = null;
+        supabaseUser = null;
         supabaseProfile = null;
+        marketplaceProfileLoadedAt = 0;
+        resellerCloudLoadedAt = 0;
+        resellerCatalogCache = [];
+        resellerLedgerData = [];
         if (cloudSyncEnabled && supabaseClient) {
           supabaseClient.auth.signOut().catch(() => {});
         }
@@ -3916,47 +5067,89 @@
       if (role === 'অ্যাডমিন') {
         if (adminLoginBlocked()) return;
         const typedPass = document.getElementById('authModalAdminPassword')?.value || '';
-        const bdPhone = normalizeBdPhone(contactRaw);
         const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contactRaw);
-        if (!bdPhone && !isValidEmail) {
+        if (!isValidEmail || !typedPass) {
           registerAdminFail();
-          showToast(
-            currentLang === 'en'
-              ? 'Admin requires a valid 11-digit BD mobile or email'
-              : 'অ্যাডমিন লগ ইনের জন্য সঠিক ১১ সংখ্যার মোবাইল নম্বর বা ইমেইল দিন'
-          );
+          showToast(currentLang === 'en'
+            ? 'Admin login requires the Supabase account email and password.'
+            : 'অ্যাডমিন লগইনের জন্য Supabase অ্যাকাউন্টের ইমেইল ও পাসওয়ার্ড প্রয়োজন।');
           return;
         }
-        const ok = await verifyAdminPassword(typedPass);
-        if (!ok) {
+        const authUser = await signInWithSupabaseEmail(contactRaw.toLowerCase(), typedPass);
+        if (!authUser) {
           registerAdminFail();
-          showToast(
-            currentLang === 'en'
-              ? 'Incorrect Admin Password! Access denied.'
-              : 'ভুল অ্যাডমিন পাসওয়ার্ড! লগ ইন অনুমোদিত নয়।'
-          );
+          showToast(currentLang === 'en'
+            ? 'Admin authentication failed. Check the email/password and admin profile role.'
+            : 'অ্যাডমিন লগইন হয়নি। ইমেইল/পাসওয়ার্ড এবং Supabase প্রোফাইলের admin role যাচাই করুন।');
           return;
         }
         adminFailCount = 0;
         adminLockUntil = 0;
-        if (isValidEmail && typedPass) {
-          await signInWithSupabaseEmail(contactRaw, typedPass);
-        }
         currentSessionUser = {
           name,
-          contact: bdPhone || contactRaw.toLowerCase(),
+          contact: contactRaw.toLowerCase(),
           role: 'অ্যাডমিন',
           loginAt: Date.now(),
           expiresAt: Date.now() + ADMIN_SESSION_TTL_MS
         };
+      } else if (role === 'সেলার' || role === 'রিসেলার') {
+        const email = contactRaw.toLowerCase();
+        const password = document.getElementById('authUserPassword')?.value || '';
+        const phone = normalizeBdPhone(document.getElementById('authUserPhone')?.value || '');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || password.length < 8 || !phone || !cloudSyncEnabled || !supabaseClient) {
+          showToast('সেলার/রিসেলার অ্যাকাউন্টের জন্য বৈধ ইমেইল, ৮ অক্ষরের পাসওয়ার্ড, মোবাইল নম্বর এবং Supabase সংযোগ প্রয়োজন।');
+          return;
+        }
+        let authResult = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (authResult.error) {
+          authResult = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: name, phone } }
+          });
+        }
+        if (authResult.error || !authResult.data?.user?.id) {
+          showToast('অ্যাকাউন্ট লগইন/সাইন আপ হয়নি: ' + (authResult.error?.message || 'আবার চেষ্টা করুন।'));
+          return;
+        }
+        supabaseUser = authResult.data.user;
+        if (!authResult.data.session) {
+          showToast('ইমেইল ভেরিফিকেশন সম্পন্ন করে আবার লগইন করুন।');
+          return;
+        }
+        const dbRole = role === 'রিসেলার' ? 'reseller' : 'seller';
+        const { data: registration, error: registrationError } = await supabaseClient.rpc('hatbazar_register_marketplace_profile', {
+          p_full_name: name,
+          p_phone: phone,
+          p_role: dbRole
+        });
+        if (registrationError || !registration?.success) {
+          showToast('প্রোফাইল তৈরি হয়নি: ' + (registrationError?.message || 'SQL Migration পরীক্ষা করুন।'));
+          return;
+        }
+        const { data: profile, error: profileError } = await supabaseClient
+          .from('profiles').select('id,role,full_name,phone').eq('id', supabaseUser.id).maybeSingle();
+        if (profileError || !profile) {
+          showToast('প্রোফাইল যাচাই করা যায়নি।');
+          return;
+        }
+        supabaseProfile = profile;
+        marketplaceProfileLoadedAt = 0;
+        resellerCloudLoadedAt = 0;
+        resellerCatalogCache = [];
+        resellerLedgerData = [];
+        currentSessionUser = {
+          name: profile.full_name || name,
+          contact: profile.phone || phone,
+          role,
+          loginAt: Date.now()
+        };
       } else {
         const contactCheck = validateStandardUserContact(contactRaw);
         if (!contactCheck.ok) {
-          showToast(
-            currentLang === 'en'
-              ? 'Enter a valid BD mobile number (01XXXXXXXXX) or email address'
-              : 'সঠিক বাংলাদেশি মোবাইল নম্বর (01XXXXXXXXX) অথবা ইমেইল ঠিকানা দিন'
-          );
+          showToast(currentLang === 'en'
+            ? 'Enter a valid BD mobile number (01XXXXXXXXX) or email address'
+            : 'সঠিক বাংলাদেশি মোবাইল নম্বর (01XXXXXXXXX) অথবা ইমেইল ঠিকানা দিন');
           return;
         }
         currentSessionUser = {
@@ -3967,6 +5160,10 @@
         };
       }
 
+      if (role === 'অ্যাডমিন') {
+        await pullProductsFromSupabase();
+        await pullCentralOrdersFromSupabase();
+      }
       persistAppState();
       closeAuthModal();
       updateAuthButtonLabel();
@@ -3994,33 +5191,24 @@
       if (adminLoginBlocked()) return;
 
       const normalizedPhone = normalizeBdPhone(typedPhoneRaw);
-      if (typedUser.length < 2) {
+      const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(typedUser);
+      if (!validEmail || !normalizedPhone || !typedPass) {
         registerAdminFail();
-        showToast(currentLang === 'en' ? 'Enter a valid Admin Name / Username' : 'অনুগ্রহ করে সঠিক অ্যাডমিন নাম বা ইউজারনেম লিখুন (কমপক্ষে ২ অক্ষর)');
+        showToast(currentLang === 'en'
+          ? 'Enter the Supabase admin email, valid BD phone number and password.'
+          : 'Supabase অ্যাডমিন ইমেইল, সঠিক বাংলাদেশি মোবাইল নম্বর ও পাসওয়ার্ড দিন।');
         return;
       }
-      if (!normalizedPhone) {
+      const authUser = await signInWithSupabaseEmail(typedUser.toLowerCase(), typedPass);
+      if (!authUser) {
         registerAdminFail();
-        showToast(currentLang === 'en' ? 'Enter a valid 11-digit BD mobile number' : 'অনুগ্রহ করে সঠিক ১১ সংখ্যার বাংলাদেশি মোবাইল নম্বর লিখুন (01XXXXXXXXX)');
-        return;
-      }
-      if (!typedPass || typedPass.length < 4) {
-        registerAdminFail();
-        showToast(currentLang === 'en' ? 'Enter a valid Admin Password' : 'অনুগ্রহ করে সঠিক অ্যাডমিন পাসওয়ার্ড লিখুন');
-        return;
-      }
-
-      const ok = await verifyAdminPassword(typedPass);
-      if (!ok) {
-        registerAdminFail();
-        showToast(currentLang === 'en' ? 'Wrong password! Access denied.' : 'পাসওয়ার্ড বা তথ্য সঠিক নয়! লগ ইন বাতিল করা হয়েছে।');
+        showToast(currentLang === 'en'
+          ? 'Admin authentication failed. Check the credentials and profiles.role = admin.'
+          : 'অ্যাডমিন লগইন হয়নি। তথ্য এবং profiles.role = admin যাচাই করুন।');
         return;
       }
       adminFailCount = 0;
       adminLockUntil = 0;
-      if (typedUser.includes('@') && typedPass) {
-        await signInWithSupabaseEmail(typedUser, typedPass);
-      }
 
       currentSessionUser = {
         name: typedUser,
@@ -4029,6 +5217,8 @@
         loginAt: Date.now(),
         expiresAt: Date.now() + ADMIN_SESSION_TTL_MS
       };
+      await pullProductsFromSupabase();
+      await pullCentralOrdersFromSupabase();
       if (userEl) userEl.value = '';
       if (phoneEl) phoneEl.value = '';
       if (inputEl) inputEl.value = '';
@@ -4044,9 +5234,18 @@
       );
     }
 
-    function handleAdminLogoutOnly() {
+    async function handleAdminLogoutOnly() {
+      if (supabaseClient && supabaseUser?.id) {
+        try { await supabaseClient.auth.signOut(); } catch (logoutError) {
+          console.warn('Hatbazar admin sign-out failed:', logoutError?.message || logoutError);
+        }
+      }
       currentSessionUser = null;
+      supabaseUser = null;
       supabaseProfile = null;
+      resellerCloudLoadedAt = 0;
+      resellerCatalogCache = [];
+      resellerLedgerData = [];
       if (cloudSyncEnabled && supabaseClient) {
         supabaseClient.auth.signOut().catch(() => {});
       }
@@ -4176,7 +5375,7 @@
             data-cat="${escapeHtml(cat.id)}"
             class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-800 flex items-center justify-between transition"
           >
-            <span class="truncate">${escapeHtml(cat.name)}</span>
+            <span class="truncate">${escapeHtml(getCategoryName(cat))}</span>
             <span class="text-slate-400">›</span>
           </button>
         `
@@ -4197,13 +5396,13 @@
             class="bg-white rounded-2xl border border-violet-100 hover:border-violet-400 p-3 text-left shadow-2xs hover:shadow-md transition group"
           >
             <img
-              src="${escapeHtml(cat.image || getCategoryPhotoFallback(cat.name, cat.id))}"
+              src="${escapeHtml(getRealisticFolderImage(cat))}"
               onerror="this.onerror=null;this.src=getCategoryPhotoFallback('${escapeHtml(cat.name)}','${escapeHtml(cat.id)}');"
-              alt="${escapeHtml(cat.name)}"
+              alt="${escapeHtml(getCategoryName(cat))}"
               loading="eager"
               class="w-full h-36 sm:h-40 rounded-xl object-cover object-center mb-2.5 group-hover:scale-[1.03] transition"
             />
-            <div class="text-xs sm:text-sm font-extrabold text-slate-800 truncate">${escapeHtml(cat.name)}</div>
+            <div class="text-xs sm:text-sm font-extrabold text-slate-800 truncate">${escapeHtml(getCategoryName(cat))}</div>
           </button>
         `
           )
@@ -4284,13 +5483,13 @@
                   <span class="px-2 py-0.5 rounded-full bg-violet-50 text-violet-800">${formatNum(itemCount)}</span>
                 </div>
                 <img
-                  src="${escapeHtml(cat.image || getCategoryPhotoFallback(cat.name, cat.id))}"
+                  src="${escapeHtml(getRealisticFolderImage(cat))}"
                   onerror="this.onerror=null;this.src=getCategoryPhotoFallback('${escapeHtml(cat.name)}','${escapeHtml(cat.id)}');"
-                  alt="${escapeHtml(cat.name)}"
+                  alt="${escapeHtml(getCategoryName(cat))}"
                   loading="eager"
                   class="w-full h-40 sm:h-44 rounded-xl object-cover object-center mb-2.5"
                 />
-                <div class="text-xs sm:text-sm font-extrabold text-slate-900 line-clamp-1">${escapeHtml(cat.name)}</div>
+                <div class="text-xs sm:text-sm font-extrabold text-slate-900 line-clamp-1">${escapeHtml(getCategoryName(cat))}</div>
               </button>
               <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px] font-bold">
                 <button
@@ -4489,7 +5688,7 @@
                       data-pid="${escapeHtml(item.id)}"
                       class="text-left text-sm sm:text-base font-extrabold text-slate-900 hover:text-violet-700 line-clamp-1 transition"
                     >
-                      ${escapeHtml(item.title)}
+                      ${escapeHtml(getProductDisplayTitle(item, cat))}
                     </button>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${
                       outOfStock ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'
@@ -4497,7 +5696,7 @@
                       ${outOfStock ? (currentLang === 'en' ? 'Out' : 'স্টক শেষ') : (currentLang === 'en' ? `Stock: ${stock}` : `স্টক: ${formatNum(stock)}`)}
                     </span>
                   </div>
-                  <p class="text-xs text-slate-500 line-clamp-2">${escapeHtml(item.desc || '')}</p>
+                  <p class="text-xs text-slate-500 line-clamp-2">${escapeHtml(currentLang === 'en' && item.id === `${cat.id}-item-1` ? (CATEGORY_ENGLISH[cat.id]?.[1] || item.desc || '') : (item.desc || ''))}</p>
                   <div class="flex items-center gap-2 pt-1">
                     <span class="text-base font-black text-violet-800">৳${formatNum(price)}</span>
                     ${hasDisc ? `<span class="text-xs line-through text-slate-400 font-bold">৳${formatNum(origPrice)}</span>` : ''}
@@ -4575,11 +5774,11 @@
 
       if (catsGrid) catsGrid.classList.add('hidden');
       if (badge) badge.textContent = `${cat.emoji || '📂'} ${t.folderBadgePrefix}`;
-      if (titleEl) titleEl.textContent = cat.name;
-      if (descEl) descEl.textContent = cat.desc || '';
+      if (titleEl) titleEl.textContent = getCategoryName(cat);
+      if (descEl) descEl.textContent = getCategoryDescription(cat);
       if (coverImg) {
-        coverImg.src = cat.image || getCategoryPhotoFallback(cat.name, cat.id);
-        coverImg.alt = cat.name;
+        coverImg.src = getRealisticFolderImage(cat);
+        coverImg.alt = getCategoryName(cat);
       }
 
       if (panel) {
@@ -4950,8 +6149,79 @@
       'cat-24': 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=900&q=75'
     };
 
+    const CATEGORY_ENGLISH = {
+      'cat-01': ['Men’s Fashion', 'Panjarbi, casual shirts, polos and trousers.'],
+      'cat-02': ['Women’s Fashion', 'Three-piece sets, kurtis, sarees and occasion wear.'],
+      'cat-03': ['Kids Collection', 'Comfortable clothing, toys and essentials for children.'],
+      'cat-04': ['Shoes & Sandals', 'Smart shoes, sneakers, sandals and everyday footwear.'],
+      'cat-05': ['Smart Gadgets', 'Smartwatches, power banks, chargers and modern gadgets.'],
+      'cat-06': ['Audio & Headphones', 'Wireless earbuds, neckbands, speakers and headphones.'],
+      'cat-07': ['Home Decor', 'Wall art, lamps and tasteful interior accessories.'],
+      'cat-08': ['Kitchen & Dining', 'Cookware, kitchen tools and dining essentials.'],
+      'cat-09': ['Skin Care', 'Face wash, serums, sunscreen and daily skincare.'],
+      'cat-10': ['Hair Care', 'Hair oils, shampoos and conditioners.'],
+      'cat-11': ['Perfume & Body Spray', 'Long-lasting perfumes, body mists and attar.'],
+      'cat-12': ['Bags & Luggage', 'Backpacks, handbags, office bags and travel luggage.'],
+      'cat-13': ['Watches & Jewellery', 'Wristwatches, necklaces, bracelets and accessories.'],
+      'cat-14': ['Sports & Fitness', 'Gym, fitness and outdoor sports essentials.'],
+      'cat-15': ['Books & Stationery', 'Books, diaries, notebooks and office stationery.'],
+      'cat-16': ['Baby Care', 'Gentle baby-care, feeding and everyday essentials.'],
+      'cat-17': ['Mobile Accessories', 'Chargers, cables, phone cases and screen protectors.'],
+      'cat-18': ['Electronics & Appliances', 'Useful electronics and home appliances.'],
+      'cat-19': ['Gifts & Hampers', 'Curated gift boxes for birthdays and special occasions.'],
+      'cat-20': ['Travel & Outdoor', 'Travel accessories for easier and more comfortable trips.'],
+      'cat-21': ['Health & Wellness', 'Everyday wellness and personal-care products.'],
+      'cat-22': ['Grocery & Organic', 'Selected honey, ghee, tea and natural food products.'],
+      'cat-23': ['Festive & Ethnic', 'Exclusive ethnic wear for Eid, Puja and celebrations.'],
+      'cat-24': ['Mega Deals', 'Limited-time bundles and seasonal special offers.']
+    };
+
+    function getCategoryName(cat) {
+      if (!cat) return '';
+      return currentLang === 'en' ? (cat.nameEn || CATEGORY_ENGLISH[cat.id]?.[0] || cat.name) : cat.name;
+    }
+
+    function getCategoryDescription(cat) {
+      if (!cat) return '';
+      return currentLang === 'en' ? (cat.descEn || CATEGORY_ENGLISH[cat.id]?.[1] || cat.desc || '') : (cat.desc || '');
+    }
+
+    const CATEGORY_PRODUCT_ENGLISH = {
+      'cat-01': 'Premium Panjabi & Casual Shirt',
+      'cat-02': 'Designer Three-Piece & Saree',
+      'cat-03': 'Comfortable Kids Clothing Set',
+      'cat-04': 'Casual Loafers & Sneakers',
+      'cat-05': 'AMOLED Smartwatch Series',
+      'cat-06': 'Wireless Earbuds & Headphones',
+      'cat-07': 'Modern Wall Art & Lamp',
+      'cat-08': 'Non-Stick Cookware & Dinner Set',
+      'cat-09': 'Hydrating Serum & Moisturizer',
+      'cat-10': 'Herbal Hair Oil & Shampoo',
+      'cat-11': 'Long-Lasting Attar & Perfume',
+      'cat-12': 'Waterproof Laptop Backpack',
+      'cat-13': 'Gold-Plated Pendant & Watch',
+      'cat-14': 'Pro Gym Gloves & Shaker Bottle',
+      'cat-15': 'Premium Notebook & Pen Set',
+      'cat-16': 'Baby Lotion, Wipes & Feeder',
+      'cat-17': 'Fast Charger, Case & Tempered Glass',
+      'cat-18': 'Mini Blender & Portable Fan',
+      'cat-19': 'Luxury Gift Box Collection',
+      'cat-20': 'Travel Pouch & Neck Pillow',
+      'cat-21': 'Digital Thermometer & Massager',
+      'cat-22': 'Pure Honey, Ghee & Organic Tea',
+      'cat-23': 'Festive Ethnic Wear & Shawl',
+      'cat-24': 'Limited-Time Combo Offer'
+    };
+
+    function getProductDisplayTitle(item, cat) {
+      if (!item) return '';
+      if (currentLang !== 'en') return item.title || '';
+      return item.titleEn || (item.id === `${cat?.id}-item-1` ? CATEGORY_PRODUCT_ENGLISH[cat?.id] : '') || item.title || '';
+    }
+
     function getRealisticFolderImage(cat) {
-      return buildRichVisualCard(
+      // Keep an admin-uploaded category cover first; otherwise use its matching photo.
+      return (cat?.customCover && cat?.image) || cat?.image_url || REALISTIC_PHOTO_MAP[cat?.id] || buildRichVisualCard(
         cat?.name || 'Hatbazar',
         cat?.emoji || '🛍️',
         cat?.c1 || '#4c1d95',
@@ -4962,8 +6232,8 @@
     }
 
     function getCategoryPhotoFallback(label, catId = '') {
-      const cat = categoriesData.find((c) => c.id === catId || c.name === label || c.itemName === label);
-      if (cat) return buildRichVisualCard(cat.name, cat.emoji, cat.c1, cat.c2, cat.accent, cat.id);
+      const cat = categoriesData.find((c) => c.id === catId || c.name === label || c.nameEn === label || c.itemName === label);
+      if (cat) return buildRichVisualCard(getCategoryName(cat), cat.emoji, cat.c1, cat.c2, cat.accent, cat.id);
       return buildRichVisualCard(label || 'Hatbazar', '🛍️', '#4c1d95', '#831843', '#fde047', 'cat-24');
     }
 
@@ -5175,6 +6445,7 @@
 
     let categoriesData = buildDefaultCategories();
     let cartItems = [];
+    let checkoutSubmitting = false;
     let currentSessionUser = null;
     let currentLang = 'bn';
     let currentView = 'home';
@@ -5377,12 +6648,21 @@
     }
 
     function isAdminSession() {
-      return Boolean(currentSessionUser && currentSessionUser.role === 'অ্যাডমিন');
+      return Boolean(
+        currentSessionUser &&
+        currentSessionUser.role === 'অ্যাডমিন' &&
+        Number(currentSessionUser.expiresAt || 0) > Date.now() &&
+        supabaseUser?.id &&
+        supabaseProfile?.id === supabaseUser.id &&
+        supabaseProfile?.role === 'admin'
+      );
     }
 
     function syncDiscountAdminPermission() {
       const discInput = document.getElementById('newItemDiscount');
+      const basePriceWrap = document.getElementById('newItemBasePriceWrap');
       const lockNote = document.getElementById('discountAdminLockNote');
+      if (basePriceWrap) basePriceWrap.classList.toggle('hidden', !isAdminSession());
       const addCatBtn = document.getElementById('adminAddCategoryBtn');
       const remCatBtn = document.getElementById('adminRemoveCategoryBtn');
       const renCatBtn = document.getElementById('adminRenameCategoryBtn');
@@ -5780,7 +7060,7 @@
         { keys: ['ফ্ল্যাশ ডিল', 'flash sale', 'flash deal'], reply: 'হোম পেজের "আজকের সেরা ফ্ল্যাশ ডিল" সেকশনে সীমিত সময়ের বিশেষ ছাড়ের পণ্যগুলো দেখতে পারবেন।' },
         { keys: ['৬৪ জেলা', 'সব জেলায়', '64 districts', 'nationwide'], reply: 'হ্যাঁ, বাংলাদেশের ৬৪টি জেলা ও উপজেলার অধিকাংশ এলাকায় আমাদের কুরিয়ার ডেলিভারি সেবা চালু আছে।' },
         { keys: ['উপজেলা', 'থানা', 'upazila', 'thana'], reply: 'চেকআউট ফর্মে জেলা সিলেক্ট করলে স্বয়ংক্রিয়ভাবে ওই জেলার উপজেলা/থানার তালিকা চলে আসে।' },
-        { keys: ['সাপোর্ট', 'যোগাযোগ', 'হেল্প', 'support', 'contact', 'help'], reply: `আমাদের সাপোর্ট ইমেইল ${SITE_CONFIG.supportEmail} এবং হেল্পলাইন ${SITE_CONFIG.supportPhone}। AI অ্যাসিস্ট ২৪ ঘণ্টা সেবা দিচ্ছে।` },
+        { keys: ['সাপোর্ট', 'যোগাযোগ', 'হেল্প', 'support', 'contact', 'help'], reply: (SITE_CONFIG.supportEmail || SITE_CONFIG.supportPhone) ? `আমাদের সাপোর্ট ইমেইল ${SITE_CONFIG.supportEmail} এবং হেল্পলাইন ${SITE_CONFIG.supportPhone}।` : 'সাপোর্টের যাচাইকৃত যোগাযোগের তথ্য শিগগিরই ওয়েবসাইটে প্রকাশ করা হবে।' },
         { keys: ['পাঞ্জাবি', 'মেন্স ফ্যাশন', 'mens fashion', 'panjabi', 'শার্ট'], reply: 'মেন্স ফ্যাশন ফোল্ডারে পাঞ্জাবি, ক্যাজুয়াল শার্ট, পোলো ও ট্রাউজার পাওয়া যায়।' },
         { keys: ['ওমেন্স ফ্যাশন', 'womens fashion', 'থ্রি-পিস', 'শাড়ি', 'কুর্তি'], reply: 'ওমেন্স ফ্যাশন ফোল্ডারে থ্রি-পিস, কুর্তি, শাড়ি ও উৎসবের পোশাকের কালেকশন রয়েছে।' },
         { keys: ['কিডস', 'শিশু', 'kids', 'children'], reply: 'কিডস কালেকশন ফোল্ডারে শিশুদের আরামদায়ক পোশাক সেট ও প্রয়োজনীয় সামগ্রী পাওয়া যায়।' },
@@ -5844,7 +7124,7 @@
         { keys: ['trxid', 'ট্রানজেকশন'], reply: 'বিকাশ, নগদ, রকেট বা ব্যাংক ট্রান্সফার নির্বাচন করলে ট্রানজেকশন আইডি (TrxID) দেওয়ার ঘর দেখা যায়।' },
         { keys: ['ভুল নম্বর', 'number mistake'], reply: 'অর্ডার দেওয়ার পর নম্বরে কোনো ভুল হলে দ্রুত সাপোর্টে যোগাযোগ করে সঠিক নম্বর জানিয়ে দিন।' },
         { keys: ['অফিস ঠিকানা', 'office', 'শপ কোথায়'], reply: 'আমাদের কার্যক্রম অনলাইন ও ডেলিভারি নেটওয়ার্কের মাধ্যমে পরিচালিত হয়; ৬৪ জেলায় পার্সেল পাঠানো হয়।' },
-        { keys: ['কাস্টমার কেয়ার', 'customer care'], reply: `কাস্টমার কেয়ারে যোগাযোগ করতে ${SITE_CONFIG.supportEmail} ইমেইল বা ${SITE_CONFIG.supportPhone} নম্বরে যোগাযোগ করুন।` },
+        { keys: ['কাস্টমার কেয়ার', 'customer care'], reply: (SITE_CONFIG.supportEmail || SITE_CONFIG.supportPhone) ? `কাস্টমার কেয়ারে যোগাযোগ করতে ${SITE_CONFIG.supportEmail} ইমেইল বা ${SITE_CONFIG.supportPhone} নম্বরে যোগাযোগ করুন।` : 'কাস্টমার কেয়ারের যাচাইকৃত যোগাযোগের তথ্য শিগগিরই ওয়েবসাইটে প্রকাশ করা হবে।' },
         { keys: ['অভিযোগ', 'complaint'], reply: 'কোনো অভিযোগ বা মতামত থাকলে নির্দ্বিধায় জানান; আমরা দ্রুত সমাধানের চেষ্টা করি।' },
         { keys: ['ধন্যবাদ', 'thanks', 'thank you'], reply: 'আপনাকে অসংখ্য ধন্যবাদ! Hatbazar-এর সাথে থাকার জন্য শুভকামনা।' },
         { keys: ['সালাম', 'আসসালামু আলাইকুম', 'hi', 'hello', 'হ্যালো'], reply: 'ওয়ালাইকুম আসসালাম! Hatbazar AI অ্যাসিস্টে আপনাকে স্বাগতম। কী জানতে চান?' },
@@ -6006,6 +7286,10 @@
           triggerAdminFolderPhotoPicker(catId);
         } else if (act === 'pdp' && pid) {
           openProductDetailsPage(pid);
+        } else if (act === 'pdp-image') {
+          const mainImage = document.getElementById('productDetailMainImage');
+          const imageUrl = actionEl.getAttribute('data-image-url');
+          if (mainImage && imageUrl) mainImage.src = imageUrl;
         } else if (act === 'add' && pid) {
           addProductToCart(pid, false);
         } else if (act === 'order' && pid) {
@@ -6039,6 +7323,160 @@
         if (e.target.id === 'aiAssistantModal') closeAiAssistantModal();
       });
 
+      const BULK_CATEGORY_ENGLISH = {
+        'mens fashion':'cat-01','womens fashion':'cat-02','kids collection':'cat-03','shoes and sandals':'cat-04',
+        'smart gadgets':'cat-05','audio and headphones':'cat-06','home decor':'cat-07','kitchen and dining':'cat-08',
+        'skin care':'cat-09','hair care':'cat-10','perfumes and body spray':'cat-11','bags and luggage':'cat-12',
+        'watches and jewellery':'cat-13','watches and jewelry':'cat-13','sports and fitness':'cat-14',
+        'books and stationery':'cat-15','baby care':'cat-16','mobile accessories':'cat-17',
+        'electronics and appliances':'cat-18','gifts and hampers':'cat-19','travel and outdoor':'cat-20',
+        'health and wellness':'cat-21','grocery and organic':'cat-22','festive and ethnic':'cat-23','mega deals':'cat-24'
+      };
+      function normalizeBulkHeader(value) {
+        return String(value || '').trim().toLowerCase().replace(/[()]/g, '').replace(/[ _-]+/g, ' ').replace(/\s+/g, ' ');
+      }
+      function resolveBulkCategory(value) {
+        const key = normalizeBulkHeader(value);
+        const mappedId = BULK_CATEGORY_ENGLISH[key];
+        if (mappedId) return categoriesData.find((item) => item.id === mappedId) || null;
+        return categoriesData.find((item) => normalizeBulkHeader(item.name) === key || normalizeBulkHeader(item.nameBn) === key || item.id.toLowerCase() === key) || null;
+      }
+      function downloadBulkProductTemplate() {
+        if (!window.XLSX) { showToast('Excel library লোড হয়নি। পেজ রিফ্রেশ করুন।'); return; }
+        const rows = [{
+          'Category':'','Product Name (English)':'','Product Name (Bangla)':'',
+          'Selling Price':'','Base Price':'','Stock Quantity':'','Description':'','Image URL':'','Gallery URLs':''
+        }];
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'Products');
+        XLSX.writeFile(workbook, 'hatbazar-product-template.xlsx');
+      }
+      async function previewBulkProductExcel() {
+        if (!isAdminSession()) { showToast('শুধুমাত্র Admin bulk upload করতে পারবেন।'); return; }
+        const file = document.getElementById('bulkProductExcelFile')?.files?.[0];
+        const status = document.getElementById('bulkProductImportStatus');
+        const preview = document.getElementById('bulkProductPreview');
+        const importButton = document.getElementById('bulkProductImportButton');
+        if (!file || !preview || !window.XLSX) { if (status) status.textContent = 'Excel ফাইল নির্বাচন করুন।'; return; }
+        try {
+          const workbook = XLSX.read(await file.arrayBuffer(), {type:'array'});
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rawRows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+          const getValue = (row, names) => {
+            const entry = Object.entries(row).find(([key]) => names.includes(normalizeBulkHeader(key)));
+            return entry ? entry[1] : '';
+          };
+          pendingBulkProductRows = rawRows.map((row, index) => {
+            const categoryText = getValue(row, ['category']);
+            const category = resolveBulkCategory(categoryText);
+            const titleEn = String(getValue(row, ['product name english','english name','name english'])).trim();
+            const titleBn = String(getValue(row, ['product name bangla','bangla name','name bangla','product name'])).trim();
+            const priceRaw = getValue(row, ['selling price','price']);
+            const stockRaw = getValue(row, ['stock quantity','stock']);
+            const price = Number(priceRaw);
+            const basePrice = Number(getValue(row, ['base price','wholesale price']) || 0);
+            const stock = Number(stockRaw);
+            return {
+              rowNumber:index+2, categoryId:category?.id || '', categoryName:category?.name || String(categoryText),
+              titleEn,titleBn,price,basePrice,stock,desc:String(getValue(row,['description'])).trim(),
+              imageUrl:String(getValue(row,['image url','image'])).trim(),
+              galleryUrls:String(getValue(row,['gallery urls','gallery images'])).split(/[\n,;]/).map((url)=>url.trim()).filter(Boolean),
+              valid:Boolean(category && (titleEn || titleBn) && String(priceRaw).trim() !== '' && Number.isFinite(price) && price>0 && String(stockRaw).trim() !== '' && Number.isInteger(stock) && stock>=0 && Number.isFinite(basePrice) && basePrice>=0 && basePrice<=price)
+            };
+          }).filter((row)=>row.titleEn || row.titleBn || row.categoryName);
+          if (!pendingBulkProductRows.length) throw new Error('ফাইলে কোনো পণ্যের সারি পাওয়া যায়নি।');
+          preview.innerHTML = pendingBulkProductRows.map((row,index) =>
+            '<div class="rounded-xl border '+(row.valid?'border-emerald-200 bg-emerald-50/40':'border-rose-200 bg-rose-50')+' p-3 space-y-2">'+
+            '<div class="flex items-start justify-between gap-2"><div class="text-xs font-bold">'+(index+1)+'. '+escapeHtml(row.titleBn||row.titleEn||'নাম নেই')+'</div>'+
+            '<span class="text-[10px] font-bold '+(row.valid?'text-emerald-700':'text-rose-700')+'">'+(row.valid?'Valid':'তথ্য ঠিক করুন')+'</span></div>'+
+            '<div class="text-[10px] text-slate-600">'+escapeHtml(row.categoryName)+' · ৳'+formatNum(row.price||0)+' · Stock '+formatNum(row.stock||0)+'</div>'+
+            '<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple data-bulk-row="'+index+'" onchange="handleBulkProductImageSelection(event,'+index+')" class="block w-full text-[10px] text-slate-600" /><div id="bulk-image-preview-'+index+'" class="flex flex-wrap gap-2"></div></div>'
+          ).join('');
+          preview.classList.remove('hidden');
+          importButton?.classList.toggle('hidden',!pendingBulkProductRows.some((row)=>row.valid));
+          if(status) status.textContent=pendingBulkProductRows.length+'টি পণ্য পাওয়া গেছে। প্রতিটি পণ্যের ছবি বেছে নিন।';
+        } catch(error) {
+          pendingBulkProductRows=[];
+          preview?.classList.add('hidden');
+          importButton?.classList.add('hidden');
+          if(status) status.textContent=error.message||'Excel ফাইল পড়া যায়নি।';
+        }
+      }
+      function handleBulkProductImageSelection(event, rowIndex) {
+        const input = event?.target;
+        const preview = document.getElementById('bulk-image-preview-' + rowIndex);
+        if (!input || !preview) return;
+        const files = Array.from(input.files || []);
+        if (files.length > 10) {
+          input.value = '';
+          preview.innerHTML = '<p class="text-[10px] text-rose-700">একটি পণ্যের জন্য সর্বোচ্চ ১০টি ছবি নির্বাচন করুন।</p>';
+          return;
+        }
+        preview.innerHTML = files.map((file, fileIndex) => {
+          const url = URL.createObjectURL(file);
+          return '<div class="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200">' +
+            '<img src="' + url + '" alt="' + escapeHtml(file.name) + '" class="w-full h-full object-cover" />' +
+            '<button type="button" onclick="removeBulkProductImage(' + rowIndex + ',' + fileIndex + ')" class="absolute top-0 right-0 bg-white/95 text-rose-700 rounded-bl px-1 text-[10px] font-black" aria-label="Remove image">×</button></div>';
+        }).join('');
+      }
+      function removeBulkProductImage(rowIndex, fileIndex) {
+        const input = document.querySelector('[data-bulk-row="' + rowIndex + '"]');
+        if (!input) return;
+        const transfer = new DataTransfer();
+        Array.from(input.files || []).forEach((file, index) => {
+          if (index !== fileIndex) transfer.items.add(file);
+        });
+        input.files = transfer.files;
+        handleBulkProductImageSelection({ target: input }, rowIndex);
+      }
+
+      async function importBulkProductsFromPreview() {
+        if(!isAdminSession()||!cloudSyncEnabled||!supabaseClient){showToast('Admin login ও Supabase connection প্রয়োজন।');return;}
+        const button=document.getElementById('bulkProductImportButton');
+        const status=document.getElementById('bulkProductImportStatus');
+        const validRows=pendingBulkProductRows.filter((row)=>row.valid);
+        if(!validRows.length){showToast('সঠিক পণ্যের তথ্য পাওয়া যায়নি।');return;}
+        button.disabled=true;
+        let savedCount=0,failedCount=0;
+        for(const row of validRows){
+          try{
+            const rowIndex=pendingBulkProductRows.indexOf(row);
+            const rowInput=document.querySelector('[data-bulk-row="'+rowIndex+'"]');
+            const files=Array.from(rowInput?.files||[]).slice(0,10);
+            const imageUrls=[row.imageUrl,...row.galleryUrls].filter((url)=>/^https?:\/\//i.test(url));
+            for(const file of files){
+              const validation=validateProductImageFile(file);
+              if(!validation.ok) throw new Error(validation.message);
+              const compressed=await compressImageFile(file,900,0.72);
+              const uploadedUrl=await uploadProductImageToSupabase(file,compressed);
+              if(!uploadedUrl||!/^https?:\/\//i.test(uploadedUrl)) throw new Error('ছবি Storage-এ আপলোড হয়নি।');
+              imageUrls.push(uploadedUrl);
+            }
+            const uniqueImages=[...new Set(imageUrls)];
+            if(uniqueImages.length>10) throw new Error('একটি পণ্যের জন্য সর্বোচ্চ ১০টি ছবি দিতে পারবেন।');
+            const category=categoriesData.find((item)=>item.id===row.categoryId);
+            if(!category) throw new Error('Category পাওয়া যায়নি।');
+            const product={
+              id:createUuid(),title:row.titleBn||row.titleEn,titleEn:row.titleEn||row.titleBn,
+              price:row.price,finalPrice:row.price,basePrice:row.basePrice,discountPercent:0,
+              discountAmount:0,stock:row.stock,desc:row.desc,image:uniqueImages[0]||'',
+              gallery:uniqueImages,sellerId:null
+            };
+            const saved=await syncProductToSupabase(category.id,product);
+            if(!saved) throw new Error('Supabase product save failed.');
+            category.items.unshift(product);
+            savedCount++;
+          }catch(error){failedCount++;console.error('Bulk product row failed:',row.rowNumber,error);}
+          if(status) status.textContent='সেভ হয়েছে: '+savedCount+' · ব্যর্থ: '+failedCount+' / '+validRows.length;
+        }
+        const activeCategory=categoriesData.find((item)=>item.id===activeFolderId);
+        if(activeCategory) renderFolderItems(activeCategory);
+        renderCategoriesGrid();renderHomeSections();renderSellerDashboard();refreshAdminStats();persistAppState();
+        button.disabled=false;
+        if(status) status.textContent='সম্পন্ন। সেভ হয়েছে: '+savedCount+' · ব্যর্থ: '+failedCount;
+        showToast('Bulk upload সম্পন্ন: '+savedCount+'টি পণ্য সেভ হয়েছে।');
+      }
+
       const addFolderItemForm = document.getElementById('addFolderItemForm');
       if (addFolderItemForm) {
         addFolderItemForm.addEventListener('submit', async (e) => {
@@ -6048,15 +7486,23 @@
           if (!cat) return;
 
           const title = (document.getElementById('newItemTitle')?.value || '').trim();
+          const titleEn = (document.getElementById('newItemTitleEn')?.value || '').trim();
           const price = Number(document.getElementById('newItemPrice')?.value);
-          const stock = Math.max(0, Math.floor(Number(document.getElementById('newItemStock')?.value) || 25));
+          const stockRaw = Number(document.getElementById('newItemStock')?.value);
+          const stock = Number.isFinite(stockRaw) ? Math.max(0, Math.floor(stockRaw)) : 0;
+          const basePrice = isAdminSession() ? Number(document.getElementById('newItemBasePrice')?.value || 0) : 0;
           const rawDiscount = Number(document.getElementById('newItemDiscount')?.value || 0);
           const desc = (document.getElementById('newItemDesc')?.value || '').trim();
           const imgInput = document.getElementById('newItemImageFile');
+          const galleryInput = document.getElementById('newItemGalleryFiles');
           const vidInput = document.getElementById('newItemVideoFile');
 
-          if (!title || !Number.isFinite(price) || price <= 0) {
-            showToast(currentLang === 'en' ? 'Enter valid item title and price' : 'অনুগ্রহ করে সঠিক পণ্যের নাম ও মূল্য লিখুন');
+          if (!title || !Number.isFinite(price) || price <= 0 || !Number.isFinite(stockRaw) || stockRaw < 0 || !Number.isInteger(stockRaw)) {
+            showToast(currentLang === 'en' ? 'Enter a valid title, price and whole-number stock.' : 'সঠিক নাম, মূল্য ও পূর্ণসংখ্যার স্টক লিখুন।');
+            return;
+          }
+          if (isAdminSession() && (!Number.isFinite(basePrice) || basePrice < 0 || (basePrice > 0 && basePrice > Math.max(1, price - Math.round((price * Math.min(90, Math.max(0, rawDiscount))) / 100))))) {
+            showToast(currentLang === 'en' ? 'Base price must be zero or less than/equal to the selling price.' : 'বেস মূল্য শূন্য অথবা বিক্রয় মূল্যের সমান/কম হতে হবে।');
             return;
           }
 
@@ -6086,9 +7532,32 @@
             try {
               const compressedDataUrl = await compressImageFile(file, 900, 0.72);
               imageSrc = await uploadProductImageToSupabase(file, compressedDataUrl);
-            } catch (_err) {
-              showToast(currentLang === 'en' ? 'Could not read image; using default visual' : 'ছবি পড়া যায়নি; ডিফল্ট ছবি ব্যবহার করা হলো');
-              imageSrc = defaultVisual;
+            } catch (uploadError) {
+              showToast(currentLang === 'en' ? 'Image upload failed. Product was not added.' : 'ছবি আপলোড হয়নি, পণ্য যোগ করা হয়নি।');
+              return;
+            }
+          }
+
+          const galleryUrls = [];
+          const galleryFiles = Array.from(galleryInput?.files || []);
+          if (galleryFiles.length > (file ? 9 : 10)) {
+            showToast(currentLang === 'en' ? 'A product can have up to 10 images including its main image.' : 'মূল ছবিসহ একটি পণ্যে সর্বোচ্চ ১০টি ছবি দিতে পারবেন।');
+            return;
+          }
+          for (const galleryFile of galleryFiles) {
+            const galleryValidation = validateProductImageFile(galleryFile);
+            if (!galleryValidation.ok) {
+              showToast(galleryValidation.message);
+              return;
+            }
+            try {
+              const compressedGallery = await compressImageFile(galleryFile, 900, 0.72);
+              const uploadedGallery = await uploadProductImageToSupabase(galleryFile, compressedGallery);
+              if (uploadedGallery && /^https?:\/\//i.test(uploadedGallery)) galleryUrls.push(uploadedGallery);
+              else if (cloudSyncEnabled) throw new Error('Gallery image was not uploaded to cloud storage.');
+            } catch (galleryError) {
+              showToast(currentLang === 'en' ? 'A gallery image could not be uploaded. Product was not added.' : 'গ্যালারির একটি ছবি আপলোড হয়নি, তাই পণ্য যোগ করা হয়নি।');
+              return;
             }
           }
 
@@ -6109,21 +7578,30 @@
           }
 
           const newItem = {
-            id: `${cat.id}-custom-${Date.now()}`,
+            id: createUuid(),
             title,
+            titleEn: titleEn || title,
             price,
             finalPrice,
+            basePrice: isAdminSession() ? basePrice : 0,
             discountPercent,
             discountAmount,
             stock,
             desc: desc || `${title} — ${cat.name} কালেকশন।`,
             image: imageSrc,
+            gallery: [imageSrc, ...galleryUrls].filter((url) => typeof url === 'string' && /^https?:\/\//i.test(url)).slice(0, 10),
             video: videoSrc
           };
 
           if (!Array.isArray(cat.items)) cat.items = [];
+          if (cloudSyncEnabled) {
+            const saved = await syncProductToSupabase(cat.id, newItem);
+            if (!saved) {
+              showToast(currentLang === 'en' ? 'Product could not be saved to the database.' : 'পণ্যটি ডেটাবেজে সেভ হয়নি।');
+              return;
+            }
+          }
           cat.items.unshift(newItem);
-          await syncProductToSupabase(cat.id, newItem);
 
           lastUploadedShareData = {
             catId: cat.id,
@@ -6213,6 +7691,7 @@
       if (checkoutForm) {
         checkoutForm.addEventListener('submit', async (e) => {
           e.preventDefault();
+          if (checkoutSubmitting) return;
           if (cartItems.length === 0) {
             showToast(currentLang === 'en' ? 'Your cart is empty!' : 'আপনার কার্টটি খালি! আগে পণ্য যোগ করুন।');
             return;
@@ -6248,13 +7727,23 @@
               ? (currentLang === 'en' ? 'Outside Dhaka' : 'ঢাকার বাইরে')
               : (currentLang === 'en' ? 'Inside Dhaka' : 'ঢাকার ভেতরে');
 
-          const itemsListText = cartItems
+          let itemsListText = cartItems
             .map((i) => `• ${i.title} × ${i.qty} = ৳${(Number(i.price) || 0) * (Number(i.qty) || 1)}`)
             .join('\n');
 
-          const orderId = `HB-${Date.now().toString().slice(-6)}`;
+          if (paymentMethod !== 'ক্যাশ অন ডেলিভারি' &&
+              (paymentTrxId.length < 4 || paymentTrxId.length > 120 || /[\\u0000-\\u001F\\u007F]/.test(paymentTrxId))) {
+            showToast(currentLang === 'en'
+              ? 'Enter a valid transaction reference (4 to 120 characters).'
+              : 'সঠিক TrxID লিখুন (৪ থেকে ১২০ অক্ষর)।');
+            document.getElementById('paymentTrxId')?.focus();
+            return;
+          }
+
+          let orderId = `HB-${Date.now().toString().slice(-6)}`;
           const orderRecord = {
             id: orderId,
+            _isNewCheckout: true,
             customerName: name,
             customerPhone: phone,
             district,
@@ -6263,8 +7752,8 @@
             address,
             paymentMethod,
             paymentTrxId,
-            paymentVerified: paymentMethod === 'ক্যাশ অন ডেলিভারি' ? false : false,
-            orderStatus: 'pending_verification',
+            paymentVerified: false,
+            orderStatus: 'pending',
             subtotal,
             deliveryFee,
             totalAmount: total,
@@ -6277,9 +7766,47 @@
             createdAt: new Date().toISOString()
           };
 
+          let saveResult;
+          const submitButton = checkoutForm.querySelector('button[type="submit"]');
+          checkoutSubmitting = true;
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.dataset.originalLabel = submitButton.textContent;
+            submitButton.textContent = currentLang === 'en' ? 'Placing order…' : 'অর্ডার জমা হচ্ছে…';
+          }
+          try {
+            saveResult = await persistOrderToSupabase(orderRecord);
+          } finally {
+            checkoutSubmitting = false;
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = submitButton.dataset.originalLabel || (currentLang === 'en' ? 'Confirm Order' : 'অর্ডার কনফার্ম করুন');
+              delete submitButton.dataset.originalLabel;
+            }
+          }
+          if (!saveResult.success) {
+            showToast(currentLang === 'en'
+              ? 'Order was not placed. Please check your connection and try again.'
+              : `অর্ডার সেভ হয়নি: ${saveResult.error || 'আবার চেষ্টা করুন।'}`);
+            return;
+          }
+          orderId = orderRecord.id;
+          if (Array.isArray(saveResult.data?.items)) {
+            orderRecord.items = saveResult.data.items.map((item) => ({
+              id: item.product_id,
+              title: item.product_name,
+              price: Number(item.unit_price) || 0,
+              qty: Number(item.quantity) || 1
+            }));
+          }
+          itemsListText = orderRecord.items
+            .map((item) => `• ${item.title} × ${item.qty} = ৳${(Number(item.price) || 0) * (Number(item.qty) || 1)}`)
+            .join('\n');
+          const confirmedSubtotal = Number(orderRecord.subtotal) || 0;
+          const confirmedDeliveryFee = Number(orderRecord.deliveryFee) || 0;
+          const confirmedTotal = Number(orderRecord.totalAmount) || 0;
+          await pullProductsFromSupabase();
           ordersData.unshift(orderRecord);
-          deductStockForOrderedItems(orderRecord.items);
-          await persistOrderToSupabase(orderRecord);
 
           lastOrderText =
             `Hatbazar অর্ডার (#${orderId})\n` +
@@ -6288,7 +7815,7 @@
             `ঠিকানা: ${address}, ${upazila}, ${district} (${zoneLabel})\n` +
             `পেমেন্ট: ${paymentMethod}${paymentTrxId ? ` (TrxID: ${paymentTrxId})` : ''}\n` +
             `পণ্যসমূহ:\n${itemsListText}\n` +
-            `সাবটোটাল: ৳${subtotal} | ডেলিভারি: ৳${deliveryFee} | সর্বমোট: ৳${total}`;
+            `সাবটোটাল: ৳${confirmedSubtotal} | ডেলিভারি: ৳${confirmedDeliveryFee} | সর্বমোট: ৳${confirmedTotal}`;
 
           const successBox = document.getElementById('orderSuccessBox');
           if (successBox) {
@@ -6303,7 +7830,7 @@
               </div>
               <div class="text-xs text-slate-700 leading-relaxed">
                 <strong>${escapeHtml(name)}</strong> (${escapeHtml(phone)}) • ${escapeHtml(address)}, ${escapeHtml(formatUpazilaLabel(upazila))}, ${escapeHtml(formatDistrictLabel(district))}<br/>
-                ${currentLang === 'en' ? 'Payment' : 'পেমেন্ট'}: <strong>${escapeHtml(paymentMethod)}</strong> • ${currentLang === 'en' ? 'Total' : 'সর্বমোট'}: <strong>৳${formatNum(total)}</strong>
+                ${currentLang === 'en' ? 'Payment' : 'পেমেন্ট'}: <strong>${escapeHtml(paymentMethod)}</strong> • ${currentLang === 'en' ? 'Total' : 'সর্বমোট'}: <strong>৳${formatNum(confirmedTotal)}</strong>
               </div>
               <div class="flex flex-wrap items-center gap-2 pt-1">
                 <button type="button" onclick="copyLastOrderSummary()" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-700 hover:bg-emerald-800 text-white transition">
