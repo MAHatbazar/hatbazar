@@ -3661,7 +3661,8 @@
           '<div class="flex items-center gap-1.5"><button type="button" onclick="setPartnerApprovalStatus(\''+escapeHtml(p.id)+'\',\'approved\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-emerald-600 text-white">Approve</button>'+
           '<button type="button" onclick="setPartnerApprovalStatus(\''+escapeHtml(p.id)+'\',\'rejected\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-rose-600 text-white">Reject</button></div></div>';
       }).join('');
-      container.innerHTML = cloudHtml + localHtml || '<div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500">কোনো আবেদন নেই।</div>';
+      const applicationHtml = isAdminSession() && cloudSyncEnabled && supabaseClient ? cloudHtml : localHtml;
+      container.innerHTML = applicationHtml || '<div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500">কোনো আবেদন নেই।</div>';
     }
 
     async function setMarketplaceAccountStatus(userId, role, status) {
