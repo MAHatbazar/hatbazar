@@ -2333,6 +2333,7 @@
     let pendingBulkProductRows = [];
     let resellerCatalogCache = [];
     let resellerCloudLoadedAt = 0;
+    let marketplaceProfileLoadedAt = 0;
 
     let deliveryZoneConfig = {
       insideFee: 80,
@@ -3460,7 +3461,44 @@
       );
     }
 
+    async function refreshCurrentMarketplaceProfile() {
+      if (!cloudSyncEnabled || !supabaseClient || !supabaseUser?.id ||
+          !['সেলার', 'রিসেলার'].includes(currentSessionUser?.role) ||
+          Date.now() - marketplaceProfileLoadedAt < 60000) return;
+      try {
+        const isSeller = currentSessionUser.role === 'সেলার';
+        const table = isSeller ? 'seller_profiles' : 'reseller_profiles';
+        const { data, error } = await supabaseClient
+          .from(table)
+          .select(isSeller ? 'id,shop_name,status' : 'id,status')
+          .eq('id', supabaseUser.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (data) {
+          const entry = {
+            id: data.id,
+            name: currentSessionUser.name || '',
+            phone: currentSessionUser.contact || '',
+            shopName: isSeller ? (data.shop_name || currentSessionUser.name || '') : (currentSessionUser.name || ''),
+            district: '',
+            role: isSeller ? 'seller' : 'reseller',
+            status: data.status || 'pending',
+            notes: ''
+          };
+          const existingIndex = sellerPartnersData.findIndex((item) => item.id === data.id);
+          if (existingIndex >= 0) sellerPartnersData[existingIndex] = { ...sellerPartnersData[existingIndex], ...entry };
+          else sellerPartnersData.unshift(entry);
+        }
+        marketplaceProfileLoadedAt = Date.now();
+        renderSellerDashboard();
+      } catch (profileError) {
+        marketplaceProfileLoadedAt = 0;
+        console.warn('Marketplace profile status could not be loaded:', profileError?.message || profileError);
+      }
+    }
+
     function renderSellerDashboard() {
+      refreshCurrentMarketplaceProfile();
       populateSellerQuickCategorySelect();
 
       let totalProducts = 0;
