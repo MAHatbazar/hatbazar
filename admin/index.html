@@ -320,6 +320,8 @@ let bulkCount=0;
 let singleProductImages=[];
 let existingGalleryUrls=[];
 let aiProductMeta={attributes:{},sizes:[],description_en:"",description_bn:""};
+let aiActiveJobId=null;
+const aiAppliedJobIds=new Set();
 
 function escapeHTML(v){
  return String(v??'').replace(/[&<>"']/g,c=>({
@@ -445,6 +447,15 @@ async function loadAIJobs(){
  const user=sessionData?.session?.user;if(!user)return;
  const {data,error}=await db.from('hatbazar_ai_jobs').select('id,job_type,status,progress,payload,result,error,created_at').eq('created_by',user.id).order('created_at',{ascending:false}).limit(12);
  if(error){console.warn('AI jobs:',error.message);return;}
+ const activeJob=data?.find(j=>j.id===aiActiveJobId);
+ if(activeJob?.status==='completed'&&!aiAppliedJobIds.has(activeJob.id)){
+  try{
+   await applyAIJob(activeJob);
+   aiAppliedJobIds.add(activeJob.id);
+   if(activeJob.job_type==='bulk')$('bulkAiStatus').textContent='AI কাজ সম্পন্ন। তৈরি হওয়া Product তথ্য ও ছবি Bulk Row-তে স্বয়ংক্রিয়ভাবে বসানো হয়েছে। Price, Base Price ও Stock যাচাই করুন।';
+   else $('aiStatus').textContent='AI কাজ সম্পন্ন। নাম, Category, Description ও Food Details স্বয়ংক্রিয়ভাবে Form-এ বসানো হয়েছে।';
+  }catch(e){console.warn('AI result apply:',e.message);}
+ }
  const panels=[$('aiJobsPanel'),$('aiJobsPanelBulk')].filter(Boolean);
  panels.forEach(panel=>{
   panel.innerHTML='';
@@ -508,7 +519,8 @@ async function generateAIProductDetails(mode='image'){
   if(storagePath)payload.storage_path=storagePath;
   const {error}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:mode,payload});
   if(error)throw new Error('AI কাজ Queue-তে রাখা যায়নি: '+error.message);
-  $('aiStatus').textContent='কাজ সার্ভারে জমা হয়েছে। আপনি অন্য পেজে গেলেও AI কাজ চলতে থাকবে। ফলাফল Background AI কাজ অংশে দেখা যাবে।';
+  aiActiveJobId=jobId;
+  $('aiStatus').textContent='কাজ সার্ভারে জমা হয়েছে। আপনি অন্য পেজে গেলেও AI কাজ চলতে থাকবে। ফলাফল স্বয়ংক্রিয়ভাবে Form-এ বসবে।';
   await loadAIJobs();
  }catch(err){$('aiStatus').textContent=err.message||'AI কাজ শুরু করা যায়নি.';}
  finally{button.disabled=false;}
@@ -1397,7 +1409,8 @@ async function analyzeBulkImagesWithAI(){
   const payload={items,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn}))};
   const {error:insertError}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:'bulk',payload});
   if(insertError)throw new Error('Bulk AI কাজ Queue-তে রাখা যায়নি: '+insertError.message);
-  $('bulkAiStatus').textContent=targets.length+'টি ছবির কাজ সার্ভারে জমা হয়েছে। পেজ বন্ধ করলেও কাজ চলবে।';
+  aiActiveJobId=jobId;
+  $('bulkAiStatus').textContent=targets.length+'টি ছবির কাজ সার্ভারে জমা হয়েছে। পেজ বন্ধ করলেও কাজ চলবে; সম্পন্ন হলে Row-তে স্বয়ংক্রিয়ভাবে বসবে।';
   await loadAIJobs();
  }catch(err){$('bulkAiStatus').textContent=err.message||'Bulk AI কাজ শুরু করা যায়নি।';}
  finally{btn.disabled=false;}
