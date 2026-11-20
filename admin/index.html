@@ -172,6 +172,7 @@ button:disabled{opacity:.5}
  <div id="aiStatus" class="hint" aria-live="polite"></div>
  <div id="aiJobsPanel" class="upload-box"></div>
  <div id="aiGeneratedDetails" class="hint"></div>
+ <div id="aiResultPreview" class="upload-box hidden" style="white-space:pre-wrap;line-height:1.6;max-height:520px;overflow-y:auto"></div>
  <div id="aiFoodDetails" class="upload-box hidden"></div>
  <div id="aiSizesPanel" class="hint"></div>
 </div>
@@ -391,8 +392,15 @@ function applyAIProductResult(result,productName=''){
  $('name').value=result.name||productName||'';
  $('name_bn').value=result.name_bn||$('name_bn').value;
  if(result.category_id)$('category_id').value=result.category_id;
- aiProductMeta={attributes:result.attributes||{},sizes:Array.isArray(result.sizes)?result.sizes:[],description_en:result.description_en||'',description_bn:result.description_bn||''};
- $('description').value=formatAIProductDescription(result);
+ const apparelSizes=['XS','S','M','L','XL'];
+ const detectedSizes=Array.isArray(result.sizes)?result.sizes.map(x=>String(x).trim().toUpperCase()):[];
+ const hasApparelSize=detectedSizes.some(x=>apparelSizes.includes(x)||['XXL','2XL','XXXL','3XL'].includes(x));
+ const finalSizes=hasApparelSize?apparelSizes:detectedSizes;
+ aiProductMeta={attributes:result.attributes||{},sizes:finalSizes,description_en:result.description_en||'',description_bn:result.description_bn||''};
+ const fullDetails=formatAIProductDescription(result);
+ $('description').value=fullDetails;
+ $('aiResultPreview').textContent=fullDetails||'AI কোনো বিস্তারিত বিবরণ তৈরি করেনি।';
+ $('aiResultPreview').classList.remove('hidden');
  $('aiGeneratedDetails').textContent='তথ্য তৈরি হয়েছে। নাম, ক্যাটাগরি ও বিবরণ যাচাই করে প্রয়োজনমতো সম্পাদনা করুন।'+(result.category_name?' নির্বাচিত Category: '+result.category_name:'');
  if(result.is_food){
   const groups=[['পুষ্টিগুণ',result.nutrition_bn],['সম্ভাব্য উপকারিতা',result.benefits_bn],['খাওয়ার / ব্যবহারের উপায়',result.how_to_eat_bn],['সতর্কতা',result.cautions_bn]];
@@ -1005,7 +1013,7 @@ $('newProductBtn').addEventListener('click',()=>{
  editingProduct=null;
  $('productForm').reset();
  aiProductMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
- $('aiStatus').textContent='';$('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';
+ $('aiStatus').textContent='';$('aiGeneratedDetails').textContent='';$('aiResultPreview').textContent='';$('aiResultPreview').classList.add('hidden');$('aiSizesPanel').innerHTML='';
  $('category_id').value='';
  $('is_active').checked=true;
  $('stock').value=0;
