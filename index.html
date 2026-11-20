@@ -10,7 +10,7 @@
   <meta property="og:description" content="২৪টি ক্যাটাগরিতে প্রিমিয়াম পণ্য। সারাদেশে হোম ডেলিভারি।" />
   <meta property="og:locale" content="bn_BD" />
   <meta name="theme-color" content="#4c1d95" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%236d28d9'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='800' text-anchor='middle' fill='%23fde047' font-family='Arial'%3EH%3C/text%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234c1d95'/%3E%3Cpath d='M18 25h28l3 27H15l3-27zm5 0c0-7 4-12 9-12s9 5 9 12' fill='none' stroke='%23fbbf24' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M23 20l4-7 5 5 5-5 4 7' fill='%23fde68a' stroke='%23fbbf24' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M25 34v11m7-11v11m7-11v11' stroke='%23fde68a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" />
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -211,7 +211,7 @@
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-violet-100">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="order-1 flex items-center gap-3 cursor-pointer" onclick="if(!editablePreviewEnabled) navigateTo('home')">
+        <div role="button" tabindex="0" aria-label="Hatbazar Home" title="Hatbazar" class="order-1 flex items-center gap-3 cursor-pointer" onclick="if(!editablePreviewEnabled) navigateTo('home')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();if(!editablePreviewEnabled)navigateTo('home')}">
           <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#1e1b4b] via-[#6d28d9] to-[#be185d] p-0.5 shadow-lg shadow-violet-600/25 flex items-center justify-center shrink-0">
             <svg viewBox="0 0 80 80" class="w-full h-full rounded-[14px]" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -431,7 +431,7 @@
                     onclick="navigateTo('liveEditor')"
                     data-bn="✏️ লাইভ এডিট করুন"
                     data-en="✏️ Edit Live Preview"
-                    class="px-5 py-3 rounded-2xl bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs sm:text-sm font-bold transition"
+                    class="hidden px-5 py-3 rounded-2xl bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs sm:text-sm font-bold transition"
                   >
                     ✏️ লাইভ এডিট করুন
                   </button>
@@ -743,7 +743,7 @@
               <div id="emptyFolderBannerCard" class="hidden rounded-2xl bg-amber-50 border border-amber-300 p-3.5 text-xs text-amber-950 space-y-1">
                 <div class="font-black">📂 এই ফোল্ডারটি বর্তমানে খালি (Empty Folder)</div>
                 <p class="text-[11px] leading-relaxed text-amber-900">
-                  পাশের ফর্ম থেকে এই ফোল্ডারের ভেতরে নতুন পণ্য, মূল্য, স্টক ও ছবি সহজেই যুক্ত করুন।
+                  এই ক্যাটাগরিতে এখনো কোনো পণ্য নেই। নতুন পণ্য যুক্ত হলে এখানে দেখা যাবে।
                 </p>
               </div>
 
