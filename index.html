@@ -2645,7 +2645,7 @@
         const { error: upErr } = await supabaseClient.storage
           .from(SUPABASE_CONFIG.storageBucket)
           .upload(safePath, file, { upsert: true });
-        if (upErr) return fallbackDataUrl;
+        if (upErr) throw new Error(upErr.message || 'Image upload failed');
         const { data: pubData } = supabaseClient.storage
           .from(SUPABASE_CONFIG.storageBucket)
           .getPublicUrl(safePath);
@@ -2800,6 +2800,7 @@
         const payload = {
           id: itemObj.id,
           category_id: categoryId,
+          seller_id: isAdminSession() ? null : (supabaseUser?.id || null),
           name: String(itemObj.title || '').trim(),
           name_bn: String(itemObj.title || '').trim(),
           description: String(itemObj.desc || ''),
@@ -3147,9 +3148,9 @@
         try {
           const compressedDataUrl = await compressImageFile(file, 900, 0.72);
           imageSrc = await uploadProductImageToSupabase(file, compressedDataUrl);
-        } catch (_err) {
-          showToast(currentLang === 'en' ? 'Could not read image; using default visual' : 'ছবি পড়া যায়নি; ডিফল্ট ছবি ব্যবহার করা হলো');
-          imageSrc = defaultVisual;
+        } catch (uploadError) {
+          showToast(currentLang === 'en' ? 'Image upload failed. Product was not added.' : 'ছবি আপলোড হয়নি, পণ্য যোগ করা হয়নি।');
+          return;
         }
       }
 
@@ -3166,8 +3167,14 @@
       };
 
       if (!Array.isArray(cat.items)) cat.items = [];
+      if (cloudSyncEnabled) {
+        const saved = await syncProductToSupabase(cat.id, newItem);
+        if (!saved) {
+          showToast(currentLang === 'en' ? 'Product could not be saved to the database.' : 'পণ্যটি ডেটাবেজে সেভ হয়নি।');
+          return;
+        }
+      }
       cat.items.unshift(newItem);
-      await syncProductToSupabase(cat.id, newItem);
       e.target.reset();
       clearProductImageSelection('sellerQuickImageFile', 'sellerQuickPreviewWrap', 'sellerQuickPreviewImg');
       const stockInput = document.getElementById('sellerQuickStock');
@@ -6261,9 +6268,9 @@
             try {
               const compressedDataUrl = await compressImageFile(file, 900, 0.72);
               imageSrc = await uploadProductImageToSupabase(file, compressedDataUrl);
-            } catch (_err) {
-              showToast(currentLang === 'en' ? 'Could not read image; using default visual' : 'ছবি পড়া যায়নি; ডিফল্ট ছবি ব্যবহার করা হলো');
-              imageSrc = defaultVisual;
+            } catch (uploadError) {
+              showToast(currentLang === 'en' ? 'Image upload failed. Product was not added.' : 'ছবি আপলোড হয়নি, পণ্য যোগ করা হয়নি।');
+              return;
             }
           }
 
@@ -6297,8 +6304,14 @@
           };
 
           if (!Array.isArray(cat.items)) cat.items = [];
+          if (cloudSyncEnabled) {
+            const saved = await syncProductToSupabase(cat.id, newItem);
+            if (!saved) {
+              showToast(currentLang === 'en' ? 'Product could not be saved to the database.' : 'পণ্যটি ডেটাবেজে সেভ হয়নি।');
+              return;
+            }
+          }
           cat.items.unshift(newItem);
-          await syncProductToSupabase(cat.id, newItem);
 
           lastUploadedShareData = {
             catId: cat.id,
