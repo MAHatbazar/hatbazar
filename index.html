@@ -1999,6 +1999,14 @@
           <label for="authUserPhoneOrEmail" class="block text-xs font-bold text-slate-700 mb-1">অ্যাকাউন্টের যোগাযোগ / অ্যাডমিন ইমেইল *</label>
           <input id="authUserPhoneOrEmail" type="text" required placeholder="01XXXXXXXXX বা name@email.com" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
         </div>
+        <div id="modalMarketplacePhoneWrap" class="hidden">
+          <label for="authUserPhone" class="block text-xs font-bold text-slate-700 mb-1">বাংলাদেশি মোবাইল নম্বর *</label>
+          <input id="authUserPhone" type="tel" inputmode="numeric" placeholder="01XXXXXXXXX" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+        </div>
+        <div id="modalMarketplacePasswordWrap" class="hidden">
+          <label for="authUserPassword" class="block text-xs font-bold text-slate-700 mb-1">পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর) *</label>
+          <input id="authUserPassword" type="password" minlength="8" autocomplete="new-password" placeholder="পাসওয়ার্ড দিন" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
+        </div>
         <div>
           <label for="authUserRole" class="block text-xs font-bold text-slate-700 mb-1">অ্যাকাউন্টের ধরন</label>
           <select id="authUserRole" onchange="toggleModalAdminPasswordField()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600">
@@ -3088,7 +3096,8 @@
           p_upazila: orderRecord.upazila,
           p_delivery_zone: orderRecord.deliveryZone,
           p_delivery_fee: Number(orderRecord.deliveryFee) || 0,
-          p_payment_trx_id: orderRecord.paymentTrxId || null
+          p_payment_trx_id: orderRecord.paymentTrxId || null,
+          p_reseller_id: supabaseProfile?.role === 'reseller' ? (supabaseUser?.id || null) : null
         });
         if (error || !data?.success) {
           console.error('Hatbazar checkout failed:', error?.message || data?.message || 'Unknown error');
@@ -4411,13 +4420,17 @@
 
     function toggleModalAdminPasswordField() {
       const roleVal = document.getElementById('authUserRole')?.value;
-      const wrap = document.getElementById('modalAdminPasswordWrap');
-      if (!wrap) return;
-      if (roleVal === 'অ্যাডমিন') {
-        wrap.classList.remove('hidden');
-      } else {
-        wrap.classList.add('hidden');
-      }
+      const adminWrap = document.getElementById('modalAdminPasswordWrap');
+      const marketplacePasswordWrap = document.getElementById('modalMarketplacePasswordWrap');
+      const marketplacePhoneWrap = document.getElementById('modalMarketplacePhoneWrap');
+      const marketplaceRole = roleVal === 'সেলার' || roleVal === 'রিসেলার';
+      adminWrap?.classList.toggle('hidden', roleVal !== 'অ্যাডমিন');
+      marketplacePasswordWrap?.classList.toggle('hidden', !marketplaceRole);
+      marketplacePhoneWrap?.classList.toggle('hidden', !marketplaceRole);
+      const passwordInput = document.getElementById('authUserPassword');
+      const phoneInput = document.getElementById('authUserPhone');
+      if (passwordInput) passwordInput.required = marketplaceRole;
+      if (phoneInput) phoneInput.required = marketplaceRole;
     }
 
     function handleAuthButtonClick() {
@@ -4482,14 +4495,60 @@
           loginAt: Date.now(),
           expiresAt: Date.now() + ADMIN_SESSION_TTL_MS
         };
+      } else if (role === 'সেলার' || role === 'রিসেলার') {
+        const email = contactRaw.toLowerCase();
+        const password = document.getElementById('authUserPassword')?.value || '';
+        const phone = normalizeBdPhone(document.getElementById('authUserPhone')?.value || '');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || password.length < 8 || !phone || !cloudSyncEnabled || !supabaseClient) {
+          showToast('সেলার/রিসেলার অ্যাকাউন্টের জন্য বৈধ ইমেইল, ৮ অক্ষরের পাসওয়ার্ড, মোবাইল নম্বর এবং Supabase সংযোগ প্রয়োজন।');
+          return;
+        }
+        let authResult = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (authResult.error) {
+          authResult = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: name, phone } }
+          });
+        }
+        if (authResult.error || !authResult.data?.user?.id) {
+          showToast('অ্যাকাউন্ট লগইন/সাইন আপ হয়নি: ' + (authResult.error?.message || 'আবার চেষ্টা করুন।'));
+          return;
+        }
+        supabaseUser = authResult.data.user;
+        if (!authResult.data.session) {
+          showToast('ইমেইল ভেরিফিকেশন সম্পন্ন করে আবার লগইন করুন।');
+          return;
+        }
+        const dbRole = role === 'রিসেলার' ? 'reseller' : 'seller';
+        const { data: registration, error: registrationError } = await supabaseClient.rpc('hatbazar_register_marketplace_profile', {
+          p_full_name: name,
+          p_phone: phone,
+          p_role: dbRole
+        });
+        if (registrationError || !registration?.success) {
+          showToast('প্রোফাইল তৈরি হয়নি: ' + (registrationError?.message || 'SQL Migration পরীক্ষা করুন।'));
+          return;
+        }
+        const { data: profile, error: profileError } = await supabaseClient
+          .from('profiles').select('id,role,full_name,phone').eq('id', supabaseUser.id).maybeSingle();
+        if (profileError || !profile) {
+          showToast('প্রোফাইল যাচাই করা যায়নি।');
+          return;
+        }
+        supabaseProfile = profile;
+        currentSessionUser = {
+          name: profile.full_name || name,
+          contact: profile.phone || phone,
+          role,
+          loginAt: Date.now()
+        };
       } else {
         const contactCheck = validateStandardUserContact(contactRaw);
         if (!contactCheck.ok) {
-          showToast(
-            currentLang === 'en'
-              ? 'Enter a valid BD mobile number (01XXXXXXXXX) or email address'
-              : 'সঠিক বাংলাদেশি মোবাইল নম্বর (01XXXXXXXXX) অথবা ইমেইল ঠিকানা দিন'
-          );
+          showToast(currentLang === 'en'
+            ? 'Enter a valid BD mobile number (01XXXXXXXXX) or email address'
+            : 'সঠিক বাংলাদেশি মোবাইল নম্বর (01XXXXXXXXX) অথবা ইমেইল ঠিকানা দিন');
           return;
         }
         currentSessionUser = {
