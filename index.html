@@ -1647,12 +1647,12 @@
 
         <form id="adminPasswordLoginForm" onsubmit="handleAdminPasswordLogin(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
           <div class="sm:col-span-4">
-            <label for="adminUsernameInput" class="block text-xs font-bold text-slate-700 mb-1">অ্যাডমিন নাম / ইউজারনেম *</label>
+            <label for="adminUsernameInput" class="block text-xs font-bold text-slate-700 mb-1">Supabase অ্যাডমিন ইমেইল *</label>
             <input
               id="adminUsernameInput"
-              type="text"
-              placeholder="যেমন: Asif Munshi বা admin"
-              autocomplete="username"
+              type="email"
+              placeholder="admin@example.com"
+              autocomplete="email"
               class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-violet-600 focus:bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none"
             />
           </div>
@@ -1977,7 +1977,7 @@
           <input id="authUserName" type="text" required placeholder="যেমন: আসিফ মুন্সী" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
         </div>
         <div>
-          <label for="authUserPhoneOrEmail" class="block text-xs font-bold text-slate-700 mb-1">মোবাইল বা ইমেইল *</label>
+          <label for="authUserPhoneOrEmail" class="block text-xs font-bold text-slate-700 mb-1">অ্যাকাউন্টের যোগাযোগ / অ্যাডমিন ইমেইল *</label>
           <input id="authUserPhoneOrEmail" type="text" required placeholder="01XXXXXXXXX বা name@email.com" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-violet-600" />
         </div>
         <div>
@@ -2674,6 +2674,30 @@
         cloudSyncEnabled = true;
         const { data } = await supabaseClient.auth.getSession();
         supabaseUser = data?.session?.user || null;
+        if (currentSessionUser?.role === 'অ্যাডমিন') {
+          if (!supabaseUser?.id) {
+            currentSessionUser = null;
+            supabaseProfile = null;
+            persistAppState();
+          } else {
+            const { data: profile, error: profileError } = await supabaseClient
+              .from('profiles')
+              .select('id,role')
+              .eq('id', supabaseUser.id)
+              .maybeSingle();
+            if (profileError || profile?.role !== 'admin') {
+              await supabaseClient.auth.signOut();
+              supabaseUser = null;
+              supabaseProfile = null;
+              currentSessionUser = null;
+              persistAppState();
+            } else {
+              supabaseProfile = profile;
+            }
+          }
+        }
+        updateAuthButtonLabel();
+        syncDiscountAdminPermission();
         await pullDeliveryZoneSettingsFromSupabase();
         await pullProductsFromSupabase();
         await pullCentralOrdersFromSupabase();
