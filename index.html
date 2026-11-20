@@ -2820,6 +2820,36 @@
           console.error('Hatbazar product upsert failed:', error.message);
           return false;
         }
+
+        // Admin-managed product gallery rows are stored separately from the cover image.
+        if (isAdminSession()) {
+          const galleryUrls = [...new Set([
+            itemObj.image,
+            ...(Array.isArray(itemObj.gallery) ? itemObj.gallery : [])
+          ].filter((url) => typeof url === 'string' && /^https?:\/\//i.test(url)))].slice(0, 10);
+          for (let index = 0; index < galleryUrls.length; index += 1) {
+            const imageUrl = galleryUrls[index];
+            const { data: existingImage, error: lookupError } = await supabaseClient
+              .from('product_images')
+              .select('id')
+              .eq('product_id', itemObj.id)
+              .eq('image_url', imageUrl)
+              .maybeSingle();
+            if (lookupError) {
+              console.error('Hatbazar gallery lookup failed:', lookupError.message);
+              return false;
+            }
+            if (!existingImage) {
+              const { error: imageInsertError } = await supabaseClient
+                .from('product_images')
+                .insert({ product_id: itemObj.id, image_url: imageUrl, sort_order: index });
+              if (imageInsertError) {
+                console.error('Hatbazar gallery save failed:', imageInsertError.message);
+                return false;
+              }
+            }
+          }
+        }
         return true;
       } catch (err) {
         console.error('Hatbazar product upsert failed:', err?.message || err);
