@@ -2545,7 +2545,7 @@
       }
     }
 
-    function handleSaveDeliveryZoneConfig(e) {
+    async function handleSaveDeliveryZoneConfig(e) {
       e.preventDefault();
       if (!isAdminSession()) {
         showToast(
@@ -2564,6 +2564,25 @@
       const redxOutsideFee = Math.max(0, Number(document.getElementById('cfgRedxOutsideFee')?.value ?? outFee) || 0);
       const steadfastInsideFee = Math.max(0, Number(document.getElementById('cfgSteadfastInsideFee')?.value ?? inFee) || 0);
       const steadfastOutsideFee = Math.max(0, Number(document.getElementById('cfgSteadfastOutsideFee')?.value ?? outFee) || 0);
+
+      if (cloudSyncEnabled && supabaseClient) {
+        const { data: savedSettings, error: settingsError } = await supabaseClient.rpc('hatbazar_admin_update_delivery_settings', {
+          p_inside_fee: inFee,
+          p_outside_fee: outFee,
+          p_inside_eta: inEta,
+          p_outside_eta: outEta
+        });
+        if (settingsError || !savedSettings) {
+          showToast(currentLang === 'en'
+            ? 'Delivery settings were not saved to the database: ' + (settingsError?.message || 'Unknown error')
+            : 'ডেলিভারি সেটিংস ডেটাবেজে সেভ হয়নি: ' + (settingsError?.message || 'সমস্যা হয়েছে'));
+          return;
+        }
+      } else {
+        showToast(currentLang === 'en'
+          ? 'Cloud database is not connected. These settings are only local.'
+          : 'ক্লাউড ডেটাবেজ সংযুক্ত নয়। সেটিংস শুধু এই ডিভাইসে থাকবে।');
+      }
 
       deliveryZoneConfig = {
         insideFee: inFee,
@@ -2597,6 +2616,31 @@
       badge.textContent = `মোড: ${modeLabel} • রোল: ${roleLabel}`;
     }
 
+    async function pullDeliveryZoneSettingsFromSupabase() {
+      if (!cloudSyncEnabled || !supabaseClient) return false;
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_get_delivery_settings');
+        if (error || !data) {
+          console.warn('Hatbazar delivery settings fetch failed:', error?.message || 'No settings returned');
+          return false;
+        }
+        deliveryZoneConfig = {
+          ...deliveryZoneConfig,
+          insideFee: Number(data.inside_fee ?? deliveryZoneConfig.insideFee),
+          outsideFee: Number(data.outside_fee ?? deliveryZoneConfig.outsideFee),
+          insideEta: String(data.inside_eta || deliveryZoneConfig.insideEta),
+          outsideEta: String(data.outside_eta || deliveryZoneConfig.outsideEta)
+        };
+        persistAppState();
+        syncDeliveryZoneSelectLabels();
+        updateCartSummary();
+        return true;
+      } catch (settingsError) {
+        console.warn('Hatbazar delivery settings fetch failed:', settingsError?.message || settingsError);
+        return false;
+      }
+    }
+
     async function initSupabaseIntegration() {
       try {
         const savedCfgRaw = safeStorageGet(STORAGE_KEYS.supabaseCfg);
@@ -2618,6 +2662,7 @@
         cloudSyncEnabled = true;
         const { data } = await supabaseClient.auth.getSession();
         supabaseUser = data?.session?.user || null;
+        await pullDeliveryZoneSettingsFromSupabase();
         await pullProductsFromSupabase();
         await pullCentralOrdersFromSupabase();
         renderSupabaseStatusBadge();
