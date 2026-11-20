@@ -929,6 +929,10 @@
                     <input id="newItemTitle" type="text" required maxlength="180" placeholder="পণ্যের নাম লিখুন" class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
                   </div>
                   <div>
+                    <label for="newItemTitleEn" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের নাম (English)</label>
+                    <input id="newItemTitleEn" type="text" maxlength="180" placeholder="Product name in English" class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+                  </div>
+                  <div>
                     <label for="newItemPrice" class="block text-xs font-bold text-slate-700 mb-1">বিক্রয় মূল্য (৳) *</label>
                     <input id="newItemPrice" type="number" min="1" step="0.01" required placeholder="1200" class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
                   </div>
@@ -2764,6 +2768,7 @@
         const mappedItem = {
           id: String(row.id),
           title: productTitle,
+          titleEn: String(row.name || productTitle).trim(),
           price: Number(row.price) || 0,
           finalPrice: Number(row.price) || 0,
           basePrice: Number(row.base_price) || 0,
@@ -2857,7 +2862,7 @@
           id: itemObj.id,
           category_id: categoryId,
           seller_id: itemObj.sellerId || (isAdminSession() ? null : (supabaseUser?.id || null)),
-          name: String(itemObj.title || '').trim(),
+          name: String(itemObj.titleEn || itemObj.title || '').trim(),
           name_bn: String(itemObj.title || '').trim(),
           description: String(itemObj.desc || ''),
           price: Number(itemObj.finalPrice ?? itemObj.price) || 0,
@@ -6336,6 +6341,7 @@
           if (!cat) return;
 
           const title = (document.getElementById('newItemTitle')?.value || '').trim();
+          const titleEn = (document.getElementById('newItemTitleEn')?.value || '').trim();
           const price = Number(document.getElementById('newItemPrice')?.value);
           const stockRaw = Number(document.getElementById('newItemStock')?.value);
           const stock = Number.isFinite(stockRaw) ? Math.max(0, Math.floor(stockRaw)) : 0;
@@ -6425,6 +6431,7 @@
           const newItem = {
             id: createUuid(),
             title,
+            titleEn: titleEn || title,
             price,
             finalPrice,
             basePrice: isAdminSession() ? basePrice : 0,
