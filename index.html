@@ -5143,7 +5143,12 @@
       );
     }
 
-    function handleAdminLogoutOnly() {
+    async function handleAdminLogoutOnly() {
+      if (supabaseClient && supabaseUser?.id) {
+        try { await supabaseClient.auth.signOut(); } catch (logoutError) {
+          console.warn('Hatbazar admin sign-out failed:', logoutError?.message || logoutError);
+        }
+      }
       currentSessionUser = null;
       supabaseUser = null;
       supabaseProfile = null;
@@ -6552,7 +6557,14 @@
     }
 
     function isAdminSession() {
-      return Boolean(currentSessionUser && currentSessionUser.role === 'অ্যাডমিন');
+      return Boolean(
+        currentSessionUser &&
+        currentSessionUser.role === 'অ্যাডমিন' &&
+        Number(currentSessionUser.expiresAt || 0) > Date.now() &&
+        supabaseUser?.id &&
+        supabaseProfile?.id === supabaseUser.id &&
+        supabaseProfile?.role === 'admin'
+      );
     }
 
     function syncDiscountAdminPermission() {
