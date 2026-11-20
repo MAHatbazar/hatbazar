@@ -390,6 +390,7 @@
           type="button"
           onclick="navigateTo('admin')"
           data-nav="admin"
+          style="display:none"
           data-bn="🛡️ অ্যাডমিন প্যানেল"
           data-en="🛡️ Admin Panel"
           class="nav-pill shrink-0 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold border transition"
@@ -400,6 +401,7 @@
           type="button"
           onclick="navigateTo('liveEditor')"
           data-nav="liveEditor"
+          style="display:none"
           data-bn="✏️ এডিটেবল প্রিভিউ এডিটর"
           data-en="✏️ Editable Preview Editor"
           class="nav-pill shrink-0 px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold border transition"
@@ -517,83 +519,21 @@
 
                 <div class="pt-2">
                   <div class="relative rounded-2xl overflow-hidden border border-white/25 bg-indigo-950/50 shadow-lg">
-                    <svg viewBox="0 0 760 220" class="w-full h-36 sm:h-44 object-cover block" xmlns="http://www.w3.org/2000/svg">
-                      <defs>
-                        <linearGradient id="heroShowcaseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stop-color="#1e1b4b"/>
-                          <stop offset="48%" stop-color="#6d28d9"/>
-                          <stop offset="100%" stop-color="#be185d"/>
-                        </linearGradient>
-                        <linearGradient id="studioFloorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
-                          <stop offset="100%" stop-color="#09071d" stop-opacity="0.52"/>
-                        </linearGradient>
-                        <linearGradient id="goldBag" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stop-color="#fef08a"/>
-                          <stop offset="55%" stop-color="#f59e0b"/>
-                          <stop offset="100%" stop-color="#b45309"/>
-                        </linearGradient>
-                        <linearGradient id="cyanBag" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stop-color="#a5f3fc"/>
-                          <stop offset="55%" stop-color="#0284c7"/>
-                          <stop offset="100%" stop-color="#1e3a8a"/>
-                        </linearGradient>
-                        <linearGradient id="roseBoxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stop-color="#fbcfe8"/>
-                          <stop offset="55%" stop-color="#db2777"/>
-                          <stop offset="100%" stop-color="#831843"/>
-                        </linearGradient>
-                      </defs>
-                      <rect width="760" height="220" fill="url(#heroShowcaseGrad)"/>
-                      <ellipse cx="380" cy="198" rx="420" ry="42" fill="url(#studioFloorGrad)"/>
-                      <circle cx="655" cy="36" r="95" fill="#fde047" fill-opacity="0.16"/>
-                      <circle cx="110" cy="185" r="105" fill="#f472b6" fill-opacity="0.18"/>
-                      <ellipse cx="622" cy="176" rx="108" ry="15" fill="#09071d" fill-opacity="0.45"/>
-
-                      <!-- বাস্তবধর্মী ৩ডি শপিং ব্যাগ ও গিফট বক্স সেট -->
-                      <g transform="translate(502, 22)">
-                        <rect x="6" y="72" width="54" height="62" rx="9" fill="url(#roseBoxGrad)" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5"/>
-                        <rect x="30" y="72" width="8" height="62" fill="#fde047" fill-opacity="0.9"/>
-                        <rect x="6" y="98" width="54" height="8" fill="#fde047" fill-opacity="0.9"/>
-                        <path d="M34 72 C22 56, 12 62, 24 72 C12 68, 16 54, 34 72 Z" fill="#fde047"/>
-                        <path d="M34 72 C46 56, 56 62, 44 72 C56 68, 52 54, 34 72 Z" fill="#fde047"/>
-
-                        <path d="M54 44 C54 16, 102 16, 102 44" stroke="#fef08a" stroke-width="6.5" fill="none" stroke-linecap="round"/>
-                        <rect x="34" y="44" width="88" height="114" rx="14" fill="url(#goldBag)" stroke="#ffffff" stroke-opacity="0.4" stroke-width="1.5"/>
-                        <rect x="34" y="44" width="14" height="114" rx="8" fill="#ffffff" fill-opacity="0.18"/>
-                        <circle cx="78" cy="102" r="24" fill="#1e1b4b" fill-opacity="0.25"/>
-                        <text x="78" y="114" text-anchor="middle" fill="#1e1b4b" font-family="Plus Jakarta Sans, sans-serif" font-size="34" font-weight="900">H</text>
-
-                        <path d="M136 66 C136 44, 170 44, 170 66" stroke="#bae6fd" stroke-width="5.5" fill="none" stroke-linecap="round"/>
-                        <rect x="118" y="66" width="70" height="92" rx="13" fill="url(#cyanBag)" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5"/>
-                        <rect x="118" y="66" width="11" height="92" rx="6" fill="#ffffff" fill-opacity="0.18"/>
-                        <text x="153" y="120" text-anchor="middle" fill="#ffffff" font-size="26">🛍️</text>
-                      </g>
-
-                      <!-- প্রিমিয়াম শোকেস কার্ডসমূহ -->
-                      <g transform="translate(24, 24)">
-                        <rect x="0" y="0" width="462" height="170" rx="20" fill="#09071d" fill-opacity="0.36" stroke="#ffffff" stroke-opacity="0.22" stroke-width="1.5"/>
-                        <text x="22" y="38" fill="#fde047" font-family="Hind Siliguri, sans-serif" font-size="21" font-weight="800">✨ প্রিমিয়াম শপিং অভিজ্ঞতা</text>
-                        <text x="22" y="65" fill="#f5d0fe" font-family="Hind Siliguri, sans-serif" font-size="14" font-weight="600">ফ্যাশন • স্মার্ট গ্যাজেট • হোম ডেকর • স্কিন কেয়ার</text>
-                        <g transform="translate(20, 84)">
-                          <rect x="0" y="0" width="98" height="66" rx="14" fill="#ffffff" fill-opacity="0.12" stroke="#fde047" stroke-opacity="0.35"/>
-                          <text x="49" y="34" text-anchor="middle" font-size="22">👔 👗</text>
-                          <text x="49" y="54" text-anchor="middle" fill="#fef9c3" font-family="Hind Siliguri, sans-serif" font-size="11" font-weight="700">ফ্যাশন</text>
-
-                          <rect x="108" y="0" width="98" height="66" rx="14" fill="#ffffff" fill-opacity="0.12" stroke="#7dd3fc" stroke-opacity="0.35"/>
-                          <text x="157" y="34" text-anchor="middle" font-size="22">⌚ 🎧</text>
-                          <text x="157" y="54" text-anchor="middle" fill="#e0f2fe" font-family="Hind Siliguri, sans-serif" font-size="11" font-weight="700">গ্যাজেট</text>
-
-                          <rect x="216" y="0" width="98" height="66" rx="14" fill="#ffffff" fill-opacity="0.12" stroke="#f9a8d4" stroke-opacity="0.35"/>
-                          <text x="265" y="34" text-anchor="middle" font-size="22">👜 💍</text>
-                          <text x="265" y="54" text-anchor="middle" fill="#fce7f3" font-family="Hind Siliguri, sans-serif" font-size="11" font-weight="700">অ্যাক্সেসরিজ</text>
-
-                          <rect x="324" y="0" width="116" height="66" rx="14" fill="#ffffff" fill-opacity="0.12" stroke="#6ee7b7" stroke-opacity="0.35"/>
-                          <text x="382" y="34" text-anchor="middle" font-size="22">🎁 ✨</text>
-                          <text x="382" y="54" text-anchor="middle" fill="#d1fae5" font-family="Hind Siliguri, sans-serif" font-size="11" font-weight="700">গিফট ও কেয়ার</text>
-                        </g>
-                      </g>
-                    </svg>
+                    <div class="relative w-full h-36 sm:h-44 rounded-2xl overflow-hidden bg-slate-900">
+                      <img
+                        src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=85"
+                        alt="Real clothing and lifestyle retail store interior"
+                        loading="eager"
+                        fetchpriority="high"
+                        class="w-full h-full object-cover object-center"
+                        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=1600&q=80';"
+                      />
+                      <div class="absolute inset-0 bg-gradient-to-r from-slate-950/65 via-slate-950/25 to-transparent"></div>
+                      <div class="absolute left-4 bottom-4 sm:left-6 sm:bottom-5 text-white drop-shadow-lg">
+                        <p class="text-xs sm:text-sm font-bold tracking-wide">HATBAZAR • SHOP WITH CONFIDENCE</p>
+                        <p class="text-lg sm:text-2xl font-extrabold">বাস্তব পণ্য, সহজ কেনাকাটা</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1474,6 +1414,7 @@
 
       <div id="fullPolicyCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <article class="bg-white rounded-3xl border border-violet-100 p-5 sm:p-6 shadow-xs space-y-2.5">
+          <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=80" alt="Secure online shopping and payment" loading="lazy" class="w-full h-40 sm:h-48 object-cover rounded-2xl mb-3"/>
           <h3 data-bn="১. সাধারণ শর্তাবলি ও ব্যবহারের নিয়ম" data-en="1. Terms & Conditions" class="text-base sm:text-lg font-extrabold text-violet-950">১. সাধারণ শর্তাবলি ও ব্যবহারের নিয়ম</h3>
           <p data-bn="Hatbazar-এ অর্ডার করার সময় গ্রাহককে সঠিক নাম, সচল মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা প্রদান করতে হবে। স্টক প্রাপ্যতা ও ঠিকানা যাচাইয়ের সাপেক্ষে অর্ডার কনফার্ম করা হয়। প্রতারণামূলক বা অসম্পূর্ণ অর্ডার বাতিল করার অধিকার Hatbazar সংরক্ষণ করে।" data-en="Customers must provide accurate name, active mobile number, and full delivery address when placing an order on Hatbazar. Orders are confirmed subject to stock availability and address verification." class="text-xs sm:text-sm text-slate-600 leading-relaxed">
             Hatbazar-এ অর্ডার করার সময় গ্রাহককে সঠিক নাম, সচল মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা প্রদান করতে হবে। স্টক প্রাপ্যতা ও ঠিকানা যাচাইয়ের সাপেক্ষে অর্ডার কনফার্ম করা হয়। প্রতারণামূলক বা অসম্পূর্ণ অর্ডার বাতিল করার অধিকার Hatbazar সংরক্ষণ করে।
@@ -1481,6 +1422,7 @@
         </article>
 
         <article class="bg-white rounded-3xl border border-violet-100 p-5 sm:p-6 shadow-xs space-y-2.5">
+          <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=900&q=80" alt="Shipping parcels ready for delivery" loading="lazy" class="w-full h-40 sm:h-48 object-cover rounded-2xl mb-3"/>
           <h3 data-bn="২. ডেলিভারি জোন ও কুরিয়ার চার্জ নীতিমালা" data-en="2. Delivery Zones & Courier Charges" class="text-base sm:text-lg font-extrabold text-violet-950">২. ডেলিভারি জোন ও কুরিয়ার চার্জ নীতিমালা</h3>
           <p id="policyDeliveryZoneSummary" class="text-xs sm:text-sm text-slate-600 leading-relaxed">
             <strong>ঢাকার ভেতরে (Inside Dhaka):</strong> কুরিয়ার চার্জ <strong>৳৮০</strong> (আনুমানিক ১–৩ কার্যদিবস)।<br/>
@@ -1491,6 +1433,7 @@
         </article>
 
         <article class="bg-white rounded-3xl border border-violet-100 p-5 sm:p-6 shadow-xs space-y-2.5">
+          <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=900&q=80" alt="Shopping bag and customer return experience" loading="lazy" class="w-full h-40 sm:h-48 object-cover rounded-2xl mb-3"/>
           <h3 data-bn="৩. রিটার্ন ও এক্সচেঞ্জ নীতিমালা" data-en="3. Return & Exchange Policy" class="text-base sm:text-lg font-extrabold text-violet-950">৩. রিটার্ন ও এক্সচেঞ্জ নীতিমালা</h3>
           <p data-bn="পণ্য হাতে পাওয়ার ২৪ থেকে ৭২ ঘণ্টার মধ্যে কোনো পণ্য ত্রুটিপূর্ণ, ক্ষতিগ্রস্ত বা অর্ডারকৃত পণ্যের চেয়ে ভিন্ন হলে সহজেই রিটার্ন বা এক্সচেঞ্জের আবেদন করা যাবে। পণ্য অব্যবহৃত, অক্ষত এবং মূল প্যাকেজিং ও ট্যাগসহ থাকতে হবে।" data-en="Eligible return or exchange requests can be placed within 24 to 72 hours of delivery if a product is defective, damaged, or different from ordered. Items must remain unused with original packaging and tags." class="text-xs sm:text-sm text-slate-600 leading-relaxed">
             পণ্য হাতে পাওয়ার ২৪ থেকে ৭২ ঘণ্টার মধ্যে কোনো পণ্য ত্রুটিপূর্ণ, ক্ষতিগ্রস্ত বা অর্ডারকৃত পণ্যের চেয়ে ভিন্ন হলে সহজেই রিটার্ন বা এক্সচেঞ্জের আবেদন করা যাবে। পণ্য অব্যবহৃত, অক্ষত এবং মূল প্যাকেজিং ও ট্যাগসহ থাকতে হবে।
@@ -1498,6 +1441,7 @@
         </article>
 
         <article class="bg-white rounded-3xl border border-violet-100 p-5 sm:p-6 shadow-xs space-y-2.5">
+          <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=900&q=80" alt="Digital refund and payment card" loading="lazy" class="w-full h-40 sm:h-48 object-cover rounded-2xl mb-3"/>
           <h3 data-bn="৪. রিফান্ড নীতিমালা ও প্রসেসিং সময়" data-en="4. Refund Policy & Processing Timeline" class="text-base sm:text-lg font-extrabold text-violet-950">৪. রিফান্ড নীতিমালা ও প্রসেসিং সময়</h3>
           <p data-bn="অ্যাডভান্স পেমেন্টকৃত অর্ডার স্টক না থাকায় বাতিল হলে অথবা রিটার্নকৃত পণ্য আমাদের ওয়্যারহাউসে যাচাই সম্পন্ন হলে ৩ থেকে ৭ কার্যদিবসের মধ্যে বিকাশ, নগদ বা নির্ধারিত মাধ্যমে রিফান্ড সম্পন্ন করা হয়।" data-en="Refunds for cancelled advance-paid orders or verified returned items are processed via bKash, Nagad, or designated method within 3 to 7 business days." class="text-xs sm:text-sm text-slate-600 leading-relaxed">
             অ্যাডভান্স পেমেন্টকৃত অর্ডার স্টক না থাকায় বাতিল হলে অথবা রিটার্নকৃত পণ্য আমাদের ওয়্যারহাউসে যাচাই সম্পন্ন হলে ৩ থেকে ৭ কার্যদিবসের মধ্যে বিকাশ, নগদ বা নির্ধারিত মাধ্যমে রিফান্ড সম্পন্ন করা হয়।
@@ -4455,6 +4399,10 @@
     }
 
     function navigateTo(viewName) {
+      if ((viewName === 'admin' || viewName === 'liveEditor') && !isAdminSession()) {
+        showToast(currentLang === 'en' ? 'Admin access only. Please sign in with the authorized admin account.' : 'এই অংশটি শুধু অ্যাডমিনের জন্য। অনুমোদিত অ্যাডমিন অ্যাকাউন্ট দিয়ে লগ ইন করুন।');
+        viewName = 'home';
+      }
       if (rightSlideDrawerOpen) {
         closeRightOrderDrawer();
       }
@@ -5170,6 +5118,7 @@
       refreshAdminStats();
       syncDiscountAdminPermission();
       renderSupabaseStatusBadge();
+      if (role === 'অ্যাডমিন') navigateTo('admin');
       form.reset();
       toggleModalAdminPasswordField();
       showToast(
@@ -5602,6 +5551,10 @@
       );
       const cartQty = cartItems.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
       const adminActive = isAdminSession();
+      const adminNav = document.querySelector('[data-nav="admin"]');
+      const editorNav = document.querySelector('[data-nav="liveEditor"]');
+      if (adminNav) adminNav.style.display = adminActive ? '' : 'none';
+      if (editorNav) editorNav.style.display = adminActive ? '' : 'none';
 
       if (totalCatsEl) totalCatsEl.textContent = formatNum(categoriesData.length);
       if (totalItemsEl) totalItemsEl.textContent = formatNum(totalItems);
