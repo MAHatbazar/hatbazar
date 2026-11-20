@@ -108,8 +108,8 @@ BEGIN
   IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
     RAISE EXCEPTION 'Only an administrator can update partner applications';
   END IF;
-  IF p_user_id IS NULL OR p_role NOT IN ('seller', 'reseller')
-     OR p_status NOT IN ('pending', 'approved', 'rejected') THEN
+  IF p_user_id IS NULL OR p_role IS NULL OR p_role NOT IN ('seller', 'reseller')
+     OR p_status IS NULL OR p_status NOT IN ('pending', 'approved', 'rejected') THEN
     RAISE EXCEPTION 'Invalid partner status update';
   END IF;
 
