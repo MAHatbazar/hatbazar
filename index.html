@@ -152,6 +152,77 @@
       background: #6d28d9;
       border-radius: 9999px;
     }
+  
+    /* Hatbazar storefront refresh: inspired by the reference layout, without changing commerce logic */
+    body { background:#faf8f4 !important; color:#252a32; }
+    ::-webkit-scrollbar-track { background:#fff2e7; }
+    ::-webkit-scrollbar-thumb { background:#f58220; }
+    .nav-pill { color:#a84d0b; background:#fff7ef; border-color:#fed7aa; }
+    .nav-pill:hover,.nav-pill.active { color:#fff; background:#f58220; border-color:#f58220; }
+    #homeView { gap:1.5rem !important; }
+    #homeHeroPanel { background:#fff !important; border:0; box-shadow:none !important; padding:0 !important; border-radius:18px !important; }
+    #homeHeroPanel > .pointer-events-none { display:none; }
+    #homeHeroPanel > .relative.z-10 { display:block !important; }
+    #heroMainCopy { display:block !important; }
+    #heroMainCopy > span,#heroMainCopy > h1,#heroMainCopy > p,#heroMainCopy > .flex { display:none !important; }
+    #heroBannerImage { padding:0 !important; }
+    #heroBannerImage > div { border:0 !important; border-radius:16px !important; background:#fff !important; box-shadow:none !important; }
+    #heroBannerImage img { width:100%; aspect-ratio:16/8; height:auto !important; min-height:190px; object-fit:cover; }
+    #heroBannerImage .absolute.inset-0,#heroBannerImage .absolute.left-4 { display:none !important; }
+    #heroSideHighlights,#belowBannerPhotoStrip { display:none !important; }
+    #homeFeaturedCategories h2 { color:#252a32 !important; background:none !important; -webkit-text-fill-color:#252a32 !important; font-size:1.45rem !important; }
+    #homeFeaturedCategories p { display:none; }
+    #homeFeaturedCategories > div:first-child { justify-content:center !important; text-align:center; }
+    #homeFeaturedCategories > div:first-child button { display:none; }
+    #homeTopCategoriesGrid { display:flex !important; overflow-x:auto; gap:14px; padding:4px 2px 12px; scroll-snap-type:x mandatory; scrollbar-width:none; }
+    #homeTopCategoriesGrid::-webkit-scrollbar { display:none; }
+    #homeTopCategoriesGrid > button { flex:0 0 138px; width:138px; min-width:138px; padding:8px !important; border:0 !important; border-radius:24px !important; background:#fff !important; text-align:center !important; box-shadow:0 2px 14px rgba(0,0,0,.035) !important; scroll-snap-align:start; }
+    #homeTopCategoriesGrid > button img { height:126px !important; width:100%; object-fit:contain !important; border-radius:20px !important; background:#fff; margin-bottom:8px !important; }
+    #homeTopCategoriesGrid > button div { text-align:center; font-size:15px !important; color:#252a32 !important; }
+    #flashDealsHeading { color:#252a32 !important; }
+    #flashDealsContainer { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:12px !important; }
+    #flashDealsContainer > div { border:0 !important; border-radius:16px !important; box-shadow:0 2px 14px rgba(0,0,0,.05) !important; }
+    #flashDealsContainer img { height:190px !important; object-fit:contain !important; background:#fff; }
+    #flashDealsContainer .text-violet-800 { color:#f07818 !important; }
+    #flashDealsContainer button[data-act="add"] { background:#fff0e3 !important; color:#b45309 !important; }
+    #flashDealsContainer button[data-act="order"] { background:#f58220 !important; }
+    #homePoliciesSection { border-color:#f3e7dc !important; }
+    @media (max-width:639px) {
+      body { padding-bottom:0; }
+      body > div:first-child, body > div:nth-child(2) { display:none !important; }
+      header { position:sticky !important; top:0; background:#fff !important; border-bottom:1px solid #eee !important; box-shadow:0 2px 8px rgba(0,0,0,.04) !important; }
+      header > div { padding:10px 12px !important; }
+      header > div > div:first-child { min-height:50px; display:flex; align-items:center; justify-content:space-between; position:relative; gap:0 !important; }
+      #mobileMenuButton { display:block !important; order:0 !important; position:relative; z-index:2; width:34px; }
+      header [aria-label="Hatbazar Home"] { position:absolute; left:50%; transform:translateX(-50%); gap:6px !important; }
+      header [aria-label="Hatbazar Home"] > div:first-child { width:38px !important; height:38px !important; border-radius:10px !important; box-shadow:none !important; }
+      header [aria-label="Hatbazar Home"] #editableBrandTitle { font-size:18px !important; color:#e87518 !important; background:none !important; -webkit-text-fill-color:#e87518 !important; }
+      header [aria-label="Hatbazar Home"] #editableBrandTagline, header [aria-label="Hatbazar Home"] svg { display:none !important; }
+      header form[onsubmit="handleTopSearch(event)"] { display:none !important; }
+      header #langToggleBtn, header #authActionBtn, header button[onclick="openAiAssistantModal()"] { display:none !important; }
+      header > div > div:first-child > div.order-2 { position:static; margin-left:auto; display:flex !important; }
+      header button[aria-label="কার্ট দেখুন"] { background:transparent !important; color:#252a32 !important; box-shadow:none !important; padding:5px !important; font-size:22px !important; }
+      header button[aria-label="কার্ট দেখুন"] span:first-child { font-size:0; }
+      header button[aria-label="কার্ট দেখুন"] span:first-child:after { content:"🛒"; font-size:25px; }
+      header #cartCountBadge { position:absolute; margin-left:17px; margin-top:-16px; background:#f58220 !important; color:#fff !important; }
+      header nav[aria-label="প্রধান নেভিগেশন"] { display:none !important; }
+      main { padding:14px 12px 100px !important; }
+      #homeView { gap:22px !important; }
+      #homeHeroPanel { margin:0 !important; }
+      #heroBannerImage img { aspect-ratio:16/8.5; min-height:190px; }
+      #homeFeaturedCategories { margin-top:0 !important; }
+      #homeFeaturedCategories h2 { font-size:1.25rem !important; }
+      #flashDealsContainer img { height:150px !important; }
+      #flashDealsContainer .p-4 { padding:10px !important; }
+      #flashDealsContainer .px-4 { padding-left:8px !important; padding-right:8px !important; }
+      #flashDealsContainer button { font-size:10px !important; padding:8px 4px !important; }
+      #mobileCustomerNav { display:grid !important; }
+      #toastBanner { bottom:88px !important; right:10px !important; left:10px !important; max-width:none !important; }
+    }
+    @media (min-width:640px) {
+      #mobileCustomerNav { display:none !important; }
+    }
+
   </style>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -211,6 +282,7 @@
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-violet-100">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 py-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
+        <button id="mobileMenuButton" type="button" aria-label="মেনু খুলুন" onclick="navigateTo('shop')" class="hidden text-slate-800 text-3xl leading-none" style="border:0;background:transparent">☰</button>
         <div role="button" tabindex="0" aria-label="Hatbazar Home" title="Hatbazar" class="order-1 flex items-center gap-3 cursor-pointer" onclick="if(!editablePreviewEnabled) navigateTo('home')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();if(!editablePreviewEnabled)navigateTo('home')}">
           <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#1e1b4b] via-[#6d28d9] to-[#be185d] p-0.5 shadow-lg shadow-violet-600/25 flex items-center justify-center shrink-0">
             <svg viewBox="0 0 80 80" class="w-full h-full rounded-[14px]" xmlns="http://www.w3.org/2000/svg">
@@ -325,19 +397,12 @@
   </header>
 
   <!-- মোবাইল শপিং অ্যাপের মতো নিচের নেভিগেশন -->
-  <nav id="mobileCustomerNav" aria-label="মোবাইল কাস্টমার নেভিগেশন" class="sm:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-4 gap-1 border-t border-violet-200 bg-white/95 backdrop-blur-lg px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(76,29,149,0.12)]">
-    <button type="button" onclick="navigateTo('home')" data-mobile-nav="home" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-violet-900">
-      <span class="text-xl leading-none">⌂</span><span class="text-[10px] font-extrabold">হোম</span>
-    </button>
-    <button type="button" onclick="navigateTo('shop')" data-mobile-nav="shop" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-violet-900">
-      <span class="text-xl leading-none">▦</span><span class="text-[10px] font-extrabold">ক্যাটাগরি</span>
-    </button>
-    <button type="button" onclick="openPartnerRegistration('seller')" data-mobile-nav="sellerRegistration" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-violet-900">
-      <span class="text-xl leading-none">🏪</span><span class="text-[10px] font-extrabold">সেলার</span>
-    </button>
-    <button type="button" onclick="openPartnerRegistration('reseller')" data-mobile-nav="resellerRegistration" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-violet-900">
-      <span class="text-xl leading-none">📦</span><span class="text-[10px] font-extrabold">রিসেলার</span>
-    </button>
+  <nav id="mobileCustomerNav" aria-label="মোবাইল কাস্টমার নেভিগেশন" class="sm:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 gap-1 border-t border-orange-200 bg-[#f58220] text-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(245,130,32,0.22)]">
+    <button type="button" onclick="navigateTo('home')" data-mobile-nav="home" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">⌂</span><span class="text-[10px] font-bold">HOME</span></button>
+    <button type="button" onclick="navigateTo('shop')" data-mobile-nav="shop" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">▦</span><span class="text-[10px] font-bold">MENU</span></button>
+    <button type="button" onclick="openRightOrderDrawer()" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none relative">🛍️<span id="mobileCartCountBadge" class="absolute -top-1 -right-3 rounded-full bg-slate-900 text-white text-[9px] min-w-4 px-1">0</span></span><span class="text-[10px] font-bold">CART</span></button>
+    <button type="button" onclick="document.getElementById('topSearchInput')?.focus();window.scrollTo({top:0,behavior:'smooth'});" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">⌕</span><span class="text-[10px] font-bold">SEARCH</span></button>
+    <button type="button" onclick="handleAuthButtonClick()" class="flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-white"><span class="text-xl leading-none">♙</span><span class="text-[10px] font-bold">ACCOUNT</span></button>
   </nav>
 
   <!-- টোস্ট নোটিফিকেশন -->
@@ -397,12 +462,12 @@
         </aside>
 
         <div class="lg:col-span-9 flex flex-col gap-4">
-          <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1e1b4b] via-[#581c87] to-[#9d174d] text-white p-6 sm:p-9 shadow-xl shadow-violet-900/15">
+          <div id="homeHeroPanel" class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1e1b4b] via-[#581c87] to-[#9d174d] text-white p-6 sm:p-9 shadow-xl shadow-violet-900/15">
             <div class="pointer-events-none absolute -right-16 -top-16 w-64 h-64 rounded-full bg-amber-400/25 blur-2xl"></div>
             <div class="pointer-events-none absolute -left-16 -bottom-16 w-64 h-64 rounded-full bg-fuchsia-400/20 blur-2xl"></div>
 
             <div class="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-              <div class="md:col-span-7 space-y-3.5">
+              <div id="heroMainCopy" class="md:col-span-7 space-y-3.5">
                 <span data-bn="👑 এক্সক্লুসিভ কালেকশন ২০২৬ • সেরা অফার" data-en="👑 Exclusive Collection 2026 • Best Offers" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-300 to-amber-400 text-slate-950 shadow-sm">
                   👑 এক্সক্লুসিভ কালেকশন ২০২৬ • সেরা অফার
                 </span>
@@ -458,7 +523,7 @@
                 </div>
               </div>
 
-              <div class="md:col-span-5">
+              <div id="heroSideHighlights" class="md:col-span-5">
                 <div class="rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-4 sm:p-5 space-y-3">
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-amber-200 uppercase">স্টোর হাইলাইট</span>
@@ -570,7 +635,7 @@
               ⚡ FLASH SALE
             </span>
             <h2 id="flashDealsHeading" class="stylish-heading text-base sm:text-xl font-extrabold text-slate-900">
-              আজকের সেরা ফ্ল্যাশ ডিল
+              Top Selling Products
             </h2>
           </div>
           <button
