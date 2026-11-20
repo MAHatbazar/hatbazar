@@ -3593,47 +3593,53 @@
       }
     }
 
-    function renderAdminSellerApprovals() {
-      refreshAdminResellerPayouts();
+    async function renderAdminSellerApprovals() {
       const container = document.getElementById('adminSellerApprovalsContainer');
       if (!container) return;
-      if (sellerPartnersData.length === 0) {
-        container.innerHTML = `<div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500">কোনো আবেদন নেই।</div>`;
+      let cloudApplications = [];
+      if (isAdminSession() && cloudSyncEnabled && supabaseClient) {
+        const { data, error } = await supabaseClient.rpc('hatbazar_admin_list_marketplace_applications');
+        if (error) console.warn('Marketplace applications could not be loaded:', error.message);
+        else cloudApplications = Array.isArray(data) ? data : [];
+      }
+      const cloudHtml = cloudApplications.map((app) => {
+        const roleLabel = app.role === 'reseller' ? 'রিসেলার' : 'সেলার';
+        const status = app.status || 'pending';
+        const statusLabel = status === 'approved' ? 'অনুমোদিত' : status === 'rejected' ? 'বাতিল' : 'পেন্ডিং';
+        const badge = status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-amber-100 text-amber-900 border-amber-300';
+        return '<div class="rounded-2xl border border-violet-200 bg-violet-50/50 p-3.5 flex flex-wrap items-center justify-between gap-2.5 text-xs">'+
+          '<div class="space-y-0.5"><div class="font-extrabold text-slate-900 text-sm">'+escapeHtml(app.full_name||'নাম নেই')+' <span class="px-2 py-0.5 rounded-full text-[10px] border '+badge+'">'+statusLabel+'</span></div>'+
+          '<div class="text-slate-600 font-semibold">'+escapeHtml(app.phone||'')+' · '+roleLabel+(app.shop_name?' · '+escapeHtml(app.shop_name):'')+'</div></div>'+
+          '<div class="flex items-center gap-1.5">'+
+          '<button type="button" onclick="setMarketplaceAccountStatus(\''+escapeHtml(app.user_id)+'\',\''+app.role+'\',\'approved\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-emerald-600 text-white">Approve</button>'+
+          '<button type="button" onclick="setMarketplaceAccountStatus(\''+escapeHtml(app.user_id)+'\',\''+app.role+'\',\'rejected\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-rose-600 text-white">Reject</button></div></div>';
+      }).join('');
+      const localHtml = sellerPartnersData.map((p) => {
+        const badge = p.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : p.status === 'rejected' ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-amber-100 text-amber-900 border-amber-300';
+        const label = p.status === 'approved' ? 'অনুমোদিত' : p.status === 'rejected' ? 'বাতিল' : 'পেন্ডিং';
+        return '<div class="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 flex flex-wrap items-center justify-between gap-2.5 text-xs">'+
+          '<div class="space-y-0.5"><div class="font-extrabold text-slate-900 text-sm">'+escapeHtml(p.shopName)+' <span class="px-2 py-0.5 rounded-full text-[10px] border '+badge+'">'+label+'</span></div>'+
+          '<div class="text-slate-600 font-semibold">'+escapeHtml(p.name)+' · '+escapeHtml(p.phone)+' · '+(p.role==='reseller'?'রিসেলার':'সেলার')+'</div></div>'+
+          '<div class="flex items-center gap-1.5"><button type="button" onclick="setPartnerApprovalStatus(\''+escapeHtml(p.id)+'\',\'approved\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-emerald-600 text-white">Approve</button>'+
+          '<button type="button" onclick="setPartnerApprovalStatus(\''+escapeHtml(p.id)+'\',\'rejected\')" class="px-3 py-1.5 rounded-xl font-extrabold bg-rose-600 text-white">Reject</button></div></div>';
+      }).join('');
+      container.innerHTML = cloudHtml + localHtml || '<div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500">কোনো আবেদন নেই।</div>';
+    }
+
+    async function setMarketplaceAccountStatus(userId, role, status) {
+      if (!isAdminSession() || !cloudSyncEnabled || !supabaseClient) {
+        showToast('অ্যাডমিন লগইন ও Supabase সংযোগ প্রয়োজন।');
         return;
       }
-
-      container.innerHTML = sellerPartnersData
-        .map((p) => {
-          const badgeClass =
-            p.status === 'approved'
-              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-              : p.status === 'rejected'
-              ? 'bg-rose-100 text-rose-800 border-rose-300'
-              : 'bg-amber-100 text-amber-900 border-amber-300';
-          const statusLabel =
-            p.status === 'approved'
-              ? '✅ অনুমোদিত'
-              : p.status === 'rejected'
-              ? '❌ বাতিল'
-              : '⏳ পেন্ডিং';
-          return `
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 flex flex-wrap items-center justify-between gap-2.5 text-xs">
-              <div class="space-y-0.5">
-                <div class="font-extrabold text-slate-900 text-sm">${escapeHtml(p.shopName)} <span class="px-2 py-0.5 rounded-full text-[10px] border ${badgeClass}">${statusLabel}</span></div>
-                <div class="text-slate-600 font-semibold">${escapeHtml(p.name)} • ${escapeHtml(p.phone)} • ${escapeHtml(p.district)} (${p.role === 'reseller' ? 'রিসেলার' : 'সেলার'})</div>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <button type="button" onclick="setPartnerApprovalStatus('${escapeHtml(p.id)}', 'approved')" class="px-3 py-1.5 rounded-xl font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white transition">
-                  ✓ Approve
-                </button>
-                <button type="button" onclick="setPartnerApprovalStatus('${escapeHtml(p.id)}', 'rejected')" class="px-3 py-1.5 rounded-xl font-extrabold bg-rose-600 hover:bg-rose-700 text-white transition">
-                  ✕ Reject
-                </button>
-              </div>
-            </div>
-          `;
-        })
-        .join('');
+      const { data, error } = await supabaseClient.rpc('hatbazar_admin_update_marketplace_status', {
+        p_user_id: userId, p_role: role, p_status: status
+      });
+      if (error || !data?.success) {
+        showToast('স্ট্যাটাস আপডেট হয়নি: ' + (error?.message || 'আবার চেষ্টা করুন।'));
+        return;
+      }
+      await renderAdminSellerApprovals();
+      showToast(status === 'approved' ? 'অ্যাকাউন্ট অনুমোদিত হয়েছে।' : status === 'rejected' ? 'আবেদন বাতিল হয়েছে।' : 'স্ট্যাটাস আপডেট হয়েছে।');
     }
 
     function updateResellerMarginPreview() {
