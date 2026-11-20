@@ -2828,6 +2828,27 @@
       if (!cloudSyncEnabled || !supabaseClient) {
         return { success: false, error: 'Cloud database is not connected.' };
       }
+
+      // Existing orders may only be changed through the admin-only RPC.
+      if (orderRecord?.orderUuid) {
+        if (!isAdminSession()) {
+          return { success: false, error: 'Only an administrator can update an existing order.' };
+        }
+        try {
+          const { data, error } = await supabaseClient.rpc('hatbazar_admin_update_order', {
+            p_order_id: orderRecord.orderUuid,
+            p_order_status: orderRecord.orderStatus || null,
+            p_payment_verified: Boolean(orderRecord.paymentVerified)
+          });
+          if (error || !data?.success) {
+            return { success: false, error: error?.message || 'Order update was rejected.' };
+          }
+          return { success: true, data };
+        } catch (updateError) {
+          return { success: false, error: updateError?.message || 'Network error while updating the order.' };
+        }
+      }
+
       const paymentMap = {
         'ক্যাশ অন ডেলিভারি': 'cod',
         'বিকাশ': 'bkash',
@@ -2842,10 +2863,8 @@
       if (!rpcItems.length || rpcItems.some((item) => !isUuid(item.product_id))) {
         return { success: false, error: 'Cart contains a product that is not synced to the cloud yet.' };
       }
-      let data;
-      let error;
       try {
-        ({ data, error } = await supabaseClient.rpc('hatbazar_checkout_v2', {
+        const { data, error } = await supabaseClient.rpc('hatbazar_checkout_v2', {
           p_customer_name: orderRecord.customerName,
           p_phone: orderRecord.customerPhone,
           p_address: orderRecord.address,
@@ -2856,19 +2875,19 @@
           p_delivery_zone: orderRecord.deliveryZone,
           p_delivery_fee: Number(orderRecord.deliveryFee) || 0,
           p_payment_trx_id: orderRecord.paymentTrxId || null
-        }));
+        });
+        if (error || !data?.success) {
+          console.error('Hatbazar checkout failed:', error?.message || data?.message || 'Unknown error');
+          return { success: false, error: error?.message || data?.message || 'Order could not be saved.' };
+        }
+        orderRecord.id = data.order_code || data.order_id;
+        orderRecord.orderUuid = data.order_id;
+        orderRecord.totalAmount = Number(data.total_amount) || orderRecord.totalAmount;
+        orderRecord.createdAt = data.created_at || new Date().toISOString();
+        return { success: true, data };
       } catch (rpcError) {
         return { success: false, error: rpcError?.message || 'Network error while saving the order.' };
       }
-      if (error || !data?.success) {
-        console.error('Hatbazar checkout failed:', error?.message || data?.message || 'Unknown error');
-        return { success: false, error: error?.message || data?.message || 'Order could not be saved.' };
-      }
-      orderRecord.id = data.order_code || data.order_id;
-      orderRecord.orderUuid = data.order_id;
-      orderRecord.totalAmount = Number(data.total_amount) || orderRecord.totalAmount;
-      orderRecord.createdAt = data.created_at || new Date().toISOString();
-      return { success: true, data };
     }
 
     async function pullCentralOrdersFromSupabase() {
@@ -2973,11 +2992,14 @@
       }
       const ord = ordersData.find((o) => o.id === orderId);
       if (!ord) return;
+      const previousStatus = ord.orderStatus;
       ord.orderStatus = nextStatus;
-      if (nextStatus === 'confirmed' || nextStatus === 'delivered') {
-        ord.paymentVerified = true;
+      const saveResult = await persistOrderToSupabase(ord);
+      if (!saveResult.success) {
+        ord.orderStatus = previousStatus;
+        showToast(currentLang === 'en' ? 'Order update failed: ' + saveResult.error : 'অর্ডার আপডেট হয়নি: ' + saveResult.error);
+        return;
       }
-      await persistOrderToSupabase(ord);
       renderCentralOrdersList();
       renderCustomerOrderHistory();
       refreshAdminStats();
@@ -2991,8 +3013,14 @@
       }
       const ord = ordersData.find((o) => o.id === orderId);
       if (!ord) return;
+      const previousVerified = ord.paymentVerified;
       ord.paymentVerified = !ord.paymentVerified;
-      await persistOrderToSupabase(ord);
+      const saveResult = await persistOrderToSupabase(ord);
+      if (!saveResult.success) {
+        ord.paymentVerified = previousVerified;
+        showToast(currentLang === 'en' ? 'Payment update failed: ' + saveResult.error : 'পেমেন্ট আপডেট হয়নি: ' + saveResult.error);
+        return;
+      }
       renderCentralOrdersList();
       renderCustomerOrderHistory();
       showToast(
