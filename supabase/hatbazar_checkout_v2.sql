@@ -95,6 +95,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS orders_order_code_unique_idx
 -- Public storefronts may read gallery URLs for active products.
 ALTER TABLE public.product_images ENABLE ROW LEVEL SECURITY;
 GRANT SELECT ON TABLE public.product_images TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON TABLE public.product_images TO authenticated;
+DROP POLICY IF EXISTS "Admin manages product images" ON public.product_images;
+CREATE POLICY "Admin manages product images"
+ON public.product_images
+FOR ALL TO authenticated
+USING (public.is_admin())
+WITH CHECK (public.is_admin());
 DROP POLICY IF EXISTS "Public can view gallery images for active products" ON public.product_images;
 CREATE POLICY "Public can view gallery images for active products"
 ON public.product_images
