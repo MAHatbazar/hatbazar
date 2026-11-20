@@ -161,6 +161,8 @@ button:disabled{opacity:.5}
  <strong>✨ AI Product Assistant</strong>
  <p class="hint">Product-এর ছবি নির্বাচন করে AI দিয়ে বাংলা-ইংরেজি নাম, আকর্ষণীয় বিবরণ, Category ও প্রয়োজনীয় Size তৈরি করুন।</p>
  <button id="aiGenerateBtn" type="button" class="secondary">✨ ছবি থেকে Product Details তৈরি করুন</button>
+ <button id="freeImageStylesBtn" type="button" class="secondary" onclick="generateFiveFreeImageStyles()">🖼️ ফ্রিতে ৫টি ছবি ডিজাইন তৈরি করুন</button>
+ <div id="freeImageStylesStatus" class="hint" aria-live="polite"></div>
  <div id="aiStatus" class="hint" aria-live="polite"></div>
  <div id="aiGeneratedDetails" class="hint"></div>
  <div id="aiSizesPanel" class="hint"></div>
@@ -493,6 +495,60 @@ function previewSingleImages(files){
   img.src=URL.createObjectURL(file);
   preview.appendChild(img);
  });
+}
+
+async function generateFiveFreeImageStyles(){
+ const btn=$('freeImageStylesBtn');
+ const status=$('freeImageStylesStatus');
+ const source=(singleProductImages&&singleProductImages[0])||($('imageFiles').files&&$('imageFiles').files[0]);
+ if(!source){status.textContent='আগে Product-এর একটি ছবি নির্বাচন করুন।';return;}
+ const problem=validImage(source);
+ if(problem){status.textContent=problem;return;}
+ btn.disabled=true;btn.textContent='৫টি ডিজাইন তৈরি হচ্ছে...';
+ status.textContent='কোনো Paid API ছাড়া ফোন/ব্রাউজারেই ৫টি ক্যাটালগ ডিজাইন তৈরি হচ্ছে।';
+ try{
+  const img=await new Promise((resolve,reject)=>{
+   const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('ছবিটি খোলা যায়নি।'));
+   el.src=URL.createObjectURL(source);
+  });
+  const themes=[
+   {bg:'#ffffff',panel:'#f3f5f4',accent:'#dce8e1',shadow:'rgba(20,45,35,.14)'},
+   {bg:'#eaf3ff',panel:'#ffffff',accent:'#b9d5f5',shadow:'rgba(30,65,110,.16)'},
+   {bg:'#202a35',panel:'#344454',accent:'#d6b878',shadow:'rgba(0,0,0,.28)'},
+   {bg:'#f7eee3',panel:'#fffaf4',accent:'#e7c8a5',shadow:'rgba(100,65,35,.15)'},
+   {bg:'#edf0e8',panel:'#ffffff',accent:'#b8c6a5',shadow:'rgba(45,65,35,.16)'}
+  ];
+  const made=[];
+  for(let i=0;i<themes.length;i++){
+   const t=themes[i],canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+   canvas.width=1200;canvas.height=1200;
+   ctx.fillStyle=t.bg;ctx.fillRect(0,0,1200,1200);
+   ctx.fillStyle=t.accent;
+   if(i===0){ctx.beginPath();ctx.arc(1030,170,190,0,Math.PI*2);ctx.fill();}
+   if(i===1){ctx.fillRect(0,0,1200,120);ctx.fillRect(0,1080,1200,120);}
+   if(i===2){ctx.beginPath();ctx.arc(600,570,470,0,Math.PI*2);ctx.fill();}
+   if(i===3){ctx.fillRect(70,70,1060,1060);}
+   if(i===4){ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(1200,0);ctx.lineTo(1200,300);ctx.closePath();ctx.fill();}
+   const card=i===3?{x:110,y:110,w:980,h:980}:{x:90,y:90,w:1020,h:1020};
+   ctx.fillStyle=t.panel;ctx.shadowColor=t.shadow;ctx.shadowBlur=35;ctx.shadowOffsetY=18;
+   const radius=34;ctx.beginPath();ctx.roundRect(card.x,card.y,card.w,card.h,radius);ctx.fill();ctx.shadowColor='transparent';
+   const pad=58,maxW=card.w-pad*2,maxH=card.h-pad*2;
+   const scale=Math.min(maxW/img.width,maxH/img.height);
+   const w=img.width*scale,h=img.height*scale;
+   const x=(1200-w)/2,y=(1200-h)/2;
+   ctx.drawImage(img,x,y,w,h);
+   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.92));
+   if(!blob)throw new Error('ছবি তৈরি করা যায়নি।');
+   made.push(new File([blob],(source.name.replace(/\\.[^.]+$/,'')||'product')+'-design-'+(i+1)+'.jpg',{type:'image/jpeg'}));
+  }
+  singleProductImages=made;
+  $('imageFiles').value='';
+  $('singleImageNames').textContent='৫টি ডিজাইন তৈরি হয়েছে: '+made.map(f=>f.name).join(' | ');
+  const preview=$('singleImagePreview');preview.innerHTML='';
+  made.forEach(file=>{const im=document.createElement('img');im.src=URL.createObjectURL(file);preview.appendChild(im);});
+  status.textContent='৫টি ডিজাইন তৈরি হয়েছে। Product Save করলে Gallery-তে ৫টিই আপলোড হবে।';
+ }catch(err){status.textContent='ডিজাইন তৈরি হয়নি: '+(err.message||'অজানা সমস্যা');}
+ finally{btn.disabled=false;btn.textContent='🖼️ ফ্রিতে ৫টি ছবি ডিজাইন তৈরি করুন';}
 }
 
 function showExistingGallery(urls){
