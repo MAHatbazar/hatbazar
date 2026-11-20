@@ -498,55 +498,63 @@ function previewSingleImages(files){
 }
 
 async function generateFiveFreeImageStyles(){
- const btn=$('freeImageStylesBtn');
- const status=$('freeImageStylesStatus');
+ const btn=$('freeImageStylesBtn'),status=$('freeImageStylesStatus');
  const source=(singleProductImages&&singleProductImages[0])||($('imageFiles').files&&$('imageFiles').files[0]);
  if(!source){status.textContent='আগে Product-এর একটি ছবি নির্বাচন করুন।';return;}
- const problem=validImage(source);
- if(problem){status.textContent=problem;return;}
+ const problem=validImage(source);if(problem){status.textContent=problem;return;}
  btn.disabled=true;btn.textContent='৫টি ডিজাইন তৈরি হচ্ছে...';
- status.textContent='কোনো Paid API ছাড়া ফোন/ব্রাউজারেই ৫টি ক্যাটালগ ডিজাইন তৈরি হচ্ছে।';
+ status.textContent='একই আসল ছবি থেকে ৫টি আলাদা কম্পোজিশন তৈরি হচ্ছে।';
  try{
-  const img=await new Promise((resolve,reject)=>{
-   const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('ছবিটি খোলা যায়নি।'));
-   el.src=URL.createObjectURL(source);
-  });
-  const themes=[
-   {bg:'#ffffff',panel:'#f3f5f4',accent:'#dce8e1',shadow:'rgba(20,45,35,.14)'},
-   {bg:'#eaf3ff',panel:'#ffffff',accent:'#b9d5f5',shadow:'rgba(30,65,110,.16)'},
-   {bg:'#202a35',panel:'#344454',accent:'#d6b878',shadow:'rgba(0,0,0,.28)'},
-   {bg:'#f7eee3',panel:'#fffaf4',accent:'#e7c8a5',shadow:'rgba(100,65,35,.15)'},
-   {bg:'#edf0e8',panel:'#ffffff',accent:'#b8c6a5',shadow:'rgba(45,65,35,.16)'}
+  const img=await new Promise((resolve,reject)=>{const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('ছবিটি খোলা যায়নি।'));el.src=URL.createObjectURL(source);});
+  const styles=[
+   {bg:'#f7faf8',panel:'#ffffff',accent:'#cfe3d8',mode:'hero'},
+   {bg:'#eaf2ff',panel:'#ffffff',accent:'#8db5e8',mode:'portrait'},
+   {bg:'#202b38',panel:'#344657',accent:'#d9bd83',mode:'dark'},
+   {bg:'#fff3e7',panel:'#fffaf4',accent:'#e8c6a2',mode:'editorial'},
+   {bg:'#edf1e7',panel:'#ffffff',accent:'#a9bd98',mode:'offset'}
   ];
   const made=[];
-  for(let i=0;i<themes.length;i++){
-   const t=themes[i],canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
-   canvas.width=1200;canvas.height=1200;
-   ctx.fillStyle=t.bg;ctx.fillRect(0,0,1200,1200);
-   ctx.fillStyle=t.accent;
-   if(i===0){ctx.beginPath();ctx.arc(1030,170,190,0,Math.PI*2);ctx.fill();}
-   if(i===1){ctx.fillRect(0,0,1200,120);ctx.fillRect(0,1080,1200,120);}
-   if(i===2){ctx.beginPath();ctx.arc(600,570,470,0,Math.PI*2);ctx.fill();}
-   if(i===3){ctx.fillRect(70,70,1060,1060);}
-   if(i===4){ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(1200,0);ctx.lineTo(1200,300);ctx.closePath();ctx.fill();}
-   const card=i===3?{x:110,y:110,w:980,h:980}:{x:90,y:90,w:1020,h:1020};
-   ctx.fillStyle=t.panel;ctx.shadowColor=t.shadow;ctx.shadowBlur=35;ctx.shadowOffsetY=18;
-   const radius=34;ctx.beginPath();ctx.roundRect(card.x,card.y,card.w,card.h,radius);ctx.fill();ctx.shadowColor='transparent';
-   const pad=58,maxW=card.w-pad*2,maxH=card.h-pad*2;
-   const scale=Math.min(maxW/img.width,maxH/img.height);
-   const w=img.width*scale,h=img.height*scale;
-   const x=(1200-w)/2,y=(1200-h)/2;
-   ctx.drawImage(img,x,y,w,h);
-   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.92));
+  for(let i=0;i<styles.length;i++){
+   const t=styles[i],c=document.createElement('canvas'),g=c.getContext('2d');c.width=1200;c.height=1200;
+   g.fillStyle=t.bg;g.fillRect(0,0,1200,1200);
+   g.fillStyle=t.accent;
+   if(i===0){g.beginPath();g.arc(1040,155,210,0,Math.PI*2);g.fill();g.fillRect(0,1050,1200,150);}
+   if(i===1){g.fillRect(0,0,1200,185);g.beginPath();g.arc(600,640,470,0,Math.PI*2);g.fill();}
+   if(i===2){g.beginPath();g.arc(600,600,510,0,Math.PI*2);g.fill();}
+   if(i===3){g.fillRect(65,65,1070,1070);g.fillStyle='#fffaf4';g.fillRect(105,105,990,990);}
+   if(i===4){g.beginPath();g.moveTo(0,0);g.lineTo(1200,0);g.lineTo(1200,360);g.closePath();g.fill();g.fillRect(0,1010,1200,190);}
+   const box=[
+    {x:105,y:105,w:990,h:990},
+    {x:180,y:250,w:840,h:760},
+    {x:95,y:95,w:1010,h:1010},
+    {x:155,y:155,w:890,h:890},
+    {x:190,y:145,w:820,h:900}
+   ][i];
+   g.save();
+   if(i===1){g.beginPath();g.roundRect(box.x,box.y,box.w,box.h,420);g.clip();}
+   else {g.beginPath();g.roundRect(box.x,box.y,box.w,box.h,i===3?24:58);g.clip();}
+   g.fillStyle=t.panel;g.fillRect(box.x,box.y,box.w,box.h);
+   const fit=Math.min(box.w/img.width,box.h/img.height);
+   let scale=fit,dx=box.x+(box.w-img.width*fit)/2,dy=box.y+(box.h-img.height*fit)/2;
+   if(i===2){scale=fit*1.13;dx=box.x+(box.w-img.width*scale)/2;dy=box.y+(box.h-img.height*scale)/2;}
+   if(i===3){scale=fit*.88;dx=box.x+(box.w-img.width*scale)/2;dy=box.y+(box.h-img.height*scale)/2+22;}
+   if(i===4){scale=fit*.94;dx=box.x+(box.w-img.width*scale)/2+18;dy=box.y+(box.h-img.height*scale)/2-12;}
+   g.drawImage(img,dx,dy,img.width*scale,img.height*scale);g.restore();
+   g.fillStyle=t.mode==='dark'?'#ffffff':'#234638';g.font='bold 27px Arial';g.textAlign='center';
+   if(i===0)g.fillText('HATBAZAR COLLECTION',600,1140);
+   if(i===1)g.fillText('PRODUCT SPOTLIGHT',600,1150);
+   if(i===2)g.fillText('PREMIUM SELECTION',600,1140);
+   if(i===3)g.fillText('JUST FOR YOU',600,1115);
+   if(i===4)g.fillText('HATBAZAR',600,1145);
+   const blob=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.93));
    if(!blob)throw new Error('ছবি তৈরি করা যায়নি।');
-   made.push(new File([blob],(source.name.replace(/\\.[^.]+$/,'')||'product')+'-design-'+(i+1)+'.jpg',{type:'image/jpeg'}));
+   made.push(new File([blob],(source.name.replace(/\.[^.]+$/,'')||'product')+'-design-'+(i+1)+'.jpg',{type:'image/jpeg'}));
   }
-  singleProductImages=made;
-  $('imageFiles').value='';
-  $('singleImageNames').textContent='৫টি ডিজাইন তৈরি হয়েছে: '+made.map(f=>f.name).join(' | ');
+  singleProductImages=made;$('imageFiles').value='';
+  $('singleImageNames').textContent='৫টি আলাদা ডিজাইন তৈরি হয়েছে।';
   const preview=$('singleImagePreview');preview.innerHTML='';
   made.forEach(file=>{const im=document.createElement('img');im.src=URL.createObjectURL(file);preview.appendChild(im);});
-  status.textContent='৫টি ডিজাইন তৈরি হয়েছে। Product Save করলে Gallery-তে ৫টিই আপলোড হবে।';
+  status.textContent='৫টি আলাদা লেআউট তৈরি হয়েছে। এগুলো একই মূল পণ্যের ছবি, নতুন ক্যামেরা ভিউ নয়। Save করলে ৫টিই Gallery-তে যাবে।';
  }catch(err){status.textContent='ডিজাইন তৈরি হয়নি: '+(err.message||'অজানা সমস্যা');}
  finally{btn.disabled=false;btn.textContent='🖼️ ফ্রিতে ৫টি ছবি ডিজাইন তৈরি করুন';}
 }
