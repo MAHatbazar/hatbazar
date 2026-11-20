@@ -29,7 +29,11 @@ button:disabled{opacity:.5}
 .hidden{display:none!important}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:18px 0}
-.tile{padding:17px}
+.tile{padding:17px;text-align:left;border:0;width:100%;color:#183b32;background:#fff}
+.admin-nav .tile{min-height:92px}
+.admin-nav .tile.active{outline:2px solid #173f35;background:#eef6f1}
+.admin-nav .tile h3{color:#183b32}
+.admin-nav .tile p{color:#687871}
 .tile h3{margin:0 0 7px;font-size:17px}
 .tile p{margin:0;font-size:13px}
 .section{margin-top:18px}
@@ -100,16 +104,16 @@ button:disabled{opacity:.5}
 <button id="logoutBtn">Logout</button>
 </div>
 
-<div class="grid">
-<div class="tile"><h3>📦 Products</h3><p>পণ্য ব্যবস্থাপনা</p></div>
-<div class="tile"><h3>🛒 Orders</h3><p>অর্ডার ব্যবস্থাপনা</p></div>
-<div class="tile"><h3>👥 Sellers</h3><p>Seller ব্যবস্থাপনা</p></div>
-<div class="tile"><h3>🤝 Resellers</h3><p>Reseller ব্যবস্থাপনা</p></div>
-<div class="tile"><h3>📊 Reports</h3><p>বিক্রয় ও রিপোর্ট</p></div>
-<div class="tile"><h3>⚙️ Settings</h3><p>ওয়েবসাইট সেটিংস</p></div>
+<div class="grid admin-nav">
+<button type="button" class="tile active" data-section="products" onclick="setAdminSection('products')"><h3>📦 Products</h3><p>পণ্য ব্যবস্থাপনা</p></button>
+<button type="button" class="tile" data-section="orders" onclick="setAdminSection('orders')"><h3>🛒 Orders</h3><p>অর্ডার ব্যবস্থাপনা</p></button>
+<button type="button" class="tile" data-section="sellers" onclick="setAdminSection('sellers')"><h3>👥 Sellers</h3><p>Seller ব্যবস্থাপনা</p></button>
+<button type="button" class="tile" data-section="resellers" onclick="setAdminSection('resellers')"><h3>🤝 Resellers</h3><p>Reseller ব্যবস্থাপনা</p></button>
+<button type="button" class="tile" data-section="reports" onclick="setAdminSection('reports')"><h3>📊 Reports</h3><p>বিক্রয় ও রিপোর্ট</p></button>
+<button type="button" class="tile" data-section="settings" onclick="setAdminSection('settings')"><h3>⚙️ Settings</h3><p>ওয়েবসাইট সেটিংস</p></button>
 </div>
 
-<div class="card section">
+<div id="section-products" class="card section admin-section">
 
 <div class="top">
 <div>
@@ -220,6 +224,35 @@ Product Active
 <div id="status"></div>
 <div id="productList">Products লোড হচ্ছে...</div>
 
+</div>
+
+<div id="section-orders" class="card section admin-section hidden">
+  <div class="top"><div><h2>🛒 Orders Management</h2><p>গ্রাহকের অর্ডার, পেমেন্ট ও ডেলিভারি স্ট্যাটাস দেখুন এবং আপডেট করুন।</p></div><button type="button" class="secondary" onclick="loadOrders()">Refresh</button></div>
+  <div id="ordersSummary" class="category-count">অর্ডার লোড হচ্ছে...</div><div id="ordersList">লোড হচ্ছে...</div>
+</div>
+<div id="section-sellers" class="card section admin-section hidden">
+  <div class="top"><div><h2>👥 Sellers Management</h2><p>Seller আবেদন, যোগাযোগ ও অনুমোদনের অবস্থা পরিচালনা করুন।</p></div><button type="button" class="secondary" onclick="loadSellers()">Refresh</button></div>
+  <div id="sellersSummary" class="category-count">Seller লোড হচ্ছে...</div><div id="sellersList">লোড হচ্ছে...</div>
+</div>
+<div id="section-resellers" class="card section admin-section hidden">
+  <div class="top"><div><h2>🤝 Resellers Management</h2><p>Reseller প্রোফাইল, বিক্রয় ও পেআউট অনুরোধ দেখুন।</p></div><button type="button" class="secondary" onclick="loadResellers()">Refresh</button></div>
+  <div id="resellersSummary" class="category-count">Reseller লোড হচ্ছে...</div><div id="resellersList">লোড হচ্ছে...</div>
+  <h3>পেআউট অনুরোধ</h3><div id="payoutList">লোড হচ্ছে...</div>
+</div>
+<div id="section-reports" class="card section admin-section hidden">
+  <div class="top"><div><h2>📊 Reports</h2><p>বর্তমান ডেটাবেসের পণ্য, অর্ডার ও বিক্রয় সারাংশ।</p></div><button type="button" class="secondary" onclick="loadReports()">Refresh</button></div>
+  <div id="reportsSummary" class="grid"></div><div id="reportsDetails" class="hint"></div>
+</div>
+<div id="section-settings" class="card section admin-section hidden">
+  <div class="top"><div><h2>⚙️ Website Settings</h2><p>ডেলিভারি চার্জ ও সম্ভাব্য ডেলিভারি সময় পরিবর্তন করুন।</p></div><button type="button" class="secondary" onclick="loadSettings()">Refresh</button></div>
+  <div id="settingsStatus" class="category-count">সেটিংস লোড হচ্ছে...</div>
+  <form id="settingsForm"><div class="formgrid">
+   <div><label>ঢাকার ভিতরে ডেলিভারি চার্জ (৳)</label><input id="insideFee" type="number" min="0" max="5000" step="1" required></div>
+   <div><label>ঢাকার বাইরে ডেলিভারি চার্জ (৳)</label><input id="outsideFee" type="number" min="0" max="5000" step="1" required></div>
+   <div><label>ঢাকার ভিতরে ডেলিভারি সময়</label><input id="insideEta" maxlength="80" required></div>
+   <div><label>ঢাকার বাইরে ডেলিভারি সময়</label><input id="outsideEta" maxlength="80" required></div>
+  </div><button id="saveSettingsBtn" type="submit">Save Settings</button></form>
+  <p class="hint">সেটিংস সংরক্ষণের আগে মানগুলো ভালোভাবে যাচাই করুন।</p>
 </div>
 </section>
 </main>
@@ -345,6 +378,85 @@ function showExistingGallery(urls){
  });
 }
 
+
+function setAdminSection(name){
+ document.querySelectorAll('.admin-section').forEach(el=>el.classList.add('hidden'));
+ const panel=$('section-'+name);if(panel)panel.classList.remove('hidden');
+ document.querySelectorAll('.admin-nav [data-section]').forEach(btn=>btn.classList.toggle('active',btn.dataset.section===name));
+ if(name==='orders')loadOrders();if(name==='sellers')loadSellers();if(name==='resellers')loadResellers();if(name==='reports')loadReports();if(name==='settings')loadSettings();
+}
+function renderRows(target,rows,emptyText){$(target).innerHTML=rows.length?rows.join(''):'<p class="hint">'+escapeHTML(emptyText)+'</p>';}
+
+async function loadOrders(){
+ $('ordersList').textContent='অর্ডার লোড হচ্ছে...';
+ const {data,error}=await db.from('orders').select('id,order_code,customer_name,phone,address,total_amount,payment_method,payment_status,payment_verified,order_status,created_at').order('created_at',{ascending:false}).limit(200);
+ if(error){$('ordersList').textContent='অর্ডার লোড হয়নি: '+error.message;return;}
+ const rows=data||[];
+ const itemResult=rows.length?await db.from('order_items').select('order_id,product_name,quantity,unit_price').in('order_id',rows.map(x=>x.id)): {data:[],error:null};
+ if(itemResult.error){$('ordersList').textContent='অর্ডারের পণ্যতালিকা লোড হয়নি: '+itemResult.error.message;return;}
+ const itemMap={};(itemResult.data||[]).forEach(it=>{(itemMap[it.order_id]||(itemMap[it.order_id]=[])).push(it);});
+ $('ordersSummary').textContent='মোট '+rows.length+'টি অর্ডার পাওয়া গেছে'+(rows.length===200?' (সর্বশেষ ২০০টি দেখানো হচ্ছে)':'')+'.';
+ renderRows('ordersList',rows.map(o=>{const items=itemMap[o.id]||[];const itemText=items.map(it=>escapeHTML(it.product_name)+' × '+it.quantity+' · ৳'+Number(it.unit_price||0).toLocaleString('en-US')).join('<br>');return `<div class="product"><div class="product-info"><strong>${escapeHTML(o.order_code||o.id)} · ${escapeHTML(o.customer_name||'নাম নেই')}</strong><small>ফোন: ${escapeHTML(o.phone||'—')}<br>ঠিকানা: ${escapeHTML(o.address||'—')}<br>পণ্য: ${itemText||'পণ্যতথ্য নেই'}<br>মোট: ৳${Number(o.total_amount||0).toLocaleString('en-US')} · পেমেন্ট: ${escapeHTML(o.payment_method||'—')} / ${escapeHTML(o.payment_status||'pending')} · ${o.payment_verified?'যাচাইকৃত':'যাচাই বাকি'}<br>${o.created_at?new Date(o.created_at).toLocaleString('bn-BD'):''}</small><label>Order Status</label><select onchange="updateOrderStatus('${o.id}',this.value)">${['pending','confirmed','processing','shipped','delivered','cancelled'].map(v=>'<option value="'+v+'" '+(o.order_status===v?'selected':'')+'>'+v+'</option>').join('')}</select></div></div>`;}),'এখনো কোনো অর্ডার পাওয়া যায়নি।');
+}
+async function updateOrderStatus(id,value){
+ if(!['pending','confirmed','processing','shipped','delivered','cancelled'].includes(value))return;
+ const {error}=await db.from('orders').update({order_status:value}).eq('id',id);
+ if(error){alert('স্ট্যাটাস আপডেট হয়নি: '+error.message);return;}alert('অর্ডার স্ট্যাটাস আপডেট হয়েছে।');
+}
+async function loadSellers(){
+ $('sellersList').textContent='Seller লোড হচ্ছে...';
+ const {data,error}=await db.from('seller_profiles').select('id,shop_name,status,district,notes').order('id');
+ if(error){$('sellersList').textContent='Seller লোড হয়নি: '+error.message;return;}
+ const rows=data||[],ids=rows.map(x=>x.id);let profiles=[];
+ if(ids.length){const r=await db.from('profiles').select('id,full_name,phone,address').in('id',ids);if(r.error){$('sellersList').textContent='যোগাযোগের তথ্য লোড হয়নি: '+r.error.message;return;}profiles=r.data||[];}
+ const byId=Object.fromEntries(profiles.map(p=>[p.id,p]));$('sellersSummary').textContent='মোট '+rows.length+'টি Seller প্রোফাইল।';
+ renderRows('sellersList',rows.map(x=>{const p=byId[x.id]||{};return `<div class="product"><div class="product-info"><strong>${escapeHTML(x.shop_name||p.full_name||'নাম নেই')}</strong><small>নাম: ${escapeHTML(p.full_name||'—')} · ফোন: ${escapeHTML(p.phone||'—')}<br>জেলা: ${escapeHTML(x.district||'—')}<br>ঠিকানা: ${escapeHTML(p.address||'—')}<br>নোট: ${escapeHTML(x.notes||'—')}</small><label>Approval Status</label><select onchange="updateMemberStatus('seller_profiles','${x.id}',this.value)">${['pending','approved','rejected','suspended'].map(v=>'<option value="'+v+'" '+(x.status===v?'selected':'')+'>'+v+'</option>').join('')}</select></div></div>`;}),'এখনো কোনো Seller আবেদন/প্রোফাইল নেই।');
+}
+async function loadResellers(){
+ $('resellersList').textContent='Reseller লোড হচ্ছে...';
+ const {data,error}=await db.from('reseller_profiles').select('id,shop_name,status,district,notes').order('id');
+ if(error){$('resellersList').textContent='Reseller লোড হয়নি: '+error.message;return;}
+ const rows=data||[],ids=rows.map(x=>x.id);let profiles=[];
+ if(ids.length){const r=await db.from('profiles').select('id,full_name,phone,address').in('id',ids);if(r.error){$('resellersList').textContent='যোগাযোগের তথ্য লোড হয়নি: '+r.error.message;return;}profiles=r.data||[];}
+ const byId=Object.fromEntries(profiles.map(p=>[p.id,p]));$('resellersSummary').textContent='মোট '+rows.length+'টি Reseller প্রোফাইল।';
+ renderRows('resellersList',rows.map(x=>{const p=byId[x.id]||{};return `<div class="product"><div class="product-info"><strong>${escapeHTML(x.shop_name||p.full_name||'নাম নেই')}</strong><small>নাম: ${escapeHTML(p.full_name||'—')} · ফোন: ${escapeHTML(p.phone||'—')}<br>জেলা: ${escapeHTML(x.district||'—')}<br>ঠিকানা: ${escapeHTML(p.address||'—')}<br>নোট: ${escapeHTML(x.notes||'—')}</small><label>Approval Status</label><select onchange="updateMemberStatus('reseller_profiles','${x.id}',this.value)">${['pending','approved','rejected','suspended'].map(v=>'<option value="'+v+'" '+(x.status===v?'selected':'')+'>'+v+'</option>').join('')}</select></div></div>`;}),'এখনো কোনো Reseller আবেদন/প্রোফাইল নেই।');
+ const payouts=await db.from('reseller_payout_requests').select('id,reseller_id,payout_method,payout_account,amount,status,admin_note,created_at').order('created_at',{ascending:false}).limit(100);
+ if(payouts.error){$('payoutList').textContent='পেআউট লোড হয়নি: '+payouts.error.message;return;}
+ renderRows('payoutList',(payouts.data||[]).map(x=>`<div class="product"><div class="product-info"><strong>৳${Number(x.amount).toLocaleString('en-US')} · ${escapeHTML(x.status)}</strong><small>Reseller ID: ${escapeHTML(x.reseller_id)}<br>মাধ্যম: ${escapeHTML(x.payout_method)} · অ্যাকাউন্ট: ${escapeHTML(x.payout_account)}<br>নোট: ${escapeHTML(x.admin_note||'—')}</small></div></div>`),'এখনো কোনো পেআউট অনুরোধ নেই।');
+}
+async function updateMemberStatus(table,id,value){
+ if(!['seller_profiles','reseller_profiles'].includes(table)||!['pending','approved','rejected','suspended'].includes(value))return;
+ const {error}=await db.from(table).update({status:value}).eq('id',id);
+ if(error){alert('স্ট্যাটাস আপডেট হয়নি: '+error.message);return;}alert('স্ট্যাটাস আপডেট হয়েছে।');
+}
+async function loadReports(){
+ $('reportsDetails').textContent='রিপোর্ট তৈরি হচ্ছে...';
+ const [p,o,s,r]=await Promise.all([db.from('products').select('id,price,stock,is_active'),db.from('orders').select('id,total_amount,order_status,payment_status'),db.from('seller_profiles').select('id,status'),db.from('reseller_profiles').select('id,status')]);
+ const error=[p,o,s,r].find(x=>x.error);if(error){$('reportsDetails').textContent='রিপোর্ট লোড হয়নি: '+error.error.message;return;}
+ const products=p.data||[],orders=o.data||[],sellers=s.data||[],resellers=r.data||[];
+ const revenue=orders.filter(x=>x.order_status!=='cancelled').reduce((a,x)=>a+Number(x.total_amount||0),0);
+ const cards=[['মোট Product',products.length],['Active Product',products.filter(x=>x.is_active).length],['মোট Order',orders.length],['মোট বিক্রয়','৳'+revenue.toLocaleString('en-US')],['Pending Order',orders.filter(x=>x.order_status==='pending').length],['Paid Order',orders.filter(x=>x.payment_status==='paid').length],['Seller',sellers.length],['Reseller',resellers.length]];
+ $('reportsSummary').innerHTML=cards.map(x=>'<div class="tile"><h3>'+escapeHTML(x[1])+'</h3><p>'+escapeHTML(x[0])+'</p></div>').join('');
+ $('reportsDetails').textContent='বিক্রয় হিসাব total_amount থেকে করা হয়েছে, বাতিল অর্ডার বাদ দিয়ে।';
+}
+async function loadSettings(){
+ $('settingsStatus').textContent='সেটিংস লোড হচ্ছে...';
+ const {data,error}=await db.rpc('hatbazar_get_delivery_settings');
+ if(error||!data){$('settingsStatus').textContent='সেটিংস লোড হয়নি: '+(error?.message||'তথ্য পাওয়া যায়নি');return;}
+ $('insideFee').value=data.inside_fee??80;$('outsideFee').value=data.outside_fee??130;$('insideEta').value=data.inside_eta??'';$('outsideEta').value=data.outside_eta??'';
+ $('settingsStatus').textContent='সেটিংস সফলভাবে লোড হয়েছে। সর্বশেষ আপডেট: '+(data.updated_at?new Date(data.updated_at).toLocaleString('bn-BD'):'—');
+}
+$('settingsForm').addEventListener('submit',async e=>{
+ e.preventDefault();const btn=$('saveSettingsBtn');btn.disabled=true;btn.textContent='সংরক্ষণ হচ্ছে...';
+ try{
+  const payload={p_inside_fee:Number($('insideFee').value),p_outside_fee:Number($('outsideFee').value),p_inside_eta:$('insideEta').value.trim(),p_outside_eta:$('outsideEta').value.trim()};
+  if(!Number.isFinite(payload.p_inside_fee)||!Number.isFinite(payload.p_outside_fee)||payload.p_inside_fee<0||payload.p_outside_fee<0||payload.p_inside_fee>5000||payload.p_outside_fee>5000)throw new Error('ডেলিভারি চার্জ ০ থেকে ৫০০০ টাকার মধ্যে দিন।');
+  const {data,error}=await db.rpc('hatbazar_update_delivery_settings',payload);if(error)throw error;
+  $('settingsStatus').textContent='সেটিংস সফলভাবে সংরক্ষিত হয়েছে।';
+ }catch(err){$('settingsStatus').textContent='সেটিংস সংরক্ষণ হয়নি: '+err.message;}
+ finally{btn.disabled=false;btn.textContent='Save Settings';}
+});
+
 async function verifyAdmin(user){
  if(!user)return false;
 
@@ -364,6 +476,7 @@ async function verifyAdmin(user){
 
  await loadCategories();
  await loadProducts();
+ setAdminSection('products');
 
  return true;
 }
