@@ -187,6 +187,7 @@
     #flashDealsContainer button[data-act="add"] { background:#fff0e3 !important; color:#b45309 !important; }
     #flashDealsContainer button[data-act="order"] { background:#f58220 !important; }
     #homePoliciesSection { border-color:#f3e7dc !important; }
+    header [aria-label="Hatbazar Home"] .brand-logo-image { width:min(390px,31vw); max-height:92px; object-fit:contain; }
     @media (max-width:639px) {
       body { padding-bottom:0; }
       body > div:first-child, body > div:nth-child(2) { display:none !important; }
@@ -400,43 +401,8 @@
       <div class="flex flex-wrap items-center justify-between gap-3">
         <button id="mobileMenuButton" type="button" aria-label="মেনু খুলুন" onclick="openSiteMenuDrawer()" class="hidden text-slate-800 text-3xl leading-none" style="border:0;background:transparent">☰</button>
         <button id="mobileLangToggleBtn" type="button" onclick="toggleLanguage()" aria-label="Change language" class="hidden items-center justify-center rounded-full border border-orange-200 bg-orange-50 px-2.5 py-2 text-[11px] font-extrabold text-orange-800">EN / বাংলা</button>
-        <div role="button" tabindex="0" aria-label="Hatbazar Home" title="Hatbazar" class="order-1 flex items-center gap-3 cursor-pointer" onclick="if(!editablePreviewEnabled) navigateTo('home')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();if(!editablePreviewEnabled)navigateTo('home')}">
-          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#1e1b4b] via-[#6d28d9] to-[#be185d] p-0.5 shadow-lg shadow-violet-600/25 flex items-center justify-center shrink-0">
-            <svg viewBox="0 0 80 80" class="w-full h-full rounded-[14px]" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="hbLogoBg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#1e1b4b"/>
-                  <stop offset="50%" stop-color="#701a75"/>
-                  <stop offset="100%" stop-color="#be185d"/>
-                </linearGradient>
-                <linearGradient id="hbGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#fef9c3"/>
-                  <stop offset="45%" stop-color="#fbbf24"/>
-                  <stop offset="100%" stop-color="#d97706"/>
-                </linearGradient>
-              </defs>
-              <rect width="80" height="80" fill="url(#hbLogoBg)"/>
-              <path d="M27 16 L32 23 L40 13 L48 23 L53 16 L50 26 L30 26 Z" fill="url(#hbGoldGrad)"/>
-              <path d="M31 28 C31 21, 49 21, 49 28" stroke="#fde047" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-              <path d="M21 28 H59 L63 63 C63.3 65.8 61.2 68 58.4 68 H21.6 C18.8 68 16.7 65.8 17 63 Z" fill="#ffffff" fill-opacity="0.1" stroke="url(#hbGoldGrad)" stroke-width="2.2"/>
-              <path d="M26 39 V55 M38 39 V55 M26 47 H38" stroke="url(#hbGoldGrad)" stroke-width="3.2" stroke-linecap="round"/>
-              <path d="M45 39 V55 M45 39 H52.5 C55.5 39 57 40.6 57 43 C57 45.2 55.5 46.8 52.5 46.8 H45 M45 46.8 H53.5 C56.5 46.8 58.2 48.5 58.2 51 C58.2 53.6 56.5 55 53.5 55 H45" stroke="url(#hbGoldGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <path d="M24 60 Q40 65 56 59" stroke="#fde047" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.85"/>
-            </svg>
-          </div>
-          <div>
-            <div class="relative inline-block">
-              <span id="editableBrandTitle" class="text-xl sm:text-2xl font-black italic tracking-tight bg-gradient-to-r from-violet-800 via-fuchsia-600 to-amber-500 bg-clip-text text-transparent pr-1">
-                Hatbazar
-              </span>
-              <svg viewBox="0 0 140 12" class="w-full h-2.5 -mt-1 block overflow-visible" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 6 Q70 12 136 3" stroke="url(#hbGoldGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <div id="editableBrandTagline" class="text-[11px] font-semibold text-amber-600 mt-0.5">
-              — আভিজাত্য ও আস্থার ঠিকানা
-            </div>
-          </div>
+        <div role="button" tabindex="0" aria-label="Hatbazar Home" title="Hatbazar" class="order-1 flex items-center cursor-pointer shrink-0" onclick="if(!editablePreviewEnabled) navigateTo('home')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();if(!editablePreviewEnabled)navigateTo('home')}">
+          <img src="assets/hatbazar-premium-logo.svg" alt="Hatbazar - Your Everyday Shopping Destination" class="brand-logo-image block h-auto" />
         </div>
 
         <!-- সেন্টার স্মার্ট সার্চ বার -->

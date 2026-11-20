@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 512" role="img" aria-labelledby="title desc">
+<title id="title">Hatbazar</title><desc id="desc">Hatbazar, Your Everyday Shopping Destination</desc>
+<defs>
+ <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff9d00"/><stop offset=".55" stop-color="#f58220"/><stop offset="1" stop-color="#e95d00"/></linearGradient>
+ <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4b0082"/><stop offset="1" stop-color="#26004f"/></linearGradient>
+ <linearGradient id="bag" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffae00"/><stop offset=".65" stop-color="#f58220"/><stop offset="1" stop-color="#ec6500"/></linearGradient>
+</defs>
+<rect width="1536" height="512" fill="#fff"/>
+<!-- shopping bag -->
+<path d="M185 117 C188 43 254 13 292 91 C330 13 397 43 399 117" fill="none" stroke="url(#purple)" stroke-width="17" stroke-linecap="round"/>
+<path d="M226 120 C228 49 280 25 293 108 C306 25 358 49 360 120" fill="none" stroke="url(#purple)" stroke-width="14" stroke-linecap="round"/>
+<path d="M129 124 L376 124 Q390 124 393 140 L410 280 Q413 300 392 307 L147 330 Q126 332 121 312 L101 153 Q98 132 119 128Z" fill="url(#bag)"/>
+<path d="M128 145 L106 300 Q103 319 123 323 L160 318 L147 133Z" fill="url(#purple)" opacity=".95"/>
+<path d="M216 192 L250 192 L272 225 L348 225 L331 267 L261 267Z" fill="none" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
+<path d="M266 238 H342 M276 252 H336 M285 225 L291 267 M311 225 L311 267" stroke="#fff" stroke-width="6"/>
+<circle cx="279" cy="282" r="8" fill="#fff"/><circle cx="329" cy="282" r="8" fill="#fff"/>
+<path d="M8 251 Q37 179 101 155 M12 284 Q33 346 142 349 Q260 362 390 316" fill="none" stroke="url(#orange)" stroke-width="15" stroke-linecap="round"/>
+<!-- brand name -->
+<text x="423" y="271" font-family="Arial, Helvetica, sans-serif" font-size="181" font-weight="900" font-style="italic" letter-spacing="-9" fill="url(#purple)">Hat</text>
+<text x="682" y="271" font-family="Arial, Helvetica, sans-serif" font-size="181" font-weight="900" font-style="italic" letter-spacing="-9" fill="url(#orange)">bazar</text>
+<path d="M780 115 Q1015 18 1267 114" fill="none" stroke="url(#orange)" stroke-width="16" stroke-linecap="round"/>
+<!-- cart -->
+<path d="M1320 145 H1372 L1396 249 Q1400 263 1417 263 H1490 L1512 172 H1382" fill="none" stroke="url(#purple)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1392 188 H1502 M1399 215 H1495 M1407 240 H1488 M1430 176 L1440 258 M1466 176 L1469 258" stroke="url(#purple)" stroke-width="9"/>
+<circle cx="1420" cy="291" r="18" fill="url(#purple)"/><circle cx="1490" cy="291" r="18" fill="url(#purple)"/>
+<!-- tagline -->
+<path d="M220 359 H389 M1155 359 H1490" stroke="url(#purple)" stroke-width="8"/>
+<text x="405" y="382" font-family="Arial, Helvetica, sans-serif" font-size="53" font-weight="700" font-style="italic" fill="url(#purple)">Your Everyday Shopping Destination</text>
+<path d="M538 437 Q870 361 1224 437" fill="none" stroke="url(#orange)" stroke-width="10" stroke-linecap="round"/>
+</svg>
