@@ -965,8 +965,8 @@
                     </div>
                   </div>
                   <div class="sm:col-span-2">
-                    <label for="newItemGalleryFiles" class="block text-xs font-bold text-slate-700 mb-1">অতিরিক্ত গ্যালারি ছবি (সর্বোচ্চ ১০টি, প্রতিটি ৫MB পর্যন্ত)</label>
-                    <input id="newItemGalleryFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-fuchsia-600 file:text-white" />
+                    <label for="newItemGalleryFiles" class="block text-xs font-bold text-slate-700 mb-1">অতিরিক্ত গ্যালারি ছবি (মূল ছবিসহ মোট সর্বোচ্চ ১০টি, প্রতিটি ৫MB পর্যন্ত)</label>
+                    <input id="newItemGalleryFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onchange="handleAdditionalGallerySelection(event)" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-fuchsia-600 file:text-white" /><p id="newItemGalleryStatus" class="mt-1 text-[10px] text-slate-500">মূল ছবি নির্বাচন করলে সর্বোচ্চ ৯টি অতিরিক্ত ছবি দিন।</p>
                   </div>
                   <div class="sm:col-span-2">
                     <label for="newItemVideoFile" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের ভিডিও আপলোড (MP4/WEBM/MOV, সর্বোচ্চ ২৫MB)</label>
@@ -3017,27 +3017,24 @@
             itemObj.image,
             ...(Array.isArray(itemObj.gallery) ? itemObj.gallery : [])
           ].filter((url) => typeof url === 'string' && /^https?:\/\//i.test(url)))].slice(0, 10);
-          for (let index = 0; index < galleryUrls.length; index += 1) {
-            const imageUrl = galleryUrls[index];
-            const { data: existingImage, error: lookupError } = await supabaseClient
+          const { error: clearGalleryError } = await supabaseClient
+            .from('product_images')
+            .delete()
+            .eq('product_id', itemObj.id);
+          if (clearGalleryError) {
+            console.error('Hatbazar gallery cleanup failed:', clearGalleryError.message);
+            return false;
+          }
+          if (galleryUrls.length) {
+            const galleryRows = galleryUrls.map((imageUrl, index) => ({
+              product_id: itemObj.id, image_url: imageUrl, sort_order: index
+            }));
+            const { error: imageInsertError } = await supabaseClient
               .from('product_images')
-              .select('id')
-              .eq('product_id', itemObj.id)
-              .eq('image_url', imageUrl)
-              .limit(1)
-              .maybeSingle();
-            if (lookupError) {
-              console.error('Hatbazar gallery lookup failed:', lookupError.message);
+              .insert(galleryRows);
+            if (imageInsertError) {
+              console.error('Hatbazar gallery save failed:', imageInsertError.message);
               return false;
-            }
-            if (!existingImage) {
-              const { error: imageInsertError } = await supabaseClient
-                .from('product_images')
-                .insert({ product_id: itemObj.id, image_url: imageUrl, sort_order: index });
-              if (imageInsertError) {
-                console.error('Hatbazar gallery save failed:', imageInsertError.message);
-                return false;
-              }
             }
           }
         }
@@ -4239,6 +4236,24 @@
         wrapEl.classList.add('hidden');
         wrapEl.classList.remove('flex');
       }
+    }
+
+    function handleAdditionalGallerySelection(event) {
+      const input = event?.target;
+      if (!input) return;
+      const hasMain = Boolean(document.getElementById('newItemImageFile')?.files?.length);
+      const limit = hasMain ? 9 : 10;
+      const status = document.getElementById('newItemGalleryStatus');
+      if ((input.files?.length || 0) > limit) {
+        input.value = '';
+        if (status) status.textContent = currentLang === 'en'
+          ? `Select at most ${limit} additional images (10 total including the main image).`
+          : `মূল ছবিসহ সর্বোচ্চ ১০টি ছবি। অতিরিক্ত ছবি সর্বোচ্চ ${formatNum(limit)}টি নির্বাচন করুন।`;
+        return;
+      }
+      if (status) status.textContent = currentLang === 'en'
+        ? `${input.files.length} additional image(s) selected. Maximum total: 10.`
+        : `${formatNum(input.files.length)}টি অতিরিক্ত ছবি নির্বাচন করা হয়েছে। মূল ছবিসহ সর্বোচ্চ ১০টি।`;
     }
 
     async function handleProductImagePreviewChange(event, wrapId, imgId) {
@@ -7271,7 +7286,7 @@
             '<div class="flex items-start justify-between gap-2"><div class="text-xs font-bold">'+(index+1)+'. '+escapeHtml(row.titleBn||row.titleEn||'নাম নেই')+'</div>'+
             '<span class="text-[10px] font-bold '+(row.valid?'text-emerald-700':'text-rose-700')+'">'+(row.valid?'Valid':'তথ্য ঠিক করুন')+'</span></div>'+
             '<div class="text-[10px] text-slate-600">'+escapeHtml(row.categoryName)+' · ৳'+formatNum(row.price||0)+' · Stock '+formatNum(row.stock||0)+'</div>'+
-            '<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple data-bulk-row="'+index+'" class="block w-full text-[10px] text-slate-600" /></div>'
+            '<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple data-bulk-row="'+index+'" onchange="handleBulkProductImageSelection(event,'+index+')" class="block w-full text-[10px] text-slate-600" /><div id="bulk-image-preview-'+index+'" class="flex flex-wrap gap-2"></div></div>'
           ).join('');
           preview.classList.remove('hidden');
           importButton?.classList.toggle('hidden',!pendingBulkProductRows.some((row)=>row.valid));
@@ -7283,6 +7298,34 @@
           if(status) status.textContent=error.message||'Excel ফাইল পড়া যায়নি।';
         }
       }
+      function handleBulkProductImageSelection(event, rowIndex) {
+        const input = event?.target;
+        const preview = document.getElementById('bulk-image-preview-' + rowIndex);
+        if (!input || !preview) return;
+        const files = Array.from(input.files || []);
+        if (files.length > 10) {
+          input.value = '';
+          preview.innerHTML = '<p class="text-[10px] text-rose-700">একটি পণ্যের জন্য সর্বোচ্চ ১০টি ছবি নির্বাচন করুন।</p>';
+          return;
+        }
+        preview.innerHTML = files.map((file, fileIndex) => {
+          const url = URL.createObjectURL(file);
+          return '<div class="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200">' +
+            '<img src="' + url + '" alt="' + escapeHtml(file.name) + '" class="w-full h-full object-cover" />' +
+            '<button type="button" onclick="removeBulkProductImage(' + rowIndex + ',' + fileIndex + ')" class="absolute top-0 right-0 bg-white/95 text-rose-700 rounded-bl px-1 text-[10px] font-black" aria-label="Remove image">×</button></div>';
+        }).join('');
+      }
+      function removeBulkProductImage(rowIndex, fileIndex) {
+        const input = document.querySelector('[data-bulk-row="' + rowIndex + '"]');
+        if (!input) return;
+        const transfer = new DataTransfer();
+        Array.from(input.files || []).forEach((file, index) => {
+          if (index !== fileIndex) transfer.items.add(file);
+        });
+        input.files = transfer.files;
+        handleBulkProductImageSelection({ target: input }, rowIndex);
+      }
+
       async function importBulkProductsFromPreview() {
         if(!isAdminSession()||!cloudSyncEnabled||!supabaseClient){showToast('Admin login ও Supabase connection প্রয়োজন।');return;}
         const button=document.getElementById('bulkProductImportButton');
