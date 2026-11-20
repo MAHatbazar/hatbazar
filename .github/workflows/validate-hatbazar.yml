@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check Hatbazar release-critical invariants
+        run: python3 scripts/validate-hatbazar.py
       - name: Check inline JavaScript syntax
         shell: bash
         run: |
