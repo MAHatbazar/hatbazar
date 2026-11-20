@@ -880,6 +880,7 @@ async function verifyAdmin(user){
   history.replaceState({},document.title,location.pathname);
  }
  setAdminSection('products');
+ await loadAIJobs();
 
  return true;
 }
