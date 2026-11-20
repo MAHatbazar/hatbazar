@@ -117,7 +117,7 @@ BEGIN
   v_total := v_subtotal + v_delivery_fee;
   v_order_code := 'HB-' ||
     pg_catalog.to_char(pg_catalog.clock_timestamp(), 'YYMMDD') || '-' ||
-    pg_catalog.upper(pg_catalog.substr(pg_catalog.replace(gen_random_uuid()::TEXT, '-', ''), 1, 6));
+    pg_catalog.upper(pg_catalog.substr(pg_catalog.replace(pg_catalog.gen_random_uuid()::TEXT, '-', ''), 1, 6));
 
   INSERT INTO public.orders (
     customer_id, customer_name, phone, address,
