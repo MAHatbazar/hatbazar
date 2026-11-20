@@ -6520,7 +6520,7 @@
               ? (currentLang === 'en' ? 'Outside Dhaka' : 'ঢাকার বাইরে')
               : (currentLang === 'en' ? 'Inside Dhaka' : 'ঢাকার ভেতরে');
 
-          const itemsListText = cartItems
+          let itemsListText = cartItems
             .map((i) => `• ${i.title} × ${i.qty} = ৳${(Number(i.price) || 0) * (Number(i.qty) || 1)}`)
             .join('\n');
 
@@ -6563,6 +6563,20 @@
             return;
           }
           orderId = orderRecord.id;
+          if (Array.isArray(saveResult.data?.items)) {
+            orderRecord.items = saveResult.data.items.map((item) => ({
+              id: item.product_id,
+              title: item.product_name,
+              price: Number(item.unit_price) || 0,
+              qty: Number(item.quantity) || 1
+            }));
+          }
+          itemsListText = orderRecord.items
+            .map((item) => `• ${item.title} × ${item.qty} = ৳${(Number(item.price) || 0) * (Number(item.qty) || 1)}`)
+            .join('\\n');
+          const confirmedSubtotal = Number(orderRecord.subtotal) || 0;
+          const confirmedDeliveryFee = Number(orderRecord.deliveryFee) || 0;
+          const confirmedTotal = Number(orderRecord.totalAmount) || 0;
           await pullProductsFromSupabase();
           ordersData.unshift(orderRecord);
 
@@ -6573,7 +6587,7 @@
             `ঠিকানা: ${address}, ${upazila}, ${district} (${zoneLabel})\n` +
             `পেমেন্ট: ${paymentMethod}${paymentTrxId ? ` (TrxID: ${paymentTrxId})` : ''}\n` +
             `পণ্যসমূহ:\n${itemsListText}\n` +
-            `সাবটোটাল: ৳${subtotal} | ডেলিভারি: ৳${deliveryFee} | সর্বমোট: ৳${total}`;
+            `সাবটোটাল: ৳${confirmedSubtotal} | ডেলিভারি: ৳${confirmedDeliveryFee} | সর্বমোট: ৳${confirmedTotal}`;
 
           const successBox = document.getElementById('orderSuccessBox');
           if (successBox) {
@@ -6588,7 +6602,7 @@
               </div>
               <div class="text-xs text-slate-700 leading-relaxed">
                 <strong>${escapeHtml(name)}</strong> (${escapeHtml(phone)}) • ${escapeHtml(address)}, ${escapeHtml(formatUpazilaLabel(upazila))}, ${escapeHtml(formatDistrictLabel(district))}<br/>
-                ${currentLang === 'en' ? 'Payment' : 'পেমেন্ট'}: <strong>${escapeHtml(paymentMethod)}</strong> • ${currentLang === 'en' ? 'Total' : 'সর্বমোট'}: <strong>৳${formatNum(total)}</strong>
+                ${currentLang === 'en' ? 'Payment' : 'পেমেন্ট'}: <strong>${escapeHtml(paymentMethod)}</strong> • ${currentLang === 'en' ? 'Total' : 'সর্বমোট'}: <strong>৳${formatNum(confirmedTotal)}</strong>
               </div>
               <div class="flex flex-wrap items-center gap-2 pt-1">
                 <button type="button" onclick="copyLastOrderSummary()" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-700 hover:bg-emerald-800 text-white transition">
