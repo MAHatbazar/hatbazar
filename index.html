@@ -6723,9 +6723,8 @@
       function downloadBulkProductTemplate() {
         if (!window.XLSX) { showToast('Excel library লোড হয়নি। পেজ রিফ্রেশ করুন।'); return; }
         const rows = [{
-          'Category':'Mens Fashion','Product Name (English)':'Premium Cotton Panjabi',
-          'Product Name (Bangla)':'প্রিমিয়াম কটন পাঞ্জাবি','Selling Price':1450,'Base Price':1000,
-          'Stock Quantity':20,'Description':'Product description','Image URL':'','Gallery URLs':''
+          'Category':'','Product Name (English)':'','Product Name (Bangla)':'',
+          'Selling Price':'','Base Price':'','Stock Quantity':'','Description':'','Image URL':'','Gallery URLs':''
         }];
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'Products');
@@ -6751,15 +6750,17 @@
             const category = resolveBulkCategory(categoryText);
             const titleEn = String(getValue(row, ['product name english','english name','name english'])).trim();
             const titleBn = String(getValue(row, ['product name bangla','bangla name','name bangla','product name'])).trim();
-            const price = Number(getValue(row, ['selling price','price']));
+            const priceRaw = getValue(row, ['selling price','price']);
+            const stockRaw = getValue(row, ['stock quantity','stock']);
+            const price = Number(priceRaw);
             const basePrice = Number(getValue(row, ['base price','wholesale price']) || 0);
-            const stock = Number(getValue(row, ['stock quantity','stock']));
+            const stock = Number(stockRaw);
             return {
               rowNumber:index+2, categoryId:category?.id || '', categoryName:category?.name || String(categoryText),
               titleEn,titleBn,price,basePrice,stock,desc:String(getValue(row,['description'])).trim(),
               imageUrl:String(getValue(row,['image url','image'])).trim(),
               galleryUrls:String(getValue(row,['gallery urls','gallery images'])).split(/[\n,;]/).map((url)=>url.trim()).filter(Boolean),
-              valid:Boolean(category && (titleEn || titleBn) && Number.isFinite(price) && price>0 && Number.isInteger(stock) && stock>=0 && Number.isFinite(basePrice) && basePrice>=0 && basePrice<=price)
+              valid:Boolean(category && (titleEn || titleBn) && String(priceRaw).trim() !== '' && Number.isFinite(price) && price>0 && String(stockRaw).trim() !== '' && Number.isInteger(stock) && stock>=0 && Number.isFinite(basePrice) && basePrice>=0 && basePrice<=price)
             };
           }).filter((row)=>row.titleEn || row.titleBn || row.categoryName);
           if (!pendingBulkProductRows.length) throw new Error('ফাইলে কোনো পণ্যের সারি পাওয়া যায়নি।');
