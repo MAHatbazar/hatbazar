@@ -535,7 +535,7 @@ async function loadAIJobs(){
       aiAppliedJobIds.delete(job.id);
       await loadAIJobs();
      }catch(e){del.disabled=false;alert('Delete করা যায়নি: '+(e.message||'অজানা সমস্যা'));}
-    });;
+    });
     titleRow.appendChild(del);
    }
    card.appendChild(titleRow);
@@ -1071,6 +1071,7 @@ function resetSingleImages(){
 $('newProductBtn').addEventListener('click',()=>{
  editingProduct=null;
  $('productForm').reset();
+ $('productForm').dataset.aiJobId='';
  aiProductMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
  $('aiStatus').textContent='';$('aiGeneratedDetails').textContent='';$('aiResultPreview').textContent='';$('aiResultPreview').classList.add('hidden');$('aiSizesPanel').innerHTML='';
  $('category_id').value='';
@@ -1106,7 +1107,7 @@ async function editProduct(id){
   return;
  }
 
- editingProduct=data; aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''}; $('aiGeneratedDetails').textContent='সংরক্ষিত AI তথ্য লোড হয়েছে।';
+ editingProduct=data; $('productForm').dataset.aiJobId=''; aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''}; $('aiGeneratedDetails').textContent='সংরক্ষিত AI তথ্য লোড হয়েছে।';
  $('aiSizesPanel').innerHTML=aiProductMeta.sizes.length?'<strong>Size অপশন (প্রয়োজনমতো পরিবর্তন করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>':'এই পণ্যে Size অপশন সংরক্ষিত নেই।'; $('name').value=data.name||'';
  $('name_bn').value=data.name_bn||'';
  $('description').value=data.description||'';
@@ -1264,6 +1265,7 @@ $('productForm').addEventListener('submit',async e=>{
   $('productFormPanel').classList.add('hidden');
   editingProduct=null;
   $('productForm').reset();
+  $('productForm').dataset.aiJobId='';
   aiProductMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
   $('aiStatus').textContent='';$('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';
   resetSingleImages();
