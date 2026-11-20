@@ -1322,24 +1322,30 @@
           </h3>
           <form onsubmit="handleAddResellerSale(event)" class="space-y-3">
             <div>
-              <label for="resellerOrderRef" data-bn="পণ্য বা অর্ডার রেফারেন্স *" data-en="Product or Order Reference *" class="block text-xs font-bold text-slate-700 mb-1">পণ্য বা অর্ডার রেফারেন্স *</label>
-              <input id="resellerOrderRef" type="text" required placeholder="যেমন: ডিজাইনার থ্রি-পিস (অর্ডার #HB-102)" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
+              <label for="resellerSaleProduct" class="block text-xs font-bold text-slate-700 mb-1">পণ্য নির্বাচন করুন *</label>
+              <select id="resellerSaleProduct" required onchange="updateResellerMarginPreview()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600">
+                <option value="">অনুমোদিত পণ্যের তালিকা লোড হচ্ছে...</option>
+              </select>
+            </div>
+            <div>
+              <label for="resellerOrderRef" class="block text-xs font-bold text-slate-700 mb-1">আপনার অর্ডার/বিক্রয় রেফারেন্স *</label>
+              <input id="resellerOrderRef" type="text" required maxlength="120" placeholder="যেমন: Customer Order #102" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label for="resellerSaleAmount" data-bn="বিক্রয় মূল্য (৳) *" data-en="Sale Amount (৳) *" class="block text-xs font-bold text-slate-700 mb-1">বিক্রয় মূল্য (৳) *</label>
-                <input id="resellerSaleAmount" type="number" min="1" required placeholder="2250" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
+                <label for="resellerSaleAmount" class="block text-xs font-bold text-slate-700 mb-1">প্রতি পিস বিক্রয় মূল্য (৳) *</label>
+                <input id="resellerSaleAmount" type="number" min="0.01" step="0.01" required placeholder="2250" oninput="updateResellerMarginPreview()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
               </div>
               <div>
-                <label for="resellerCommissionRate" data-bn="কমিশন হার (%)" data-en="Commission Rate (%)" class="block text-xs font-bold text-slate-700 mb-1">কমিশন হার (%)</label>
-                <input id="resellerCommissionRate" type="number" min="1" max="50" value="12" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
+                <label for="resellerSaleQuantity" class="block text-xs font-bold text-slate-700 mb-1">পরিমাণ *</label>
+                <input id="resellerSaleQuantity" type="number" min="1" max="1000" step="1" value="1" required oninput="updateResellerMarginPreview()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
               </div>
             </div>
-            <button type="submit" data-bn="+ কমিশন রেকর্ডে যোগ করুন" data-en="+ Add to Commission Ledger" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-700 hover:to-violet-700 text-white transition">
-              + কমিশন রেকর্ডে যোগ করুন
+            <div id="resellerMarginPreview" class="rounded-xl bg-fuchsia-50 border border-fuchsia-100 p-3 text-xs font-bold text-fuchsia-950">পণ্য নির্বাচন করলে আপনার সম্ভাব্য লাভ দেখাবে।</div>
+            <button type="submit" class="w-full py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-700 hover:to-violet-700 text-white transition">
+              + বিক্রয় ও লাভের হিসাব সংরক্ষণ করুন
             </button>
-          </form>
-        </div>
+          </form>        </div>
 
         <div class="lg:col-span-6 bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-6 shadow-xs space-y-4">
           <h3 data-bn="💸 কমিশন উইথড্র / পে-আউট রিকোয়েস্ট" data-en="💸 Commission Withdraw / Payout Request" class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
@@ -2304,6 +2310,8 @@
     let cloudSyncEnabled = false;
     let ordersData = [];
     let pendingBulkProductRows = [];
+    let resellerCatalogCache = [];
+    let resellerCloudLoadedAt = 0;
 
     let deliveryZoneConfig = {
       insideFee: 80,
@@ -3532,36 +3540,90 @@
         .join('');
     }
 
-    function handleAddResellerSale(e) {
+    function updateResellerMarginPreview() {
+      const productId = document.getElementById('resellerSaleProduct')?.value;
+      const price = Number(document.getElementById('resellerSaleAmount')?.value);
+      const quantity = Number(document.getElementById('resellerSaleQuantity')?.value || 1);
+      const product = resellerCatalogCache.find((item) => item.product_id === productId);
+      const preview = document.getElementById('resellerMarginPreview');
+      if (!preview) return;
+      if (!product) { preview.textContent = 'পণ্য নির্বাচন করলে আপনার সম্ভাব্য লাভ দেখাবে।'; return; }
+      const margin = price - Number(product.base_price || 0);
+      const totalProfit = margin * quantity;
+      preview.textContent = margin < 0
+        ? 'বিক্রয় মূল্য বেস মূল্যের চেয়ে কম হতে পারবে না।'
+        : 'গোপন বেস মূল্য: ৳' + formatNum(product.base_price) + ' · প্রতি পিস লাভ: ৳' + formatNum(margin) + ' · মোট লাভ: ৳' + formatNum(totalProfit);
+    }
+
+    async function refreshResellerCloudData() {
+      if (!cloudSyncEnabled || !supabaseClient || Date.now() - resellerCloudLoadedAt < 60000) return;
+      resellerCloudLoadedAt = Date.now();
+      try {
+        const { data: catalog, error: catalogError } = await supabaseClient.rpc('hatbazar_reseller_catalog');
+        if (catalogError) throw catalogError;
+        resellerCatalogCache = Array.isArray(catalog) ? catalog : [];
+        const select = document.getElementById('resellerSaleProduct');
+        if (select) {
+          select.innerHTML = '<option value="">পণ্য নির্বাচন করুন</option>' + resellerCatalogCache.map((item) =>
+            '<option value="' + escapeHtml(item.product_id) + '">' +
+            escapeHtml(item.product_name_bn || item.product_name) + ' · বেস ৳' + formatNum(item.base_price) +
+            '</option>'
+          ).join('');
+        }
+        const { data: sales, error: salesError } = await supabaseClient
+          .from('reseller_sales')
+          .select('id,product_id,order_reference,base_price,selling_price,quantity,profit_amount,created_at')
+          .order('created_at', { ascending: false });
+        if (salesError) throw salesError;
+        const withdrawals = resellerLedgerData.filter((entry) => entry.type === 'withdraw');
+        resellerLedgerData = (Array.isArray(sales) ? sales.map((row) => ({
+          id: row.id,
+          type: 'earning',
+          ref: row.order_reference + ' · বিক্রয় ৳' + formatNum(row.selling_price) + ' × ' + row.quantity,
+          amount: Number(row.profit_amount) || 0,
+          status: 'earned',
+          createdAt: row.created_at
+        })) : []).concat(withdrawals);
+        renderResellerDashboard();
+        updateResellerMarginPreview();
+      } catch (error) {
+        console.warn('Reseller cloud data unavailable:', error?.message || error);
+        const select = document.getElementById('resellerSaleProduct');
+        if (select) select.innerHTML = '<option value="">রিসেলার অনুমোদন ও ডেটাবেস সেটআপ প্রয়োজন</option>';
+      }
+    }
+
+    async function handleAddResellerSale(e) {
       e.preventDefault();
+      const productId = document.getElementById('resellerSaleProduct')?.value || '';
       const ref = (document.getElementById('resellerOrderRef')?.value || '').trim();
       const saleAmount = Number(document.getElementById('resellerSaleAmount')?.value);
-      const rate = Math.min(50, Math.max(1, Number(document.getElementById('resellerCommissionRate')?.value) || 12));
-      if (!ref || !Number.isFinite(saleAmount) || saleAmount <= 0) {
-        showToast(currentLang === 'en' ? 'Enter valid order reference and amount' : 'সঠিক অর্ডার রেফারেন্স ও বিক্রয় মূল্য দিন');
+      const quantity = Number(document.getElementById('resellerSaleQuantity')?.value || 1);
+      if (!productId || !ref || !Number.isFinite(saleAmount) || saleAmount <= 0 || !Number.isInteger(quantity) || quantity < 1) {
+        showToast('পণ্য, অর্ডার রেফারেন্স, সঠিক বিক্রয় মূল্য ও পরিমাণ দিন।');
         return;
       }
-
-      const commission = Math.round((saleAmount * rate) / 100);
-      resellerLedgerData.unshift({
-        id: `rl-${Date.now()}`,
-        type: 'earning',
-        ref: `${ref} (বিক্রয় ৳${saleAmount}, ${rate}%)`,
-        amount: commission,
-        status: 'earned',
-        createdAt: new Date().toISOString()
-      });
-
-      e.target.reset();
-      const rateInput = document.getElementById('resellerCommissionRate');
-      if (rateInput) rateInput.value = '12';
-      renderResellerDashboard();
-      persistAppState();
-      showToast(
-        currentLang === 'en'
-          ? `Added ৳${commission} commission!`
-          : `৳${formatNum(commission)} কমিশন যুক্ত হয়েছে!`
-      );
+      if (!cloudSyncEnabled || !supabaseClient) {
+        showToast('রিসেলার বিক্রির হিসাব সংরক্ষণে Supabase সংযোগ প্রয়োজন।');
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_record_sale', {
+          p_product_id: productId,
+          p_order_reference: ref,
+          p_selling_price: saleAmount,
+          p_quantity: quantity
+        });
+        if (error || !data?.success) throw error || new Error('Sale could not be recorded.');
+        e.target.reset();
+        const qtyInput = document.getElementById('resellerSaleQuantity');
+        if (qtyInput) qtyInput.value = '1';
+        resellerCloudLoadedAt = 0;
+        await refreshResellerCloudData();
+        showToast('বিক্রয় সংরক্ষিত। আপনার লাভ ৳' + formatNum(data.profit_amount) + '।');
+      } catch (error) {
+        showToast('বিক্রয় সংরক্ষণ হয়নি: ' + (error?.message || 'রিসেলার অনুমোদন বা SQL Migration পরীক্ষা করুন।'));
+      }
     }
 
     function handleResellerWithdrawRequest(e) {
@@ -3622,6 +3684,7 @@
     }
 
     function renderResellerDashboard() {
+      refreshResellerCloudData();
       const totals = computeResellerTotals();
       const totalEl = document.getElementById('resellerTotalCommission');
       const availEl = document.getElementById('resellerAvailableBalance');
