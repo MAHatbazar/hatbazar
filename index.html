@@ -2721,6 +2721,8 @@
           title: productTitle,
           price: Number(row.price) || 0,
           finalPrice: Number(row.price) || 0,
+          basePrice: Number(row.base_price) || 0,
+          sellerId: row.seller_id || null,
           discountPercent: 0,
           discountAmount: 0,
           stock: Number.isFinite(Number(row.stock)) ? Math.max(0, Number(row.stock)) : 0,
@@ -2752,7 +2754,7 @@
       try {
         const { data, error } = await supabaseClient
           .from(SUPABASE_CONFIG.tables.products)
-          .select('id,category_id,name,name_bn,description,price,base_price,stock,image_url,is_active,created_at')
+          .select('id,category_id,seller_id,name,name_bn,description,price,base_price,stock,image_url,is_active,created_at')
           .eq('is_active', true)
           .order('created_at', { ascending: false });
         if (error || !Array.isArray(data)) {
@@ -2800,7 +2802,7 @@
         const payload = {
           id: itemObj.id,
           category_id: categoryId,
-          seller_id: isAdminSession() ? null : (supabaseUser?.id || null),
+          seller_id: itemObj.sellerId || (isAdminSession() ? null : (supabaseUser?.id || null)),
           name: String(itemObj.title || '').trim(),
           name_bn: String(itemObj.title || '').trim(),
           description: String(itemObj.desc || ''),
