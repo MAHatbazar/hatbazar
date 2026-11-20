@@ -2798,12 +2798,21 @@
       try {
         const { data, error } = await supabaseClient
           .from(SUPABASE_CONFIG.tables.products)
-          .select('id,category_id,seller_id,name,name_bn,description,price,base_price,stock,image_url,is_active,created_at')
+          .select('id,category_id,seller_id,name,name_bn,description,price,stock,image_url,is_active,created_at')
           .eq('is_active', true)
           .order('created_at', { ascending: false });
         if (error || !Array.isArray(data)) {
           console.error('Hatbazar product sync failed:', error?.message || 'Invalid response');
           return false;
+        }
+        if (isAdminSession()) {
+          const { data: basePriceRows, error: basePriceError } = await supabaseClient.rpc('hatbazar_admin_product_base_prices');
+          if (!basePriceError && Array.isArray(basePriceRows)) {
+            const basePriceById = Object.fromEntries(basePriceRows.map((row) => [row.product_id, Number(row.base_price) || 0]));
+            for (const row of data) row.base_price = basePriceById[row.id] || 0;
+          } else if (basePriceError) {
+            console.warn('Private base prices are not available to admin yet:', basePriceError.message);
+          }
         }
         if (data.length) {
           const productIds = data.map((row) => row.id);
