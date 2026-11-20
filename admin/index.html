@@ -161,7 +161,8 @@ button:disabled{opacity:.5}
 <div class="ai-panel">
  <strong>✨ AI Product Assistant</strong>
  <p class="hint">Product-এর ছবি নির্বাচন করে AI দিয়ে বাংলা-ইংরেজি নাম, আকর্ষণীয় বিবরণ, Category ও প্রয়োজনীয় Size তৈরি করুন।</p>
- <button id="aiGenerateBtn" type="button" class="secondary">✨ ছবি থেকে Product Details তৈরি করুন</button>
+ <button id="aiNameGenerateBtn" type="button" class="secondary">✨ শুধু নাম লিখে Details + Food Benefits তৈরি করুন</button>
+  <button id="aiGenerateBtn" type="button" class="secondary">🖼️ ছবি থেকে Product Details তৈরি করুন</button>
  <button id="freeImageStylesBtn" type="button" class="secondary" onclick="generateFreeImagePrompts()">✨ ৫টি আলাদা AI ছবির Prompt তৈরি করুন</button>
  <div id="freeImageStylesStatus" class="hint" aria-live="polite"></div>
  <div id="freeImagePrompts" class="upload-box hidden"></div>
@@ -359,62 +360,91 @@ function categoryOptions(selected=''){
 
 
 
-async function generateAIProductDetails(){
- const button=$('aiGenerateBtn');
+async function generateAIProductDetails(mode='image'){
+ const button=mode==='name'?$('aiNameGenerateBtn'):$('aiGenerateBtn');
  const file=(singleProductImages&&singleProductImages[0])||($('imageFiles').files&&$('imageFiles').files[0]);
- if(!file){$('aiStatus').textContent='আগে অন্তত একটি Product ছবি নির্বাচন করুন।';return;}
- const problem=validImage(file);
- if(problem){$('aiStatus').textContent=problem;return;}
+ const productName=$('name').value.trim()||$('name_bn').value.trim();
+ if(mode==='name'&&!productName){$('aiStatus').textContent='আগে Product Name (English অথবা বাংলা) লিখুন।';return;}
+ if(mode==='image'&&!file){$('aiStatus').textContent='আগে অন্তত একটি Product ছবি নির্বাচন করুন।';return;}
+ if(file&&mode==='image'){const problem=validImage(file);if(problem){$('aiStatus').textContent=problem;return;}}
  const {data,error}=await db.auth.getSession();
  if(error||!data.session){$('aiStatus').textContent='Admin session পাওয়া যায়নি। আবার Login করুন।';return;}
- button.disabled=true;button.textContent='AI বিশ্লেষণ করছে...';
- $('aiStatus').textContent='ছবি বিশ্লেষণ করে বাংলা ও ইংরেজি তথ্য তৈরি হচ্ছে। একটু অপেক্ষা করুন...';
- $('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';
+ button.disabled=true;button.textContent='AI তথ্য তৈরি করছে...';
+ $('aiStatus').textContent=mode==='name'?'পণ্যের নাম বিশ্লেষণ করে বিবরণ, পুষ্টিগুণ ও উপকারিতা তৈরি হচ্ছে...':'ছবি বিশ্লেষণ করে বাংলা ও ইংরেজি তথ্য তৈরি হচ্ছে...';
+ $('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';$('aiFoodDetails').classList.add('hidden');$('aiImageSuggestions').classList.add('hidden');
  try{
-  const dataUrl=await new Promise((resolve,reject)=>{
-   const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('ছবি পড়া যায়নি।'));reader.readAsDataURL(file);
-  });
-  const imageBase64=String(dataUrl).split(',')[1]||'';
+  const payload={product_name:productName,categories:categories.map(c=>({name:c.name,name_bn:c.name_bn}))};
+  if(mode==='image'){
+   const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('ছবি পড়া যায়নি।'));reader.readAsDataURL(file);});
+   payload.mime_type=file.type||'image/jpeg';payload.image_base64=String(dataUrl).split(',')[1]||'';
+  }
   const response=await fetch(SUPABASE_URL+'/functions/v1/hatbazar-ai-product',{
-   method:'POST',
-   headers:{'Authorization':'Bearer '+data.session.access_token,'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
-   body:JSON.stringify({mime_type:file.type||'image/jpeg',image_base64:imageBase64,categories:categories.map(c=>({name:c.name,name_bn:c.name_bn}))})
+   method:'POST',headers:{'Authorization':'Bearer '+data.session.access_token,'apikey':SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)
   });
   const result=await response.json().catch(()=>({error:'Server response পড়া যায়নি।'}));
   if(!response.ok)throw new Error(result.error||'AI তথ্য তৈরি করতে পারেনি।');
-  $('name').value=result.name||'';
-  $('name_bn').value=result.name_bn||'';
+  $('name').value=result.name||productName||'';$('name_bn').value=result.name_bn||$('name_bn').value;
   if(result.category_id)$('category_id').value=result.category_id;
-  aiProductMeta={
-   attributes:result.attributes||{},
-   sizes:Array.isArray(result.sizes)?result.sizes:[],
-   description_en:result.description_en||'',
-   description_bn:result.description_bn||''
-  };
-  const enFeatures=(result.features_en||[]).map(x=>'• '+x).join('\n');
-  const bnFeatures=(result.features_bn||[]).map(x=>'• '+x).join('\n');
+  aiProductMeta={attributes:result.attributes||{},sizes:Array.isArray(result.sizes)?result.sizes:[],description_en:result.description_en||'',description_bn:result.description_bn||''};
+  const enFeatures=(result.features_en||[]).map(x=>'• '+x).join('\n'),bnFeatures=(result.features_bn||[]).map(x=>'• '+x).join('\n');
   const attrs=Object.entries(aiProductMeta.attributes).filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join(' | ');
   const sections=[];
   if(aiProductMeta.description_en)sections.push('DESCRIPTION (ENGLISH)\n'+aiProductMeta.description_en);
   if(enFeatures)sections.push('KEY FEATURES\n'+enFeatures);
   if(aiProductMeta.description_bn)sections.push('বিবরণ (বাংলা)\n'+aiProductMeta.description_bn);
   if(bnFeatures)sections.push('বিশেষ বৈশিষ্ট্য\n'+bnFeatures);
+  if(result.nutrition_bn?.length)sections.push('পুষ্টিগুণ সম্পর্কে\n'+result.nutrition_bn.map(x=>'• '+x).join('\n'));
+  if(result.benefits_bn?.length)sections.push('সম্ভাব্য উপকারিতা\n'+result.benefits_bn.map(x=>'• '+x).join('\n'));
+  if(result.how_to_eat_bn?.length)sections.push('কীভাবে খাবেন / ব্যবহার করবেন\n'+result.how_to_eat_bn.map(x=>'• '+x).join('\n'));
+  if(result.cautions_bn?.length)sections.push('সতর্কতা\n'+result.cautions_bn.map(x=>'• '+x).join('\n'));
   if(attrs)sections.push('PRODUCT DETAILS\n'+attrs);
-  if(aiProductMeta.sizes.length)sections.push('প্রযোজ্য সাইজ অপশন (স্টক আপনি নিশ্চিত করবেন): '+aiProductMeta.sizes.join(', '));
+  if(aiProductMeta.sizes.length)sections.push('প্রযোজ্য Size অপশন (স্টক আপনি নিশ্চিত করবেন): '+aiProductMeta.sizes.join(', '));
   $('description').value=sections.join('\n\n');
-  $('aiGeneratedDetails').textContent='তথ্য তৈরি হয়েছে। নাম, ক্যাটাগরি ও বিবরণ দেখে প্রয়োজন হলে সম্পাদনা করুন।'+(result.category_name?' নির্বাচিত Category: '+result.category_name:'');
-  if(aiProductMeta.sizes.length){
-   $('aiSizesPanel').innerHTML='<strong>প্রস্তাবিত Size (প্রয়োজনমতো টিক/আনটিক করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>';
-  }else{
-   $('aiSizesPanel').textContent='এই পণ্যের জন্য আলাদা Size প্রযোজ্য নয় বলে AI কোনো Size দেয়নি।';
+  $('aiGeneratedDetails').textContent='তথ্য তৈরি হয়েছে। নাম, ক্যাটাগরি ও বিবরণ যাচাই করে প্রয়োজনমতো সম্পাদনা করুন।'+(result.category_name?' নির্বাচিত Category: '+result.category_name:'');
+  if(result.is_food){
+   const groups=[['পুষ্টিগুণ',result.nutrition_bn],['সম্ভাব্য উপকারিতা',result.benefits_bn],['খাওয়ার / ব্যবহারের উপায়',result.how_to_eat_bn],['সতর্কতা',result.cautions_bn]];
+   $('aiFoodDetails').innerHTML='<strong>🍎 Food Information</strong>'+groups.filter(g=>g[1]?.length).map(g=>'<p><b>'+escapeHTML(g[0])+'</b></p><ul>'+g[1].map(x=>'<li>'+escapeHTML(x)+'</li>').join('')+'</ul>').join('')+'<p class="hint">স্বাস্থ্যতথ্য সাধারণ পুষ্টি-তথ্য, চিকিৎসার পরামর্শ নয়। AI-এর তথ্য যাচাই করে নিন।</p>';
+   $('aiFoodDetails').classList.remove('hidden');
   }
-  $('aiStatus').textContent='AI তথ্য তৈরি হয়েছে। দাম, Base Price ও Stock আপনি নিজে বসাবেন।';
- }catch(err){
-  $('aiStatus').textContent=err.message||'AI বিশ্লেষণ ব্যর্থ হয়েছে।';
- }finally{
-  button.disabled=false;button.textContent='✨ আবার AI দিয়ে তথ্য তৈরি করুন';
- }
-}$('aiGenerateBtn').addEventListener('click',generateAIProductDetails);
+  if(aiProductMeta.sizes.length)$('aiSizesPanel').innerHTML='<strong>প্রস্তাবিত Size (প্রয়োজনমতো টিক/আনটিক করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>';
+  else $('aiSizesPanel').textContent='এই পণ্যের জন্য আলাদা Size প্রযোজ্য নয় বলে AI কোনো Size দেয়নি।';
+  renderAIImageSuggestions(result.image_suggestions||[]);
+  $('aiStatus').textContent='AI তথ্য তৈরি হয়েছে। দাম, Base Price ও Stock নিজে বসাবেন। প্রস্তাবিত ছবি চাইলে বেছে Gallery-তে যোগ করুন।';
+ }catch(err){$('aiStatus').textContent=err.message||'AI বিশ্লেষণ ব্যর্থ হয়েছে।';}
+ finally{button.disabled=false;button.textContent=mode==='name'?'✨ শুধু নাম লিখে Details + Food Benefits তৈরি করুন':'🖼️ ছবি থেকে Product Details তৈরি করুন';}
+}
+function renderAIImageSuggestions(items){
+ const panel=$('aiImageSuggestions');panel.innerHTML='';
+ if(!items.length){panel.classList.add('hidden');return;}
+ const heading=document.createElement('strong');heading.textContent='ছবির প্রস্তাব (উন্মুক্ত Wikimedia Commons থেকে)';panel.appendChild(heading);
+ const note=document.createElement('p');note.className='hint';note.textContent='এগুলো নমুনা/ইলাস্ট্রেটিভ ছবি। প্যাকেট বা নির্দিষ্ট ব্র্যান্ডের আসল ছবি নাও হতে পারে। পছন্দ হলে Gallery-তে যোগ করুন।';panel.appendChild(note);
+ const grid=document.createElement('div');grid.className='multi-preview';panel.appendChild(grid);
+ items.forEach((item,index)=>{
+  const wrap=document.createElement('div');wrap.style.cssText='display:inline-block;vertical-align:top;width:145px;margin:5px;padding:6px;border:1px solid #d8e2dd;border-radius:10px';
+  const img=document.createElement('img');img.src=item.image_url;img.alt=item.title||'Suggested image';img.style.cssText='width:130px;height:110px;object-fit:contain;cursor:zoom-in';img.addEventListener('click',()=>openImagePreview(item.image_url,item.title||'Suggested image'));
+  const info=document.createElement('small');info.textContent=(item.license||'License details unavailable')+(item.artist?' · '+item.artist:'');info.style.cssText='display:block;font-size:10px;margin:5px 0';
+  const link=document.createElement('a');link.href=item.source_url;link.target='_blank';link.rel='noopener';link.textContent='Source / License';link.style.cssText='font-size:11px;display:block;margin-bottom:5px';
+  const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent='Gallery-তে যোগ';btn.style.cssText='padding:8px;font-size:11px;width:100%';
+  btn.addEventListener('click',async()=>{
+   if(singleProductImages.length>=10){alert('সর্বোচ্চ ১০টি Gallery ছবি রাখা যাবে।');return;}
+   btn.disabled=true;btn.textContent='যোগ হচ্ছে...';
+   try{
+    const res=await fetch(item.image_url);if(!res.ok)throw new Error('ছবি ডাউনলোড করা যায়নি।');
+    const blob=await res.blob();const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');
+    const imageFile=new File([blob],('commons-'+(index+1)+'.'+ext),{type:blob.type||'image/jpeg'});
+    const problem=validImage(imageFile);if(problem)throw new Error(problem);
+    singleProductImages.push(imageFile);
+    $('singleImageNames').textContent=singleProductImages.map((f,i)=>(i+1)+'. '+f.name).join(' | ');
+    const thumb=document.createElement('img');thumb.src=URL.createObjectURL(imageFile);thumb.classList.add('image-preview-thumb');thumb.addEventListener('click',()=>openImagePreview(thumb.src,imageFile.name));$('singleImagePreview').appendChild(thumb);
+    btn.textContent='Gallery-তে যোগ হয়েছে';btn.disabled=true;
+   }catch(err){btn.disabled=false;btn.textContent='Gallery-তে যোগ';alert(err.message||'ছবি যোগ করা যায়নি।');}
+  });
+  wrap.append(img,info,link,btn);grid.appendChild(wrap);
+ });
+ panel.classList.remove('hidden');
+}
+$('aiGenerateBtn').addEventListener('click',()=>generateAIProductDetails('image'));
+$('aiNameGenerateBtn').addEventListener('click',()=>generateAIProductDetails('name'));
 function selectedAISizes(){
  return [...document.querySelectorAll('[data-ai-size]:checked')].map(x=>x.value);}
 async function facebookRequest(action,method='GET',body=null){
