@@ -167,6 +167,19 @@ BEGIN
     'delivery_fee', v_delivery_fee,
     'total_amount', v_total,
     'created_at', pg_catalog.clock_timestamp(),
+    'items', (
+      SELECT COALESCE(
+        pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
+          'product_id', oi.product_id,
+          'product_name', oi.product_name,
+          'quantity', oi.quantity,
+          'unit_price', oi.unit_price
+        )),
+        '[]'::JSONB
+      )
+      FROM public.order_items AS oi
+      WHERE oi.order_id = v_order_id
+    ),
     'message', 'Order created successfully'
   );
 END;
