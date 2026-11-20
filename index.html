@@ -3659,7 +3659,6 @@
 
     async function refreshResellerCloudData() {
       if (!cloudSyncEnabled || !supabaseClient || Date.now() - resellerCloudLoadedAt < 60000) return;
-      resellerCloudLoadedAt = Date.now();
       try {
         const { data: catalog, error: catalogError } = await supabaseClient.rpc('hatbazar_reseller_catalog');
         if (catalogError) throw catalogError;
@@ -3712,9 +3711,11 @@
           createdAt: row.created_at
         })) : []);
         resellerLedgerData = saleEntries.concat(checkoutEntries, payoutEntries);
+        resellerCloudLoadedAt = Date.now();
         renderResellerDashboard();
         updateResellerMarginPreview();
       } catch (error) {
+        resellerCloudLoadedAt = 0;
         console.warn('Reseller cloud data unavailable:', error?.message || error);
         const select = document.getElementById('resellerSaleProduct');
         if (select) select.innerHTML = '<option value="">রিসেলার অনুমোদন ও ডেটাবেস সেটআপ প্রয়োজন</option>';
