@@ -490,6 +490,7 @@ AS $function$
 DECLARE
   v_base_price NUMERIC(12,2);
   v_product_name TEXT;
+  v_stock INTEGER;
   v_profit NUMERIC(12,2);
   v_sale_id UUID;
 BEGIN
@@ -506,8 +507,8 @@ BEGIN
     RAISE EXCEPTION 'Invalid reseller sale details';
   END IF;
 
-  SELECT p.base_price, COALESCE(p.name_bn, p.name)
-  INTO v_base_price, v_product_name
+  SELECT p.base_price, COALESCE(p.name_bn, p.name), p.stock
+  INTO v_base_price, v_product_name, v_stock
   FROM public.products p
   WHERE p.id = p_product_id AND p.is_active IS TRUE
   FOR UPDATE;
@@ -515,11 +516,19 @@ BEGIN
   IF NOT FOUND OR v_base_price IS NULL THEN
     RAISE EXCEPTION 'Product is not available for reseller sales';
   END IF;
+  IF v_stock IS NULL OR v_stock < p_quantity THEN
+    RAISE EXCEPTION 'Insufficient stock for reseller sale. Available: %, requested: %',
+      COALESCE(v_stock, 0), p_quantity;
+  END IF;
   IF p_selling_price < v_base_price THEN
     RAISE EXCEPTION 'Selling price cannot be below the admin base price';
   END IF;
 
   v_profit := (p_selling_price - v_base_price) * p_quantity;
+
+  UPDATE public.products
+  SET stock = stock - p_quantity
+  WHERE id = p_product_id;
 
   INSERT INTO public.reseller_sales (
     reseller_id, product_id, order_reference, base_price,
@@ -541,4 +550,3 @@ REVOKE ALL ON FUNCTION public.hatbazar_reseller_catalog() FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.hatbazar_reseller_record_sale(UUID,TEXT,NUMERIC,INTEGER) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_catalog() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_record_sale(UUID,TEXT,NUMERIC,INTEGER) TO authenticated;
-
