@@ -4482,7 +4482,20 @@
       applyEditablePreviewState();
       if (activeFolderId) {
         const cat = categoriesData.find((c) => c.id === activeFolderId);
-        if (cat) renderFolderItems(cat);
+        if (cat) {
+          const folderTitle = document.getElementById('activeFolderTitle');
+          const folderDesc = document.getElementById('activeFolderDesc');
+          const folderBadge = document.getElementById('folderBadge');
+          const folderCover = document.getElementById('activeFolderCoverImg');
+          if (folderTitle) folderTitle.textContent = getCategoryName(cat);
+          if (folderDesc) folderDesc.textContent = getCategoryDescription(cat);
+          if (folderBadge) folderBadge.textContent = `${cat.emoji || '📂'} ${LANG_TEXT_MAP[currentLang].folderBadgePrefix}`;
+          if (folderCover) {
+            folderCover.src = cat.image || getCategoryPhotoFallback(cat.name, cat.id);
+            folderCover.alt = getCategoryName(cat);
+          }
+          renderFolderItems(cat);
+        }
       }
     }
 
@@ -5167,7 +5180,7 @@
                       ${outOfStock ? (currentLang === 'en' ? 'Out' : 'স্টক শেষ') : (currentLang === 'en' ? `Stock: ${stock}` : `স্টক: ${formatNum(stock)}`)}
                     </span>
                   </div>
-                  <p class="text-xs text-slate-500 line-clamp-2">${escapeHtml(item.desc || '')}</p>
+                  <p class="text-xs text-slate-500 line-clamp-2">${escapeHtml(currentLang === 'en' && item.id === `${cat.id}-item-1` ? (CATEGORY_ENGLISH[cat.id]?.[1] || item.desc || '') : (item.desc || ''))}</p>
                   <div class="flex items-center gap-2 pt-1">
                     <span class="text-base font-black text-violet-800">৳${formatNum(price)}</span>
                     ${hasDisc ? `<span class="text-xs line-through text-slate-400 font-bold">৳${formatNum(origPrice)}</span>` : ''}
