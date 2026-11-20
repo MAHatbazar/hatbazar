@@ -426,8 +426,10 @@ async function applyAIJob(job){
   const results=job.result?.results||[];
   if(!results.length){alert('এই Bulk কাজের কোনো ফলাফল পাওয়া যায়নি।');return;}
   for(const item of results){
-   addBulkRow();
-   const row=$('bulkRows').lastElementChild;
+   const rowIndex=Math.max(1,Number(item.row_index)||1);
+   let rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
+   while(rows.length<rowIndex){addBulkRow();rows=[...$('bulkRows').querySelectorAll('.bulk-row')];}
+   const row=rows[rowIndex-1];
    const r=item.result||{};
    const set=(key,value)=>{const input=row.querySelector('[data-field="'+key+'"]');if(input)input.value=value??'';};
    set('name',r.name||'');set('name_bn',r.name_bn||'');set('category_id',r.category_id||'');set('description',formatAIProductDescription(r));
