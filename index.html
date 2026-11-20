@@ -4742,6 +4742,9 @@
       'কার্ট দেখুন': 'View cart',
       'কার্ট ও অর্ডার স্লাইড': 'Cart and order panel',
       'স্লাইড বন্ধ করুন': 'Close panel',
+      'অ্যাডমিন লগ ইন শুধু এই ব্রাউজারের জন্য। ভুলে গেলে ফাইলের ': 'Admin login is limited to this browser. If you forget the password, change ',
+      ' বদলান।': ' in the project file.',
+
       'Excel (.xlsx/.xls) বা CSV ফাইল দিন। Category, English/Bangla নাম, Selling Price, Base Price, Stock Quantity ও Description দিন। Preview-তে প্রতিটি পণ্যের সর্বোচ্চ ১০টি ছবি বেছে নিতে পারবেন।': 'Upload an Excel (.xlsx/.xls) or CSV file. Include Category, English/Bangla Name, Selling Price, Base Price, Stock Quantity and Description. You can select up to 10 images per product in the preview.',
       'পণ্যের ওজন এবং স্থানের উপর ভিত্তি করে কুরিয়ার চার্জ পরিবর্তন হতে পারে।': 'Delivery charges may vary depending on product weight and destination.',
       'Hatbazar-এ অর্ডার করার সময় গ্রাহককে সঠিক নাম, সচল মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা প্রদান করতে হবে। স্টক প্রাপ্যতা ও ঠিকানা যাচাইয়ের সাপেক্ষে অর্ডার কনফার্ম করা হয়। প্রতারণামূলক বা অসম্পূর্ণ অর্ডার বাতিল করার অধিকার Hatbazar সংরক্ষণ করে।': 'When placing an order on Hatbazar, customers must provide their correct name, active mobile number and complete address. Orders are confirmed subject to stock and address verification. Hatbazar reserves the right to cancel fraudulent or incomplete orders.',
@@ -4778,18 +4781,40 @@
       const attrMap = {
         placeholder: {
           'পণ্য বা ২৪টি ক্যাটাগরির নাম লিখে খুঁজুন...': 'Search products or any of the 24 categories...',
-          'আপনার নাম লিখুন': 'Enter your name',
-          'মোবাইল নম্বর লিখুন': 'Enter mobile number',
-          'বিস্তারিত ঠিকানা লিখুন': 'Enter full address',
+          'পণ্যের নাম লিখুন': 'Enter product name',
+          'অ্যাডমিনের জন্য': 'For Admin',
+          'পণ্যের বিস্তারিত লিখুন': 'Enter product details',
+          'যেমন: মেহেদী হাসান': 'Example: Mehedi Hasan',
+          'বাড়ি নম্বর, রোড, সেক্টর বা ল্যান্ডমার্ক লিখুন...': 'Enter house number, road, sector or landmark...',
+          'যেমন: 9ABC123XYZ': 'Example: 9ABC123XYZ',
+          'যেমন: প্রিমিয়াম কটন শার্ট': 'Example: Premium cotton shirt',
+          'যেমন: Customer Order #102': 'Example: Customer Order #102',
+          'মোবাইল নম্বর বা অর্ডার আইডি দিয়ে ফিল্টার করুন (যেমন: 017XXXXXXXX বা HB-)...': 'Filter by mobile number or order ID (e.g. 017XXXXXXXX or HB-)...',
+          'যেমন: তানভীর আহমেদ': 'Example: Tanvir Ahmed',
+          'যেমন: রয়্যাল কালেকশন BD': 'Example: Royal Collection BD',
+          'আপনি কোন ধরনের পণ্য নিয়ে কাজ করতে চান তা লিখুন...': 'Describe the type of products you want to work with...',
+          'যেমন: #homeView { border-radius: 24px; }': 'Example: #homeView { border-radius: 24px; }',
+          'যেমন: আসিফ মুন্সী': 'Example: Asif Munshi',
+          '01XXXXXXXXX বা name@email.com': '01XXXXXXXXX or name@email.com',
+          'পাসওয়ার্ড দিন': 'Enter password',
+          'Supabase পাসওয়ার্ড দিন': 'Enter Supabase password',
           'আপনার প্রশ্ন লিখুন...': 'Type your question...'
         },
         'aria-label': {
           'পণ্য খুঁজুন': 'Search products',
           'কার্ট দেখুন': 'View cart',
           'কার্ট ও অর্ডার স্লাইড': 'Cart and order panel',
-          'স্লাইড বন্ধ করুন': 'Close panel'
+          'স্লাইড বন্ধ করুন': 'Close panel',
+          'সাইন আপ / লগ ইন': 'Sign Up / Log In',
+          'বন্ধ করুন': 'Close',
+          'Hatbazar AI অ্যাসিস্ট': 'Hatbazar AI Assistant'
         },
-        title: {}
+        title: {
+          'এই ফোল্ডারের ছবি আপলোড করুন': 'Upload this folder’s cover image',
+          'ছবি মুছুন': 'Delete image',
+          'ভিডিও মুছুন': 'Delete video',
+          'ক্লিয়ার করুন': 'Clear'
+        }
       };
       document.querySelectorAll('[placeholder], [aria-label], [title]').forEach((el) => {
         ['placeholder', 'aria-label', 'title'].forEach((attr) => {
