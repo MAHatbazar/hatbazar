@@ -65,6 +65,7 @@ button:disabled{opacity:.5}
 .multi-preview img{width:75px;height:75px;object-fit:cover;border-radius:8px;border:1px solid #ddd}
 .existing-label{font-size:12px;color:#687871;margin-top:8px}
 .category-count{background:#e5f5e9;padding:10px;border-radius:9px;font-size:14px;margin:10px 0;color:#167342}
+.ai-panel{border:1px solid #cfe2d8;background:#f5fbf7;border-radius:12px;padding:14px;margin:12px 0}.ai-panel strong{display:block;color:#173f35}.ai-panel .hint{margin:7px 0;color:#53675e}.ai-size-option{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #d8e2dd;border-radius:20px;padding:7px 10px;margin:4px;font-size:13px}.ai-size-option input{width:auto;margin:0}
 @media(max-width:760px){
  .bulk-row{min-width:1300px}
  .table-scroll{padding-bottom:8px}
@@ -155,6 +156,16 @@ button:disabled{opacity:.5}
 <label>Product Images (সর্বোচ্চ ১০টি ছবি)</label>
 <input id="imageFiles" type="file" accept="image/*" multiple onchange="previewSingleImages(this.files)">
 <div id="singleImageNames" class="hint">কোনো নতুন ছবি নির্বাচন করা হয়নি।</div>
+
+<div class="ai-panel">
+ <strong>✨ AI Product Assistant</strong>
+ <p class="hint">Product-এর ছবি নির্বাচন করে AI দিয়ে বাংলা-ইংরেজি নাম, আকর্ষণীয় বিবরণ, Category ও প্রয়োজনীয় Size তৈরি করুন।</p>
+ <button id="aiGenerateBtn" type="button" class="secondary">✨ ছবি থেকে Product Details তৈরি করুন</button>
+ <div id="aiStatus" class="hint" aria-live="polite"></div>
+ <div id="aiGeneratedDetails" class="hint"></div>
+ <div id="aiSizesPanel" class="hint"></div>
+</div>
+
 <div id="singleImagePreview" class="multi-preview"></div>
 <div id="existingGalleryTitle" class="existing-label hidden">বর্তমান Product Gallery:</div>
 <div id="existingGalleryPreview" class="multi-preview"></div>
@@ -282,6 +293,7 @@ let categories=[];
 let bulkCount=0;
 let singleProductImages=[];
 let existingGalleryUrls=[];
+let aiProductMeta={attributes:{},sizes:[],description_en:"",description_bn:""};
 
 function escapeHTML(v){
  return String(v??'').replace(/[&<>"']/g,c=>({
@@ -325,6 +337,68 @@ function categoryOptions(selected=''){
   }).join('');
 }
 
+
+
+async function generateAIProductDetails(){
+ const button=$('aiGenerateBtn');
+ const file=(singleProductImages&&singleProductImages[0])||($('imageFiles').files&&$('imageFiles').files[0]);
+ if(!file){$('aiStatus').textContent='আগে অন্তত একটি Product ছবি নির্বাচন করুন।';return;}
+ const problem=validImage(file);
+ if(problem){$('aiStatus').textContent=problem;return;}
+ const {data,error}=await db.auth.getSession();
+ if(error||!data.session){$('aiStatus').textContent='Admin session পাওয়া যায়নি। আবার Login করুন।';return;}
+ button.disabled=true;button.textContent='AI বিশ্লেষণ করছে...';
+ $('aiStatus').textContent='ছবি বিশ্লেষণ করে বাংলা ও ইংরেজি তথ্য তৈরি হচ্ছে। একটু অপেক্ষা করুন...';
+ $('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';
+ try{
+  const dataUrl=await new Promise((resolve,reject)=>{
+   const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('ছবি পড়া যায়নি।'));reader.readAsDataURL(file);
+  });
+  const imageBase64=String(dataUrl).split(',')[1]||'';
+  const response=await fetch(SUPABASE_URL+'/functions/v1/hatbazar-ai-product',{
+   method:'POST',
+   headers:{'Authorization':'Bearer '+data.session.access_token,'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({mime_type:file.type||'image/jpeg',image_base64:imageBase64,categories:categories.map(c=>({name:c.name,name_bn:c.name_bn}))})
+  });
+  const result=await response.json().catch(()=>({error:'Server response পড়া যায়নি।'}));
+  if(!response.ok)throw new Error(result.error||'AI তথ্য তৈরি করতে পারেনি।');
+  $('name').value=result.name||'';
+  $('name_bn').value=result.name_bn||'';
+  if(result.category_id)$('category_id').value=result.category_id;
+  aiProductMeta={
+   attributes:result.attributes||{},
+   sizes:Array.isArray(result.sizes)?result.sizes:[],
+   description_en:result.description_en||'',
+   description_bn:result.description_bn||''
+  };
+  const enFeatures=(result.features_en||[]).map(x=>'• '+x).join('\n');
+  const bnFeatures=(result.features_bn||[]).map(x=>'• '+x).join('\n');
+  const attrs=Object.entries(aiProductMeta.attributes).filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join(' | ');
+  const sections=[];
+  if(aiProductMeta.description_en)sections.push('DESCRIPTION (ENGLISH)\n'+aiProductMeta.description_en);
+  if(enFeatures)sections.push('KEY FEATURES\n'+enFeatures);
+  if(aiProductMeta.description_bn)sections.push('বিবরণ (বাংলা)\n'+aiProductMeta.description_bn);
+  if(bnFeatures)sections.push('বিশেষ বৈশিষ্ট্য\n'+bnFeatures);
+  if(attrs)sections.push('PRODUCT DETAILS\n'+attrs);
+  if(aiProductMeta.sizes.length)sections.push('প্রযোজ্য সাইজ অপশন (স্টক আপনি নিশ্চিত করবেন): '+aiProductMeta.sizes.join(', '));
+  $('description').value=sections.join('\n\n');
+  $('aiGeneratedDetails').textContent='তথ্য তৈরি হয়েছে। নাম, ক্যাটাগরি ও বিবরণ দেখে প্রয়োজন হলে সম্পাদনা করুন।'+(result.category_name?' নির্বাচিত Category: '+result.category_name:'');
+  if(aiProductMeta.sizes.length){
+   $('aiSizesPanel').innerHTML='<strong>প্রস্তাবিত Size (প্রয়োজনমতো টিক/আনটিক করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>';
+  }else{
+   $('aiSizesPanel').textContent='এই পণ্যের জন্য আলাদা Size প্রযোজ্য নয় বলে AI কোনো Size দেয়নি।';
+  }
+  $('aiStatus').textContent='AI তথ্য তৈরি হয়েছে। দাম, Base Price ও Stock আপনি নিজে বসাবেন।';
+ }catch(err){
+  $('aiStatus').textContent=err.message||'AI বিশ্লেষণ ব্যর্থ হয়েছে।';
+ }finally{
+  button.disabled=false;button.textContent='✨ আবার AI দিয়ে তথ্য তৈরি করুন';
+ }
+}
+$('aiGenerateBtn').addEventListener('click',generateAIProductDetails);
+function selectedAISizes(){
+ return [...document.querySelectorAll('[data-ai-size]:checked')].map(x=>x.value);
+}
 
 async function facebookRequest(action,method='GET',body=null){
  const {data,error}=await db.auth.getSession();
@@ -687,6 +761,8 @@ function resetSingleImages(){
 $('newProductBtn').addEventListener('click',()=>{
  editingProduct=null;
  $('productForm').reset();
+ aiProductMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
+ $('aiStatus').textContent='';$('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';
  $('category_id').value='';
  $('is_active').checked=true;
  $('stock').value=0;
@@ -721,10 +797,11 @@ async function editProduct(id){
  }
 
  editingProduct=data;
-
+ aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''};
  $('name').value=data.name||'';
  $('name_bn').value=data.name_bn||'';
  $('description').value=data.description||'';
+ $('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';
  $('price').value=data.price??0;
  $('base_price').value=data.base_price??'';
  $('stock').value=data.stock??0;
@@ -823,6 +900,10 @@ $('productForm').addEventListener('submit',async e=>{
    name:$('name').value.trim(),
    name_bn:$('name_bn').value.trim()||null,
    description:$('description').value.trim()||null,
+   description_en:aiProductMeta.description_en||null,
+   description_bn:aiProductMeta.description_bn||null,
+   attributes:aiProductMeta.attributes||{},
+   sizes:selectedAISizes(),
    category_id:$('category_id').value||null,
    price:Number($('price').value),
    base_price:$('base_price').value===''?null:Number($('base_price').value),
@@ -874,6 +955,8 @@ $('productForm').addEventListener('submit',async e=>{
   $('productFormPanel').classList.add('hidden');
   editingProduct=null;
   $('productForm').reset();
+  aiProductMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
+  $('aiStatus').textContent='';$('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';
   resetSingleImages();
 
   await loadProducts();
