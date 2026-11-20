@@ -4741,14 +4741,24 @@
       'পণ্য খুঁজুন': 'Search products',
       'কার্ট দেখুন': 'View cart',
       'কার্ট ও অর্ডার স্লাইড': 'Cart and order panel',
-      'স্লাইড বন্ধ করুন': 'Close panel'
+      'স্লাইড বন্ধ করুন': 'Close panel',
+      'Excel (.xlsx/.xls) বা CSV ফাইল দিন। Category, English/Bangla নাম, Selling Price, Base Price, Stock Quantity ও Description দিন। Preview-তে প্রতিটি পণ্যের সর্বোচ্চ ১০টি ছবি বেছে নিতে পারবেন।': 'Upload an Excel (.xlsx/.xls) or CSV file. Include Category, English/Bangla Name, Selling Price, Base Price, Stock Quantity and Description. You can select up to 10 images per product in the preview.',
+      'পণ্যের ওজন এবং স্থানের উপর ভিত্তি করে কুরিয়ার চার্জ পরিবর্তন হতে পারে।': 'Delivery charges may vary depending on product weight and destination.',
+      'Hatbazar-এ অর্ডার করার সময় গ্রাহককে সঠিক নাম, সচল মোবাইল নম্বর এবং সম্পূর্ণ ঠিকানা প্রদান করতে হবে। স্টক প্রাপ্যতা ও ঠিকানা যাচাইয়ের সাপেক্ষে অর্ডার কনফার্ম করা হয়। প্রতারণামূলক বা অসম্পূর্ণ অর্ডার বাতিল করার অধিকার Hatbazar সংরক্ষণ করে।': 'When placing an order on Hatbazar, customers must provide their correct name, active mobile number and complete address. Orders are confirmed subject to stock and address verification. Hatbazar reserves the right to cancel fraudulent or incomplete orders.',
+      '(আনুমানিক ১–৩ কার্যদিবস)।': '(Estimated 1–3 business days).',
+      '(আনুমানিক ২–৫ কার্যদিবস)।': '(Estimated 2–5 business days).',
+      'পণ্য হাতে পাওয়ার ২৪ থেকে ৭২ ঘণ্টার মধ্যে কোনো পণ্য ত্রুটিপূর্ণ, ক্ষতিগ্রস্ত বা অর্ডারকৃত পণ্যের চেয়ে ভিন্ন হলে সহজেই রিটার্ন বা এক্সচেঞ্জের আবেদন করা যাবে। পণ্য অব্যবহৃত, অক্ষত এবং মূল প্যাকেজিং ও ট্যাগসহ থাকতে হবে।': 'Within 24 to 72 hours of receiving an item, customers may request a return or exchange if it is defective, damaged or different from what was ordered. The item must be unused, intact and include its original packaging and tags.',
+      'অ্যাডভান্স পেমেন্টকৃত অর্ডার স্টক না থাকায় বাতিল হলে অথবা রিটার্নকৃত পণ্য আমাদের ওয়্যারহাউসে যাচাই সম্পন্ন হলে ৩ থেকে ৭ কার্যদিবসের মধ্যে বিকাশ, নগদ বা নির্ধারিত মাধ্যমে রিফান্ড সম্পন্ন করা হয়।': 'If a prepaid order is cancelled due to unavailable stock, or after a returned item is inspected at our warehouse, refunds are processed within 3 to 7 business days through bKash, Nagad or the designated method.'
     };
 
     function applyStaticTextTranslations(root = document.body) {
       if (!root) return;
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
       const nodes = [];
-      while (walker.nextNode()) nodes.push(walker.currentNode);
+      if (root.nodeType === Node.TEXT_NODE) nodes.push(root);
+      else {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+      }
       nodes.forEach((node) => {
         const parent = node.parentElement;
         if (!parent || parent.closest('script, style, textarea, [data-bn][data-en]')) return;
@@ -4800,7 +4810,24 @@
       const description = document.querySelector('meta[name="description"]');
       if (description) description.content = currentLang === 'en'
         ? 'Hatbazar — Fashion, gadgets, home decor and daily essentials across 24 categories. Nationwide home delivery and Cash on Delivery.'
-        : 'Hatbazar — ২৪টি ক্যাটাগরিতে ফ্যাশন, গ্যাজেট, হোম ডেকর ও নিত্যপ্রয়োজনীয় পণ্য। সারাদেশে হোম ডেলিভারি, ক্যাশ অন ডেলিভারি।';
+        : 'Hatbazar — ২৪টি ক্যাটাগরিতে ফ্যাশন, গ্যাজেট, হোম ডেকর ও নিত্যপ্রয়োজনীয় পণ্য। সারাদেশে হোম ডেলিভারি, ক্যাশ অন ডেলিভারি.';
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) ogTitle.content = pageTitle?.textContent || '';
+      const ogDescription = document.querySelector('meta[property="og:description"]');
+      if (ogDescription) ogDescription.content = description?.content || '';
+      const ogLocale = document.querySelector('meta[property="og:locale"]');
+      if (ogLocale) ogLocale.content = currentLang === 'en' ? 'en_US' : 'bn_BD';
+
+      if (!window.__hatbazarStaticTranslationObserver && document.body && window.MutationObserver) {
+        window.__hatbazarStaticTranslationObserver = new MutationObserver((records) => {
+          records.forEach((record) => record.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+              applyStaticTextTranslations(node);
+            }
+          }));
+        });
+        window.__hatbazarStaticTranslationObserver.observe(document.body, { childList: true, subtree: true });
+      }
     }
 
     function applyFullPageLanguage() {
