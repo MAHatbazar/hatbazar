@@ -2694,8 +2694,9 @@
           .from(SUPABASE_CONFIG.storageBucket)
           .getPublicUrl(safePath);
         return pubData?.publicUrl || fallbackDataUrl;
-      } catch (_err) {
-        return fallbackDataUrl;
+      } catch (uploadError) {
+        console.error('Hatbazar image upload failed:', uploadError?.message || uploadError);
+        throw uploadError;
       }
     }
 
