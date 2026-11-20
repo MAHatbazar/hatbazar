@@ -467,8 +467,9 @@ async function loadAIJobs(){
    const card=document.createElement('div');card.style.cssText='padding:10px;margin:8px 0;border:1px solid #d8e2dd;border-radius:10px';
    const title=document.createElement('div');title.textContent=aiJobLabel(job);title.style.fontWeight='700';card.appendChild(title);
    const detail=document.createElement('div');detail.className='hint';detail.textContent=new Date(job.created_at).toLocaleString('bn-BD')+(job.error?' · '+job.error:'');card.appendChild(detail);
-   if(job.status==='completed'){
-    const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent=job.job_type==='bulk'?'Bulk ফলাফল Row-তে বসান':'তথ্য Product Form-এ বসান';
+   const hasPartialBulk=job.job_type==='bulk'&&(job.result?.results||[]).length>0;
+   if(job.status==='completed'||hasPartialBulk){
+    const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent=job.job_type==='bulk'?(job.status==='completed'?'Bulk ফলাফল Row-তে বসান':'আংশিক Bulk ফলাফল Row-তে বসান'):'তথ্য Product Form-এ বসান';
     btn.addEventListener('click',async()=>{btn.disabled=true;try{await applyAIJob(job);btn.textContent='Form-এ বসানো হয়েছে';}catch(e){btn.disabled=false;alert(e.message||'ফলাফল বসানো যায়নি।');}});card.appendChild(btn);
    }
    panel.appendChild(card);
