@@ -28,6 +28,13 @@ checks = {
     "seller and reseller registration buttons preselect the matching application type": "openPartnerRegistration('seller')" in html and "openPartnerRegistration('reseller')" in html and "roleSelect.value = role" in html,
     "management routes are restricted to authenticated admin sessions": "const adminOnlyViews = ['admin', 'sellerDash', 'resellerDash', 'ordersHistory', 'liveEditor']" in html and "adminOnlyViews.includes(viewName) && !isAdminSession()" in html,
     "admin dashboard provides shortcuts to private management sections": all("navigateTo('" + view + "')" in html for view in ["sellerDash", "resellerDash", "ordersHistory", "policies", "liveEditor"]),
+    "mobile storefront has a fixed four-item customer navigation": 'id="mobileCustomerNav"' in html and 'data-mobile-nav="home"' in html and 'data-mobile-nav="shop"' in html and 'data-mobile-nav="sellerRegistration"' in html and 'data-mobile-nav="resellerRegistration"' in html,
+    "category add and remove controls exist only in the admin dashboard": 'id="adminCategoryAdjustTitle"' not in html and html.index('id="adminView"') < html.index('id="adminAddCategoryBtn"'),
+    "folder product creation form is hidden by default for customers": 'id="folderSideAddColumn" class="hidden' in html and "adminFolderControls.forEach" in html and "el.classList.toggle('hidden', !adminActive)" in html,
+    "folder cover upload and category rename controls are hidden for customers": 'id="inlineFolderAdminUploadBar" class="hidden' in html and 'id="adminRenameCategoryBtn"' in html and 'class="hidden px-2.5 py-1 rounded-lg' in html,
+    "hero live editor action is hidden unless an admin session is active": 'id="heroLiveEditorBtn"' in html and "heroEditorButton.classList.toggle('hidden', !adminActive)" in html,
+    "mobile navigation is hidden on admin management screens": "mobileCustomerNav.classList.toggle('hidden', adminOnlyViews.includes(currentView))" in html,
+    "Hatbazar favicon uses the branded shopping bag mark": "M18 25h28" in html and "fill='%234c1d95'" in html,
 }
 
 failed = [name for name, ok in checks.items() if not ok]
