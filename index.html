@@ -935,6 +935,10 @@
                     </div>
                   </div>
                   <div class="sm:col-span-2">
+                    <label for="newItemGalleryFiles" class="block text-xs font-bold text-slate-700 mb-1">অতিরিক্ত গ্যালারি ছবি (সর্বোচ্চ ১০টি, প্রতিটি ৫MB পর্যন্ত)</label>
+                    <input id="newItemGalleryFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-fuchsia-600 file:text-white" />
+                  </div>
+                  <div class="sm:col-span-2">
                     <label for="newItemVideoFile" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের ভিডিও আপলোড (MP4/WEBM/MOV, সর্বোচ্চ ২৫MB)</label>
                     <div class="flex items-center gap-2">
                       <input id="newItemVideoFile" type="file" accept="video/mp4,video/webm,video/ogg,video/quicktime" onchange="handleProductVideoPreviewChange(event)" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-fuchsia-600 file:text-white hover:file:bg-fuchsia-700" />
@@ -6269,6 +6273,7 @@
           const rawDiscount = Number(document.getElementById('newItemDiscount')?.value || 0);
           const desc = (document.getElementById('newItemDesc')?.value || '').trim();
           const imgInput = document.getElementById('newItemImageFile');
+          const galleryInput = document.getElementById('newItemGalleryFiles');
           const vidInput = document.getElementById('newItemVideoFile');
 
           if (!title || !Number.isFinite(price) || price <= 0) {
@@ -6308,6 +6313,25 @@
             }
           }
 
+          const galleryUrls = [];
+          const galleryFiles = Array.from(galleryInput?.files || []).slice(0, 10);
+          for (const galleryFile of galleryFiles) {
+            const galleryValidation = validateProductImageFile(galleryFile);
+            if (!galleryValidation.ok) {
+              showToast(galleryValidation.message);
+              return;
+            }
+            try {
+              const compressedGallery = await compressImageFile(galleryFile, 900, 0.72);
+              const uploadedGallery = await uploadProductImageToSupabase(galleryFile, compressedGallery);
+              if (uploadedGallery && /^https?:\/\//i.test(uploadedGallery)) galleryUrls.push(uploadedGallery);
+              else if (cloudSyncEnabled) throw new Error('Gallery image was not uploaded to cloud storage.');
+            } catch (galleryError) {
+              showToast(currentLang === 'en' ? 'A gallery image could not be uploaded. Product was not added.' : 'গ্যালারির একটি ছবি আপলোড হয়নি, তাই পণ্য যোগ করা হয়নি।');
+              return;
+            }
+          }
+
           let videoSrc = pendingFolderItemVideoDataUrl || '';
           const vidFile = vidInput?.files?.[0];
           if (vidFile && !videoSrc) {
@@ -6334,6 +6358,7 @@
             stock,
             desc: desc || `${title} — ${cat.name} কালেকশন।`,
             image: imageSrc,
+            gallery: [imageSrc, ...galleryUrls].filter((url) => typeof url === 'string' && /^https?:\/\//i.test(url)).slice(0, 10),
             video: videoSrc
           };
 
