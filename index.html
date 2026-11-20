@@ -2853,6 +2853,7 @@
               .select('id')
               .eq('product_id', itemObj.id)
               .eq('image_url', imageUrl)
+              .limit(1)
               .maybeSingle();
             if (lookupError) {
               console.error('Hatbazar gallery lookup failed:', lookupError.message);
@@ -2901,6 +2902,10 @@
         }
       }
 
+      if (!orderRecord?._isNewCheckout) {
+        return { success: false, error: 'This order is not linked to a cloud order record.' };
+      }
+
       const paymentMap = {
         'ক্যাশ অন ডেলিভারি': 'cod',
         'বিকাশ': 'bkash',
@@ -2934,6 +2939,7 @@
         }
         orderRecord.id = data.order_code || data.order_id;
         orderRecord.orderUuid = data.order_id;
+        delete orderRecord._isNewCheckout;
         orderRecord.subtotal = Number(data.subtotal) || orderRecord.subtotal;
         orderRecord.deliveryFee = Number(data.delivery_fee) || 0;
         orderRecord.totalAmount = Number(data.total_amount) || orderRecord.totalAmount;
@@ -6526,6 +6532,7 @@
           let orderId = `HB-${Date.now().toString().slice(-6)}`;
           const orderRecord = {
             id: orderId,
+            _isNewCheckout: true,
             customerName: name,
             customerPhone: phone,
             district,
