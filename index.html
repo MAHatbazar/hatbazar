@@ -6378,7 +6378,7 @@
             return;
           }
 
-          const orderId = `HB-${Date.now().toString().slice(-6)}`;
+          let orderId = `HB-${Date.now().toString().slice(-6)}`;
           const orderRecord = {
             id: orderId,
             customerName: name,
@@ -6410,6 +6410,7 @@
               : `অর্ডার সেভ হয়নি: ${saveResult.error || 'আবার চেষ্টা করুন।'}`);
             return;
           }
+          orderId = orderRecord.id;
           ordersData.unshift(orderRecord);
 
           lastOrderText =
