@@ -78,11 +78,37 @@ GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_delivery_settings(NUMERIC
 -- Hatbazar production checkout RPC v2
 -- Run in Supabase SQL Editor after reviewing the schema.
 ALTER TABLE public.orders
-  ADD COLUMN IF NOT EXISTS reseller_id UUID REFERENCES public.reseller_profiles(id) ON DELETE SET NULL;
+  ADD COLUMN IF NOT EXISTS reseller_id UUID REFERENCES public.reseller_profiles(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS order_code TEXT,
+  ADD COLUMN IF NOT EXISTS district TEXT,
+  ADD COLUMN IF NOT EXISTS upazila TEXT,
+  ADD COLUMN IF NOT EXISTS delivery_zone TEXT,
+  ADD COLUMN IF NOT EXISTS subtotal NUMERIC(12,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS delivery_fee NUMERIC(12,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS payment_trx_id TEXT,
+  ADD COLUMN IF NOT EXISTS payment_verified BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE UNIQUE INDEX IF NOT EXISTS orders_order_code_unique_idx
+  ON public.orders (order_code)
+  WHERE order_code IS NOT NULL;
+
+-- Public storefronts may read gallery URLs for active products.
+ALTER TABLE public.product_images ENABLE ROW LEVEL SECURITY;
+GRANT SELECT ON TABLE public.product_images TO anon, authenticated;
+DROP POLICY IF EXISTS "Public can view gallery images for active products" ON public.product_images;
+CREATE POLICY "Public can view gallery images for active products"
+ON public.product_images
+FOR SELECT TO anon, authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.products p
+    WHERE p.id = product_images.product_id AND p.is_active IS TRUE
+  )
+);
 -- This function calculates product prices from the database, locks stock rows,
 -- writes the order and order_items atomically, and deducts stock only on success.
 
-DROP FUNCTION IF EXISTS public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT);
+DROP FUNCTION IF EXISTS public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT,UUID);
 
 CREATE OR REPLACE FUNCTION public.hatbazar_checkout_v2(
   p_customer_name TEXT,
