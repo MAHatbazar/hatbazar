@@ -1298,7 +1298,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
-          <div data-bn="মোট রিসেল কমিশন আয়" data-en="Total Commission Earned" class="text-xs font-bold text-slate-500">মোট রিসেল কমিশন আয়</div>
+          <div data-bn="মোট রিসেল কমিশন আয়" data-en="Total Profit Earned" class="text-xs font-bold text-slate-500">মোট রিসেল কমিশন আয়</div>
           <div id="resellerTotalCommission" class="text-2xl font-black text-fuchsia-700 mt-1">৳০</div>
         </div>
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
@@ -1317,7 +1317,7 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-6 bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-          <h3 data-bn="➕ নতুন রিসেল সেলস লগ ও কমিশন যুক্ত করুন" data-en="➕ Log Reseller Sale & Commission" class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
+          <h3 data-bn="➕ রিসেলার বিক্রয় ও লাভের হিসাব যুক্ত করুন" data-en="➕ Log Reseller Sale & Profit" class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
             ➕ নতুন রিসেল সেলস লগ ও কমিশন যুক্ত করুন
           </h3>
           <form onsubmit="handleAddResellerSale(event)" class="space-y-3">
@@ -1348,7 +1348,7 @@
           </form>        </div>
 
         <div class="lg:col-span-6 bg-white rounded-3xl border border-violet-200/80 p-5 sm:p-6 shadow-xs space-y-4">
-          <h3 data-bn="💸 কমিশন উইথড্র / পে-আউট রিকোয়েস্ট" data-en="💸 Commission Withdraw / Payout Request" class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
+          <h3 data-bn="💸 লাভের টাকা উইথড্র / পে-আউট রিকোয়েস্ট" data-en="💸 Commission Withdraw / Payout Request" class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2.5">
             💸 কমিশন উইথড্র / পে-আউট রিকোয়েস্ট
           </h3>
           <form onsubmit="handleResellerWithdrawRequest(event)" class="space-y-3">
@@ -3696,7 +3696,7 @@
       const listEl = document.getElementById('resellerLedgerList');
       if (!listEl) return;
       if (resellerLedgerData.length === 0) {
-        listEl.innerHTML = `<div class="text-xs text-slate-500">কোনো কমিশন বা পে-আউট রেকর্ড নেই।</div>`;
+        listEl.innerHTML = `<div class="text-xs text-slate-500">কোনো বিক্রয় লাভ বা পে-আউট রেকর্ড নেই।</div>`;
         return;
       }
 
@@ -3707,7 +3707,7 @@
             <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 flex items-center justify-between gap-3 text-xs sm:text-sm">
               <div>
                 <div class="font-extrabold text-slate-900">
-                  ${isWithdraw ? '💸 উইথড্র রিকোয়েস্ট' : '💰 কমিশন আয়'} — ${escapeHtml(row.ref)}
+                  ${isWithdraw ? '💸 উইথড্র রিকোয়েস্ট' : '💰 বিক্রয় লাভ'} — ${escapeHtml(row.ref)}
                 </div>
                 <div class="text-[11px] text-slate-500">
                   ${new Date(row.createdAt || Date.now()).toLocaleDateString('bn-BD')} • ${
