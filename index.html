@@ -3690,6 +3690,19 @@
           status: 'earned',
           createdAt: row.created_at
         })) : []);
+        const { data: checkoutSales, error: checkoutSalesError } = await supabaseClient
+          .from('reseller_ledger')
+          .select('order_id,product_id,base_price,selling_price,quantity,created_at')
+          .order('created_at', { ascending: false });
+        if (checkoutSalesError) throw checkoutSalesError;
+        const checkoutEntries = (Array.isArray(checkoutSales) ? checkoutSales.map((row) => ({
+          id: row.order_id + ':' + row.product_id,
+          type: 'earning',
+          ref: 'অর্ডার ' + row.order_id + ' · বিক্রয় ৳' + formatNum(row.selling_price) + ' × ' + row.quantity,
+          amount: Math.max(0, (Number(row.selling_price) - Number(row.base_price)) * Number(row.quantity)),
+          status: 'earned',
+          createdAt: row.created_at
+        })) : []);
         const payoutEntries = (Array.isArray(payoutRows) ? payoutRows.map((row) => ({
           id: row.id,
           type: 'withdraw',
@@ -3698,7 +3711,7 @@
           status: row.status,
           createdAt: row.created_at
         })) : []);
-        resellerLedgerData = saleEntries.concat(payoutEntries);
+        resellerLedgerData = saleEntries.concat(checkoutEntries, payoutEntries);
         renderResellerDashboard();
         updateResellerMarginPreview();
       } catch (error) {
