@@ -4504,6 +4504,9 @@
         currentSessionUser = null;
         supabaseUser = null;
         supabaseProfile = null;
+        resellerCloudLoadedAt = 0;
+        resellerCatalogCache = [];
+        resellerLedgerData = [];
         if (cloudSyncEnabled && supabaseClient) {
           supabaseClient.auth.signOut().catch(() => {});
         }
@@ -4604,6 +4607,9 @@
           return;
         }
         supabaseProfile = profile;
+        resellerCloudLoadedAt = 0;
+        resellerCatalogCache = [];
+        resellerLedgerData = [];
         currentSessionUser = {
           name: profile.full_name || name,
           contact: profile.phone || phone,
@@ -4704,6 +4710,9 @@
       currentSessionUser = null;
       supabaseUser = null;
       supabaseProfile = null;
+      resellerCloudLoadedAt = 0;
+      resellerCatalogCache = [];
+      resellerLedgerData = [];
       if (cloudSyncEnabled && supabaseClient) {
         supabaseClient.auth.signOut().catch(() => {});
       }
