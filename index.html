@@ -345,51 +345,9 @@
 </head>
 <body class="min-h-screen flex flex-col text-slate-900 selection:bg-violet-600 selection:text-white">
 
-  <!-- =========================================================
-       ০. একদম সর্বোচ্চ উপরে স্লোলি চলা লাইভ নিউজ/অফার টিকার বার
-       ========================================================= -->
-  <div class="bg-[#09071d] text-amber-200 text-[11px] sm:text-xs border-b border-amber-400/25 overflow-hidden select-none">
-    <div class="max-w-7xl mx-auto flex items-center">
-      <span class="shrink-0 z-10 px-3 py-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white font-extrabold tracking-wide flex items-center gap-1.5 shadow-sm">
-        <span class="inline-block w-2 h-2 rounded-full bg-white animate-pulse"></span>
-        LIVE
-      </span>
-      <div class="flex-1 overflow-hidden py-1.5">
-        <div class="live-ticker-track whitespace-nowrap font-medium">
-          <div class="flex items-center gap-8 pr-8">
-            <span>✨ Hatbazar — আভিজাত্য ও আস্থার ঠিকানা • ২৪টি প্রিমিয়াম ক্যাটাগরি ফোল্ডারে নতুন কালেকশন চলছে</span>
-            <span>🚚 সারাদেশের ৬৪ জেলায় দ্রুত ডেলিভারি • ঢাকায় ৳৮০ এবং ঢাকার বাইরে ৳১৩০ কুরিয়ার চার্জ</span>
-            <span>🤝 সেলার ও রিসেলার রেজিস্ট্রেশন খোলা আছে • আজই যুক্ত হয়ে ব্যবসা শুরু করুন</span>
-            <span>🛡️ ক্যাশ অন ডেলিভারি ও সহজ অনলাইন অর্ডার</span>
-          </div>
-          <div class="flex items-center gap-8 pr-8" aria-hidden="true">
-            <span>✨ Hatbazar — আভিজাত্য ও আস্থার ঠিকানা • ২৪টি প্রিমিয়াম ক্যাটাগরি ফোল্ডারে নতুন কালেকশন চলছে</span>
-            <span>🚚 সারাদেশের ৬৪ জেলায় দ্রুত ডেলিভারি • ঢাকায় ৳৮০ এবং ঢাকার বাইরে ৳১৩০ কুরিয়ার চার্জ</span>
-            <span>🤝 সেলার ও রিসেলার রেজিস্ট্রেশন খোলা আছে • আজই যুক্ত হয়ে ব্যবসা শুরু করুন</span>
-            <span>🛡️ ক্যাশ অন ডেলিভারি ও সহজ অনলাইন অর্ডার</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================================================
-       ১. টপ ইউটিলিটি ও ট্রাস্ট বার
-       ========================================================= -->
-  <div class="bg-gradient-to-r from-[#1e1b4b] via-[#3b0764] to-[#4c0519] text-violet-50 text-[11px] sm:text-xs border-b border-violet-900/60">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-1.5 flex flex-wrap items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5 sm:gap-4 flex-wrap font-medium">
-        <span class="hidden md:inline-flex items-center gap-1">🚚 সারাদেশে দ্রুত হোম ডেলিভারি</span>
-      </div>
-      <div class="flex items-center gap-3 font-semibold">
-        <button type="button" onclick="navigateTo('partner')" class="hover:text-amber-300 transition">
-          🤝 সেলার / রিসেলার জয়েন করুন
-        </button>
-        <span class="text-violet-500">|</span>
-        <button type="button" onclick="openAiAssistantModal()" class="text-amber-300 hover:text-amber-200 transition">
-          💬 হেল্প ডেস্ক
-        </button>
-      </div>
+  <div class="bg-slate-900 text-white text-[11px] sm:text-xs border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-1.5 text-center font-semibold">
+      🚚 ডেলিভারি চার্জ: ঢাকায় ৳৮০, ঢাকার বাইরে ৳১৩০
     </div>
   </div>
 
@@ -632,7 +590,7 @@
                         loading="eager"
                         fetchpriority="high"
                         class="w-full h-full object-cover object-center"
-                        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=1600&q=80';"
+                        onerror="this.onerror=null;this.src='https://wagtpkukzutsxwhutznu.supabase.co/storage/v1/object/public/product-images/1795122102090-dtkh5u481ls.jpeg'"
                       />
                       <div class="absolute inset-0 bg-gradient-to-r from-slate-950/65 via-slate-950/25 to-transparent"></div>
                       <div class="absolute left-4 bottom-4 sm:left-6 sm:bottom-5 text-white drop-shadow-lg">
@@ -876,7 +834,8 @@
           <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold">
             <span id="footerEmailWrap" class="hidden">📧 ইমেইল: <a id="footerEmailLink" href="#" class="text-violet-700 hover:underline font-bold"></a></span>
             <span id="footerPhoneWrap" class="hidden">📞 সাপোর্ট: <strong id="footerPhoneText" class="text-slate-800"></strong></span>
-            <span>↩️ রিটার্ন ও রিফান্ড সাপোর্ট সক্রিয়</span>
+            <span>📞 যোগাযোগের যাচাইকৃত ফোন ও ইমেইল শিগগিরই প্রকাশ করা হবে।</span>
+            <span>↩️ রিটার্ন ও রিফান্ড নীতিমালা প্রযোজ্য</span>
           </div>
           <div class="font-bold text-slate-800">
             © ২০২৬ Hatbazar
