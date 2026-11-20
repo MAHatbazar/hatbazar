@@ -123,6 +123,11 @@ button:disabled{opacity:.5}
 <button id="newProductBtn">+ Add Product</button>
 </div>
 
+<div class="upload-box" id="facebookConnectBox">
+ <strong>Facebook Page সংযোগ</strong>
+ <p class="hint" id="facebookConnectStatus">নতুন Product Facebook Page-এ পোস্ট করতে চাইলে আগে Page সংযুক্ত করুন।</p>
+ <button type="button" class="secondary" id="facebookConnectBtn">Connect Facebook Page</button>
+</div>
 <div id="categoryCount" class="category-count">Category লোড হচ্ছে...</div>
 
 <div class="tabs">
@@ -157,6 +162,10 @@ button:disabled{opacity:.5}
 
 <p class="hint">প্রতিটি ছবি সর্বোচ্চ ৫ MB। নতুন ছবি নির্বাচন করলে আগের Gallery পরিবর্তিত হবে। নতুন ছবি না দিলে আগের ছবি থাকবে।</p>
 
+<label id="facebookSingleOption" style="display:block;margin:12px 0">
+<input id="postToFacebookSingle" type="checkbox" style="width:auto;margin-right:7px">
+এই নতুন Product Facebook Page-এ পোস্ট করুন
+</label>
 <label>
 <input id="is_active" type="checkbox" checked style="width:auto;margin-right:7px">
 Product Active
@@ -213,6 +222,10 @@ Product Active
 <div id="bulkRows"></div>
 </div>
 
+<label style="display:block;margin:12px 0">
+<input id="postToFacebookBulk" type="checkbox" style="width:auto;margin-right:7px">
+Save হওয়া প্রতিটি নতুন Product Facebook Page-এ পোস্ট করুন
+</label>
 <div class="actions" style="margin-top:14px">
 <button id="saveBulkBtn" type="button" onclick="saveBulkProducts()">Save All Products</button>
 <button type="button" class="secondary" onclick="clearBulkRows()">Clear Rows</button>
@@ -317,6 +330,51 @@ function showStatus(t,error=false){
  $('status').textContent=t;
  $('status').style.color=error?'#b42318':'#16804a';
 }
+
+async function facebookRequest(action,payload={}){
+ const {data:{session}}=await db.auth.getSession();
+ if(!session?.access_token)throw new Error('Admin session নেই। আবার Login করুন।');
+ const res=await fetch(SUPABASE_URL+'/functions/v1/hatbazar-facebook?action='+encodeURIComponent(action),{
+  method:'POST',
+  headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token},
+  body:JSON.stringify(payload)
+ });
+ const data=await res.json().catch(()=>({}));
+ if(!res.ok||data.error)throw new Error(data.error||'Facebook সংযোগে সমস্যা হয়েছে।');
+ return data;
+}
+
+async function connectFacebookPage(){
+ const btn=$('facebookConnectBtn');
+ btn.disabled=true;btn.textContent='সংযোগ শুরু হচ্ছে...';
+ try{
+  const data=await facebookRequest('connect');
+  if(!data.url)throw new Error('Facebook login link তৈরি হয়নি।');
+  window.location.href=data.url;
+ }catch(err){
+  $('facebookConnectStatus').textContent='সংযোগ শুরু হয়নি: '+err.message;
+  btn.disabled=false;btn.textContent='Connect Facebook Page';
+ }
+}
+$('facebookConnectBtn').addEventListener('click',connectFacebookPage);
+
+async function postProductToFacebook(productId){
+ return await facebookRequest('publish',{product_id:productId});
+}
+
+(function showFacebookReturnStatus(){
+ const result=new URLSearchParams(location.search).get('facebook');
+ const messages={
+  connected:'Facebook Page সফলভাবে সংযুক্ত হয়েছে। এখন Product Save করার সময় Facebook checkbox নির্বাচন করতে পারবেন।',
+  cancelled:'Facebook সংযোগ বাতিল করা হয়েছে।',
+  state_error:'নিরাপত্তা যাচাই ব্যর্থ হয়েছে। আবার Connect করুন।',
+  token_error:'Facebook অনুমতি/Token পাওয়া যায়নি। আবার চেষ্টা করুন।',
+  page_access_error:'নির্বাচিত Facebook অ্যাকাউন্টে নির্দিষ্ট Page-এ পোস্ট করার অনুমতি পাওয়া যায়নি।',
+  save_error:'Facebook সংযোগ সংরক্ষণ করা যায়নি।',
+  server_config_error:'Supabase Secret সেট করা নেই।'
+ };
+ if(result&&messages[result])$('facebookConnectStatus').textContent=messages[result];
+})();
 
 function validImage(file){
  if(!file)return 'ছবি নির্বাচন করুন।';
@@ -629,6 +687,8 @@ $('newProductBtn').addEventListener('click',()=>{
 
  $('formTitle').textContent='নতুন Product যোগ করুন';
  $('saveBtn').textContent='Save Product';
+ $('facebookSingleOption').style.display='block';
+ $('postToFacebookSingle').checked=false;
 
  $('productFormPanel').classList.remove('hidden');
  showProductMode('single');
@@ -655,6 +715,8 @@ async function editProduct(id){
  }
 
  editingProduct=data;
+ $('facebookSingleOption').style.display='none';
+ $('postToFacebookSingle').checked=false;
 
  $('name').value=data.name||'';
  $('name_bn').value=data.name_bn||'';
@@ -797,7 +859,16 @@ $('productForm').addEventListener('submit',async e=>{
    if(files.length)await saveProductGallery(productId,imageUrls);
   }
 
-  showStatus(wasEditing?'Product Update হয়েছে।':'নতুন Product যোগ হয়েছে।');
+  let facebookMessage='';
+  if(!wasEditing&&$('postToFacebookSingle').checked){
+   try{
+    await postProductToFacebook(productId);
+    facebookMessage=' Facebook Page-এও পোস্ট হয়েছে।';
+   }catch(fbError){
+    facebookMessage=' তবে Facebook পোস্ট হয়নি: '+fbError.message;
+   }
+  }
+  showStatus((wasEditing?'Product Update হয়েছে।':'নতুন Product যোগ হয়েছে।')+facebookMessage,!!(facebookMessage&&!facebookMessage.includes('পোস্ট হয়েছে')));
 
   $('productFormPanel').classList.add('hidden');
   editingProduct=null;
@@ -1218,14 +1289,17 @@ async function saveBulkProducts(){
  }
 
  const imageCount=products.reduce((sum,p)=>sum+p._imageFiles.length,0);
+ const postFacebook=$('postToFacebookBulk').checked;
 
- if(!confirm(products.length+'টি Product এবং '+imageCount+'টি Image Save করবেন?'))return;
+ if(!confirm(products.length+'টি Product এবং '+imageCount+'টি Image Save করবেন?'+(postFacebook?' Facebook Page-এও পোস্ট করার চেষ্টা হবে।':'')))return;
 
  const btn=$('saveBulkBtn');
 
  btn.disabled=true;
 
  let savedCount=0;
+ let facebookPosted=0;
+ const facebookErrors=[];
 
  try{
   for(let i=0;i<products.length;i++){
@@ -1269,10 +1343,20 @@ async function saveBulkProducts(){
    }
 
    savedCount++;
+   if(postFacebook){
+    try{
+     await postProductToFacebook(data.id);
+     facebookPosted++;
+    }catch(fbError){
+     facebookErrors.push('Product '+(i+1)+': '+fbError.message);
+    }
+   }
   }
 
   showStatus(
-   'সফলভাবে '+savedCount+'টি Product এবং '+imageCount+'টি Image যুক্ত হয়েছে।'
+   'সফলভাবে '+savedCount+'টি Product এবং '+imageCount+'টি Image যুক্ত হয়েছে।'+
+   (postFacebook?' Facebook-এ '+facebookPosted+'টি পোস্ট হয়েছে.'+(facebookErrors.length?' ব্যর্থ: '+facebookErrors.join(' | '):''):''),
+   facebookErrors.length>0
   );
 
   clearBulkRows();
