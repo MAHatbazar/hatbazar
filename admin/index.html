@@ -168,6 +168,7 @@ button:disabled{opacity:.5}
  <div id="freeImageStylesStatus" class="hint" aria-live="polite"></div>
  <div id="freeImagePrompts" class="upload-box hidden"></div>
  <div id="aiStatus" class="hint" aria-live="polite"></div>
+ <div id="aiJobsPanel" class="upload-box"></div>
  <div id="aiGeneratedDetails" class="hint"></div>
  <div id="aiFoodDetails" class="upload-box hidden"></div>
  <div id="aiImageSuggestions" class="upload-box hidden"></div>
@@ -220,6 +221,7 @@ Save করার পর Facebook Page-এ পোস্ট করুন (শু�
 <button id="bulkAiGenerateBtn" type="button" class="secondary full" onclick="analyzeBulkImagesWithAI()">✨ নির্বাচিত সব ছবি থেকে একসঙ্গে Product Details তৈরি করুন</button>
 <p class="hint">একবারে সর্বোচ্চ ২০টি ছবি নির্বাচন করুন। AI প্রতিটি ছবি আলাদাভাবে বিশ্লেষণ করে একই সিরিয়ালে ২০টি editable Product Row তৈরি করবে। সব তথ্য যাচাই ও Price/Stock পূরণ করে তারপর Save করবেন।</p>
 <div id="bulkAiStatus" class="hint" aria-live="polite"></div>
+<div id="aiJobsPanelBulk" class="upload-box"></div>
 </div>
 
 <div class="top">
@@ -363,6 +365,128 @@ function categoryOptions(selected=''){
 
 
 
+function formatAIProductDescription(result){
+ const sections=[];
+ if(result.description_en)sections.push('DESCRIPTION (ENGLISH)\n'+result.description_en);
+ if(result.features_en?.length)sections.push('KEY FEATURES\n'+result.features_en.map(x=>'• '+x).join('\n'));
+ if(result.description_bn)sections.push('বিবরণ (বাংলা)\n'+result.description_bn);
+ if(result.features_bn?.length)sections.push('বিশেষ বৈশিষ্ট্য\n'+result.features_bn.map(x=>'• '+x).join('\n'));
+ if(result.nutrition_en?.length)sections.push('NUTRITION INFORMATION\n'+result.nutrition_en.map(x=>'• '+x).join('\n'));
+ if(result.benefits_en?.length)sections.push('POTENTIAL BENEFITS\n'+result.benefits_en.map(x=>'• '+x).join('\n'));
+ if(result.how_to_eat_en?.length)sections.push('HOW TO USE / EAT\n'+result.how_to_eat_en.map(x=>'• '+x).join('\n'));
+ if(result.cautions_en?.length)sections.push('CAUTIONS\n'+result.cautions_en.map(x=>'• '+x).join('\n'));
+ if(result.nutrition_bn?.length)sections.push('পুষ্টিগুণ সম্পর্কে\n'+result.nutrition_bn.map(x=>'• '+x).join('\n'));
+ if(result.benefits_bn?.length)sections.push('সম্ভাব্য উপকারিতা\n'+result.benefits_bn.map(x=>'• '+x).join('\n'));
+ if(result.how_to_eat_bn?.length)sections.push('কীভাবে খাবেন / ব্যবহার করবেন\n'+result.how_to_eat_bn.map(x=>'• '+x).join('\n'));
+ if(result.cautions_bn?.length)sections.push('সতর্কতা\n'+result.cautions_bn.map(x=>'• '+x).join('\n'));
+ const attrs=Object.entries(result.attributes||{}).filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join(' | ');
+ if(attrs)sections.push('PRODUCT DETAILS\n'+attrs);
+ if(result.sizes?.length)sections.push('প্রযোজ্য Size অপশন (স্টক আপনি নিশ্চিত করবেন): '+result.sizes.join(', '));
+ return sections.join('\n\n');
+}
+function applyAIProductResult(result,productName=''){
+ $('name').value=result.name||productName||'';
+ $('name_bn').value=result.name_bn||$('name_bn').value;
+ if(result.category_id)$('category_id').value=result.category_id;
+ aiProductMeta={attributes:result.attributes||{},sizes:Array.isArray(result.sizes)?result.sizes:[],description_en:result.description_en||'',description_bn:result.description_bn||''};
+ $('description').value=formatAIProductDescription(result);
+ $('aiGeneratedDetails').textContent='তথ্য তৈরি হয়েছে। নাম, ক্যাটাগরি ও বিবরণ যাচাই করে প্রয়োজনমতো সম্পাদনা করুন।'+(result.category_name?' নির্বাচিত Category: '+result.category_name:'');
+ if(result.is_food){
+  const groups=[['পুষ্টিগুণ',result.nutrition_bn],['সম্ভাব্য উপকারিতা',result.benefits_bn],['খাওয়ার / ব্যবহারের উপায়',result.how_to_eat_bn],['সতর্কতা',result.cautions_bn]];
+  $('aiFoodDetails').innerHTML='<strong>🍎 Food Information</strong>'+groups.filter(g=>g[1]?.length).map(g=>'<p><b>'+escapeHTML(g[0])+'</b></p><ul>'+g[1].map(x=>'<li>'+escapeHTML(x)+'</li>').join('')+'</ul>').join('')+'<p class="hint">স্বাস্থ্যতথ্য সাধারণ পুষ্টি-তথ্য, চিকিৎসার পরামর্শ নয়। AI-এর তথ্য যাচাই করে নিন।</p>';
+  $('aiFoodDetails').classList.remove('hidden');
+ }else $('aiFoodDetails').classList.add('hidden');
+ if(aiProductMeta.sizes.length)$('aiSizesPanel').innerHTML='<strong>প্রস্তাবিত Size (প্রয়োজনমতো টিক/আনটিক করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>';
+ else $('aiSizesPanel').textContent='এই পণ্যের জন্য আলাদা Size প্রযোজ্য নয় বলে AI কোনো Size দেয়নি।';
+ renderAIImageSuggestions(result.image_suggestions||[]);
+ $('aiStatus').textContent='AI তথ্য তৈরি হয়েছে। দাম, Base Price ও Stock নিজে বসাবেন। প্রস্তাবিত ছবি চাইলে বেছে Gallery-তে যোগ করুন।';
+}
+async function restoreAIImage(path,forBulkRow=null){
+ if(!path)return;
+ const {data,error}=await db.storage.from(BUCKET).download(path);
+ if(error||!data)throw new Error('সংরক্ষিত AI ছবি পুনরুদ্ধার করা যায়নি।');
+ const file=new File([data],path.split('/').pop()||'ai-product.jpg',{type:data.type||'image/jpeg'});
+ if(forBulkRow){setRowImages(forBulkRow,[file]);updateBulkImageStatus();return;}
+ if(singleProductImages.length>=10)return;
+ singleProductImages.push(file);
+ $('singleImageNames').textContent=singleProductImages.map((f,i)=>(i+1)+'. '+f.name).join(' | ');
+ const thumb=document.createElement('img');thumb.src=URL.createObjectURL(file);thumb.classList.add('image-preview-thumb');
+ thumb.addEventListener('click',()=>openImagePreview(thumb.src,file.name));$('singleImagePreview').appendChild(thumb);
+}
+let aiJobsTimer=null;
+function aiJobLabel(job){
+ const types={name:'নাম থেকে Details',image:'ছবি থেকে Details',bulk:'Bulk ছবি বিশ্লেষণ'};
+ const states={queued:'অপেক্ষমাণ',processing:'কাজ চলছে',completed:'সম্পন্ন',failed:'ব্যর্থ'};
+ return (types[job.job_type]||'AI কাজ')+' · '+(states[job.status]||job.status)+' · '+(job.progress||0)+'%';
+}
+async function applyAIJob(job){
+ if(job.job_type==='bulk'){
+  const results=job.result?.results||[];
+  if(!results.length){alert('এই Bulk কাজের কোনো ফলাফল পাওয়া যায়নি।');return;}
+  for(const item of results){
+   addBulkRow();
+   const row=$('bulkRows').lastElementChild;
+   const r=item.result||{};
+   const set=(key,value)=>{const input=row.querySelector('[data-field="'+key+'"]');if(input)input.value=value??'';};
+   set('name',r.name||'');set('name_bn',r.name_bn||'');set('category_id',r.category_id||'');set('description',formatAIProductDescription(r));
+   row._aiMeta={attributes:r.attributes||{},sizes:r.sizes||[],description_en:r.description_en||'',description_bn:r.description_bn||''};
+   row.dataset.aiReady='true';
+   if(item.storage_path)await restoreAIImage(item.storage_path,row);
+  }
+  $('bulkAiStatus').textContent=results.length+'টি Product-এর AI তথ্য Bulk Row-তে বসানো হয়েছে। Price, Base Price ও Stock যাচাই করে দিন।';
+  return;
+ }
+ const result=job.result||{};
+ applyAIProductResult(result,job.payload?.product_name||'');
+ if(job.job_type==='image'&&result.storage_path)await restoreAIImage(result.storage_path);
+}
+async function loadAIJobs(){
+ const {data:sessionData}=await db.auth.getSession();
+ const user=sessionData?.session?.user;if(!user)return;
+ const {data,error}=await db.from('hatbazar_ai_jobs').select('id,job_type,status,progress,payload,result,error,created_at').eq('created_by',user.id).order('created_at',{ascending:false}).limit(12);
+ if(error){console.warn('AI jobs:',error.message);return;}
+ const panels=[$('aiJobsPanel'),$('aiJobsPanelBulk')].filter(Boolean);
+ panels.forEach(panel=>{
+  panel.innerHTML='';
+  if(!data?.length){panel.textContent='এখনো কোনো Background AI কাজ নেই।';return;}
+  const heading=document.createElement('strong');heading.textContent='Background AI কাজ';panel.appendChild(heading);
+  data.forEach(job=>{
+   const card=document.createElement('div');card.style.cssText='padding:10px;margin:8px 0;border:1px solid #d8e2dd;border-radius:10px';
+   const title=document.createElement('div');title.textContent=aiJobLabel(job);title.style.fontWeight='700';card.appendChild(title);
+   const detail=document.createElement('div');detail.className='hint';detail.textContent=new Date(job.created_at).toLocaleString('bn-BD')+(job.error?' · '+job.error:'');card.appendChild(detail);
+   if(job.status==='completed'){
+    const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent=job.job_type==='bulk'?'Bulk ফলাফল Row-তে বসান':'তথ্য Product Form-এ বসান';
+    btn.addEventListener('click',async()=>{btn.disabled=true;try{await applyAIJob(job);btn.textContent='Form-এ বসানো হয়েছে';}catch(e){btn.disabled=false;alert(e.message||'ফলাফল বসানো যায়নি।');}});card.appendChild(btn);
+   }
+   panel.appendChild(card);
+  });
+ });
+ if(data.some(j=>j.status==='queued'||j.status==='processing'))startAIJobsPolling();
+ else if(aiJobsTimer){clearTimeout(aiJobsTimer);aiJobsTimer=null;}
+}
+function startAIJobsPolling(){
+ if(aiJobsTimer)return;
+ const tick=async()=>{aiJobsTimer=null;await loadAIJobs();};
+ aiJobsTimer=setTimeout(tick,8000);
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadAIJobs();});
+async function uploadAIJobImage(file,userId,jobId,index){
+ const safeName=(file.name||'image.jpg').replace(/[^a-zA-Z0-9._-]/g,'_').slice(-90);
+ const path='ai-jobs/'+userId+'/'+jobId+'/'+String(index+1)+'-'+safeName;
+ const {error}=await db.storage.from(BUCKET).upload(path,file,{contentType:file.type||'image/jpeg',upsert:false});
+ if(error)throw new Error('AI ছবিটি সার্ভারে রাখা যায়নি: '+error.message);
+ return path;
+}
+async function enqueueAIJob(type,payload){
+ const {data,error}=await db.auth.getSession();
+ const user=data?.session?.user;
+ if(error||!user)throw new Error('Admin login session পাওয়া যায়নি। আবার Login করুন।');
+ const id=crypto.randomUUID();
+ const {error:insertError}=await db.from('hatbazar_ai_jobs').insert({id,created_by:user.id,job_type:type,payload});
+ if(insertError)throw new Error('AI কাজ Queue-তে রাখা যায়নি: '+insertError.message);
+ await loadAIJobs();
+ return id;
+}
 async function generateAIProductDetails(mode='image'){
  const button=mode==='name'?$('aiNameGenerateBtn'):$('aiGenerateBtn');
  const file=(singleProductImages&&singleProductImages[0])||($('imageFiles').files&&$('imageFiles').files[0]);
@@ -370,55 +494,24 @@ async function generateAIProductDetails(mode='image'){
  if(mode==='name'&&!productName){$('aiStatus').textContent='আগে Product Name (English অথবা বাংলা) লিখুন।';return;}
  if(mode==='image'&&!file){$('aiStatus').textContent='আগে অন্তত একটি Product ছবি নির্বাচন করুন।';return;}
  if(file&&mode==='image'){const problem=validImage(file);if(problem){$('aiStatus').textContent=problem;return;}}
- const {data,error}=await db.auth.getSession();
- if(error||!data.session){$('aiStatus').textContent='Admin session পাওয়া যায়নি। আবার Login করুন।';return;}
- button.disabled=true;button.textContent='AI তথ্য তৈরি করছে...';
- $('aiStatus').textContent=mode==='name'?'পণ্যের নাম বিশ্লেষণ করে বিবরণ, পুষ্টিগুণ ও উপকারিতা তৈরি হচ্ছে...':'ছবি বিশ্লেষণ করে বাংলা ও ইংরেজি তথ্য তৈরি হচ্ছে...';
- $('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';$('aiFoodDetails').classList.add('hidden');$('aiImageSuggestions').classList.add('hidden');
+ button.disabled=true;
  try{
-  const payload={product_name:productName,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn}))};
+  const {data}=await db.auth.getSession();const user=data?.session?.user;
+  if(!user)throw new Error('Admin session পাওয়া যায়নি। আবার Login করুন।');
+  const jobId=crypto.randomUUID();
+  let storagePath=null;
   if(mode==='image'){
-   const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('ছবি পড়া যায়নি।'));reader.readAsDataURL(file);});
-   payload.mime_type=file.type||'image/jpeg';payload.image_base64=String(dataUrl).split(',')[1]||'';
+   $('aiStatus').textContent='ছবিটি নিরাপদে সার্ভারে রাখা হচ্ছে...';
+   storagePath=await uploadAIJobImage(file,user.id,jobId,0);
   }
-  const response=await fetch(SUPABASE_URL+'/functions/v1/hatbazar-ai-product',{
-   method:'POST',headers:{'Authorization':'Bearer '+data.session.access_token,'apikey':SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)
-  });
-  const result=await response.json().catch(()=>({error:'Server response পড়া যায়নি।'}));
-  if(!response.ok)throw new Error(result.error||'AI তথ্য তৈরি করতে পারেনি।');
-  $('name').value=result.name||productName||'';$('name_bn').value=result.name_bn||$('name_bn').value;
-  if(result.category_id)$('category_id').value=result.category_id;
-  aiProductMeta={attributes:result.attributes||{},sizes:Array.isArray(result.sizes)?result.sizes:[],description_en:result.description_en||'',description_bn:result.description_bn||''};
-  const enFeatures=(result.features_en||[]).map(x=>'• '+x).join('\n'),bnFeatures=(result.features_bn||[]).map(x=>'• '+x).join('\n');
-  const attrs=Object.entries(aiProductMeta.attributes).filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join(' | ');
-  const sections=[];
-  if(aiProductMeta.description_en)sections.push('DESCRIPTION (ENGLISH)\n'+aiProductMeta.description_en);
-  if(enFeatures)sections.push('KEY FEATURES\n'+enFeatures);
-  if(aiProductMeta.description_bn)sections.push('বিবরণ (বাংলা)\n'+aiProductMeta.description_bn);
-  if(bnFeatures)sections.push('বিশেষ বৈশিষ্ট্য\n'+bnFeatures);
-  if(result.nutrition_en?.length)sections.push('NUTRITION INFORMATION\n'+result.nutrition_en.map(x=>'• '+x).join('\n'));
-  if(result.benefits_en?.length)sections.push('POTENTIAL BENEFITS\n'+result.benefits_en.map(x=>'• '+x).join('\n'));
-  if(result.how_to_eat_en?.length)sections.push('HOW TO USE / EAT\n'+result.how_to_eat_en.map(x=>'• '+x).join('\n'));
-  if(result.cautions_en?.length)sections.push('CAUTIONS\n'+result.cautions_en.map(x=>'• '+x).join('\n'));
-  if(result.nutrition_bn?.length)sections.push('পুষ্টিগুণ সম্পর্কে\n'+result.nutrition_bn.map(x=>'• '+x).join('\n'));
-  if(result.benefits_bn?.length)sections.push('সম্ভাব্য উপকারিতা\n'+result.benefits_bn.map(x=>'• '+x).join('\n'));
-  if(result.how_to_eat_bn?.length)sections.push('কীভাবে খাবেন / ব্যবহার করবেন\n'+result.how_to_eat_bn.map(x=>'• '+x).join('\n'));
-  if(result.cautions_bn?.length)sections.push('সতর্কতা\n'+result.cautions_bn.map(x=>'• '+x).join('\n'));
-  if(attrs)sections.push('PRODUCT DETAILS\n'+attrs);
-  if(aiProductMeta.sizes.length)sections.push('প্রযোজ্য Size অপশন (স্টক আপনি নিশ্চিত করবেন): '+aiProductMeta.sizes.join(', '));
-  $('description').value=sections.join('\n\n');
-  $('aiGeneratedDetails').textContent='তথ্য তৈরি হয়েছে। নাম, ক্যাটাগরি ও বিবরণ যাচাই করে প্রয়োজনমতো সম্পাদনা করুন।'+(result.category_name?' নির্বাচিত Category: '+result.category_name:'');
-  if(result.is_food){
-   const groups=[['পুষ্টিগুণ',result.nutrition_bn],['সম্ভাব্য উপকারিতা',result.benefits_bn],['খাওয়ার / ব্যবহারের উপায়',result.how_to_eat_bn],['সতর্কতা',result.cautions_bn]];
-   $('aiFoodDetails').innerHTML='<strong>🍎 Food Information</strong>'+groups.filter(g=>g[1]?.length).map(g=>'<p><b>'+escapeHTML(g[0])+'</b></p><ul>'+g[1].map(x=>'<li>'+escapeHTML(x)+'</li>').join('')+'</ul>').join('')+'<p class="hint">স্বাস্থ্যতথ্য সাধারণ পুষ্টি-তথ্য, চিকিৎসার পরামর্শ নয়। AI-এর তথ্য যাচাই করে নিন।</p>';
-   $('aiFoodDetails').classList.remove('hidden');
-  }
-  if(aiProductMeta.sizes.length)$('aiSizesPanel').innerHTML='<strong>প্রস্তাবিত Size (প্রয়োজনমতো টিক/আনটিক করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>';
-  else $('aiSizesPanel').textContent='এই পণ্যের জন্য আলাদা Size প্রযোজ্য নয় বলে AI কোনো Size দেয়নি।';
-  renderAIImageSuggestions(result.image_suggestions||[]);
-  $('aiStatus').textContent='AI তথ্য তৈরি হয়েছে। দাম, Base Price ও Stock নিজে বসাবেন। প্রস্তাবিত ছবি চাইলে বেছে Gallery-তে যোগ করুন।';
- }catch(err){$('aiStatus').textContent=err.message||'AI বিশ্লেষণ ব্যর্থ হয়েছে।';}
- finally{button.disabled=false;button.textContent=mode==='name'?'✨ শুধু নাম লিখে Details + Food Benefits তৈরি করুন':'🖼️ ছবি থেকে Product Details তৈরি করুন';}
+  const payload={product_name:productName,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn}))};
+  if(storagePath)payload.storage_path=storagePath;
+  const {error}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:mode,payload});
+  if(error)throw new Error('AI কাজ Queue-তে রাখা যায়নি: '+error.message);
+  $('aiStatus').textContent='কাজ সার্ভারে জমা হয়েছে। আপনি অন্য পেজে গেলেও AI কাজ চলতে থাকবে। ফলাফল Background AI কাজ অংশে দেখা যাবে।';
+  await loadAIJobs();
+ }catch(err){$('aiStatus').textContent=err.message||'AI কাজ শুরু করা যায়নি.';}
+ finally{button.disabled=false;}
 }
 function renderAIImageSuggestions(items){
  const panel=$('aiImageSuggestions');panel.innerHTML='';
@@ -1286,78 +1379,28 @@ function updateBulkImageStatus(){
 
 async function analyzeBulkImagesWithAI(){
  const rows=[...$('bulkRows').querySelectorAll('.bulk-row')];
- const targets=rows.filter(row=>(row._imageFiles||[]).length>0);
- if(!targets.length){
-  $('bulkAiStatus').textContent='আগে একসঙ্গে ছবি নির্বাচন করুন অথবা প্রতিটি Row-তে Choose Images দিন।';
-  return;
- }
- if(targets.length>20){
-  $('bulkAiStatus').textContent='একবারে সর্বোচ্চ ২০টি ছবির AI বিশ্লেষণ করা যাবে।';
-  return;
- }
- const {data,error}=await db.auth.getSession();
- if(error||!data.session){
-  $('bulkAiStatus').textContent='Admin session পাওয়া যায়নি। আবার Login করুন।';
-  return;
- }
- const btn=$('bulkAiGenerateBtn');
- btn.disabled=true;
- let completed=0,failed=[];
+ const targets=rows.map((row,index)=>({row,row_index:index+1,file:(row._imageFiles||[])[0]})).filter(x=>x.file);
+ if(!targets.length){$('bulkAiStatus').textContent='আগে একসঙ্গে ছবি নির্বাচন করুন অথবা প্রতিটি Row-তে Choose Images দিন।';return;}
+ if(targets.length>20){$('bulkAiStatus').textContent='একবারে সর্বোচ্চ ২০টি ছবির AI বিশ্লেষণ করা যাবে।';return;}
+ const btn=$('bulkAiGenerateBtn');btn.disabled=true;
  try{
+  const {data,error}=await db.auth.getSession();const user=data?.session?.user;
+  if(error||!user)throw new Error('Admin session পাওয়া যায়নি। আবার Login করুন।');
+  const jobId=crypto.randomUUID(),items=[];
   for(let i=0;i<targets.length;i++){
-   const row=targets[i],file=row._imageFiles[0];
-   const rowNo=[...$('bulkRows').querySelectorAll('.bulk-row')].indexOf(row)+1;
-   const problem=validImage(file);
-   if(problem){failed.push('সারি '+rowNo+': '+problem);continue;}
-   $('bulkAiStatus').textContent='AI বিশ্লেষণ করছে '+(i+1)+'/'+targets.length+' (সারি '+rowNo+'): '+file.name;
-   const dataUrl=await new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onload=()=>resolve(String(reader.result||''));
-    reader.onerror=()=>reject(new Error('ছবি পড়া যায়নি।'));
-    reader.readAsDataURL(file);
-   });
-   const imageBase64=String(dataUrl).split(',')[1]||'';
-   const response=await fetch(SUPABASE_URL+'/functions/v1/hatbazar-ai-product',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+data.session.access_token,'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({
-     mime_type:file.type||'image/jpeg',
-     image_base64:imageBase64,
-     categories:categories.map(x=>({name:x.name,name_bn:x.name_bn}))
-    })
-   });
-   const result=await response.json().catch(()=>({error:'Server response পড়া যায়নি।'}));
-   if(!response.ok)throw new Error('সারি '+rowNo+': '+(result.error||'AI তথ্য তৈরি করতে পারেনি।'));
-   const set=(key,value)=>{
-    const input=row.querySelector('[data-field="'+key+'"]');
-    if(input)input.value=value??'';
-   };
-   set('name',result.name||'');
-   set('name_bn',result.name_bn||'');
-   set('category_id',result.category_id||'');
-   const desc=[
-    result.description_en||'',
-    (result.features_en||[]).length?'Features: '+result.features_en.join('; '):'',
-    result.description_bn||'',
-    (result.features_bn||[]).length?'বৈশিষ্ট্য: '+result.features_bn.join('; '):'',
-    result.attributes&&Object.keys(result.attributes).length?'Attributes: '+Object.entries(result.attributes).map(([k,v])=>k+': '+v).join(', '):'',
-    result.sizes?.length?'Available size options: '+result.sizes.join(', '):''
-   ].filter(Boolean).join('\n\n');
-   set('description',desc);
-   row._aiMeta={
-    attributes:result.attributes||{},
-    sizes:result.sizes||[],
-    description_en:result.description_en||'',
-    description_bn:result.description_bn||''
-   };
-   row.dataset.aiReady='true';
-   completed++;
+   const item=targets[i],problem=validImage(item.file);
+   if(problem)throw new Error('সারি '+item.row_index+': '+problem);
+   $('bulkAiStatus').textContent='ছবি সার্ভারে সংরক্ষণ হচ্ছে '+(i+1)+'/'+targets.length+'...';
+   const path=await uploadAIJobImage(item.file,user.id,jobId,i);
+   items.push({row_index:item.row_index,product_name:item.row.querySelector('[data-field="name"]')?.value||item.row.querySelector('[data-field="name_bn"]')?.value||'',storage_path:path});
   }
-  $('bulkAiStatus').textContent=completed+'টি Product-এর AI তথ্য তৈরি হয়েছে। '+(failed.length?'সমস্যা: '+failed.join(' | '):'এখন প্রতিটি Row দেখে Edit করুন, Price, Base Price ও Stock দিন।');
- }catch(err){
-  $('bulkAiStatus').textContent=completed+'টি Product বিশ্লেষণ হয়েছে। পরেরটিতে সমস্যা: '+(err.message||'AI অনুরোধ ব্যর্থ হয়েছে।'); }finally{
-  btn.disabled=false;
- }
+  const payload={items,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn}))};
+  const {error:insertError}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:'bulk',payload});
+  if(insertError)throw new Error('Bulk AI কাজ Queue-তে রাখা যায়নি: '+insertError.message);
+  $('bulkAiStatus').textContent=targets.length+'টি ছবির কাজ সার্ভারে জমা হয়েছে। পেজ বন্ধ করলেও কাজ চলবে।';
+  await loadAIJobs();
+ }catch(err){$('bulkAiStatus').textContent=err.message||'Bulk AI কাজ শুরু করা যায়নি।';}
+ finally{btn.disabled=false;}
 }
 
 /* EXCEL TEMPLATE */
@@ -1717,6 +1760,8 @@ async function checkExistingSession(){
 
   if(!ok){
    $('message').textContent='Admin অনুমতি যাচাই করা যায়নি। আবার Login করুন।';
+  }else{
+   await loadAIJobs();
   }
  }
 }
