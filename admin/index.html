@@ -342,9 +342,11 @@ async function refreshFacebookStatus(){
  const status=$('facebookConnectionStatus');
  try{
   const result=await facebookRequest('status');
-  status.textContent=result.connected
-   ?'সংযুক্ত: '+(result.page_name||'Facebook Page')
-   :'এখনো Facebook Page সংযুক্ত করা হয়নি।';
+  status.textContent=!result.configured
+   ?'Supabase Facebook Secrets কনফিগার করা নেই। Secrets পেজে META_APP_SECRET এবং META_TOKEN_ENCRYPTION_KEY যাচাই করুন।'
+   :result.connected
+    ?'সংযুক্ত: '+(result.page_name||'Facebook Page')
+    :'এখনো Facebook Page সংযুক্ত করা হয়নি।';
   $('facebookConnectBtn').textContent=result.connected?'Reconnect Facebook':'Facebook Connect';
  }catch(err){
   status.textContent='Facebook অবস্থা যাচাই হয়নি: '+err.message;
