@@ -309,34 +309,201 @@ $function$;
 REVOKE ALL ON FUNCTION public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT,UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.hatbazar_checkout_v2(TEXT,TEXT,TEXT,TEXT,JSONB,TEXT,TEXT,TEXT,NUMERIC,TEXT,UUID) TO anon, authenticated, postgres;
 
--- ==================== supabase/hatbazar_private_base_prices.sql ====================
--- Keep products.base_price private from public and normal authenticated clients.
--- Product listing remains available through explicit public columns only.
-REVOKE SELECT ON TABLE public.products FROM anon, authenticated;
-GRANT SELECT (
-  id, category_id, seller_id, name, name_bn, description,
-  price, stock, image_url, is_active, created_at
-) ON TABLE public.products TO anon, authenticated;
+-- ==================== supabase/hatbazar_admin_update_order.sql ====================
+-- Hatbazar: admin-only order status and payment verification updates
+CREATE OR REPLACE FUNCTION public.hatbazar_admin_update_order(
+  p_order_id UUID,
+  p_order_status TEXT DEFAULT NULL,
+  p_payment_verified BOOLEAN DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_status TEXT;
+  v_old_status TEXT;
+  v_verified BOOLEAN;
+  v_payment_status TEXT;
+BEGIN
+  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
+    RAISE EXCEPTION 'Only an authenticated administrator can update orders';
+  END IF;
 
-CREATE OR REPLACE FUNCTION public.hatbazar_admin_product_base_prices()
-RETURNS TABLE(product_id UUID, base_price NUMERIC)
+  IF p_order_status IS NOT NULL AND p_order_status NOT IN (
+    'pending', 'pending_verification', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'
+  ) THEN
+    RAISE EXCEPTION 'Invalid order status';
+  END IF;
+
+  SELECT o.order_status INTO v_old_status
+  FROM public.orders o
+  WHERE o.id = p_order_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Order not found';
+  END IF;
+
+  IF v_old_status = 'cancelled' AND p_order_status IS NOT NULL AND p_order_status <> 'cancelled' THEN
+    RAISE EXCEPTION 'A cancelled order cannot be reopened';
+  END IF;
+
+  IF p_order_status = 'cancelled' AND v_old_status NOT IN ('cancelled', 'delivered') THEN
+    UPDATE public.products p
+    SET stock = p.stock + oi.quantity
+    FROM public.order_items oi
+    WHERE oi.order_id = p_order_id AND oi.product_id = p.id;
+  ELSIF p_order_status = 'cancelled' AND v_old_status = 'delivered' THEN
+    RAISE EXCEPTION 'A delivered order cannot be cancelled';
+  END IF;
+
+  UPDATE public.orders
+  SET
+    order_status = COALESCE(p_order_status, order_status),
+    payment_verified = COALESCE(p_payment_verified, payment_verified),
+    payment_status = CASE
+      WHEN p_payment_verified IS TRUE THEN 'paid'
+      WHEN p_payment_verified IS FALSE THEN 'pending'
+      ELSE payment_status
+    END
+  WHERE id = p_order_id
+  RETURNING order_status, payment_verified, payment_status
+  INTO v_status, v_verified, v_payment_status;
+
+  RETURN pg_catalog.jsonb_build_object(
+    'success', TRUE,
+    'order_status', v_status,
+    'payment_verified', v_verified,
+    'payment_status', v_payment_status
+  );
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) TO authenticated, postgres;
+
+-- ==================== supabase/hatbazar_admin_marketplace_approvals.sql ====================
+-- Admin review queue and approval controls for real authenticated marketplace accounts.
+CREATE OR REPLACE FUNCTION public.hatbazar_admin_list_marketplace_applications()
+RETURNS TABLE(user_id UUID, full_name TEXT, phone TEXT, role TEXT, status TEXT, shop_name TEXT)
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO ''
 AS $function$
 BEGIN
   IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
-    RAISE EXCEPTION 'Only an authenticated administrator can view base prices';
+    RAISE EXCEPTION 'Only administrators can view marketplace applications';
   END IF;
 
   RETURN QUERY
-  SELECT p.id, p.base_price
-  FROM public.products AS p;
+  SELECT p.id, p.full_name, p.phone, p.role,
+         CASE WHEN p.role = 'seller' THEN sp.status ELSE rp.status END::TEXT,
+         sp.shop_name
+  FROM public.profiles p
+  LEFT JOIN public.seller_profiles sp ON sp.id = p.id AND p.role = 'seller'
+  LEFT JOIN public.reseller_profiles rp ON rp.id = p.id AND p.role = 'reseller'
+  WHERE p.role IN ('seller','reseller')
+  ORDER BY p.created_at DESC;
 END;
 $function$;
 
-REVOKE ALL ON FUNCTION public.hatbazar_admin_product_base_prices() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.hatbazar_admin_product_base_prices() TO authenticated, postgres;
+CREATE OR REPLACE FUNCTION public.hatbazar_admin_update_marketplace_status(
+  p_user_id UUID,
+  p_role TEXT,
+  p_status TEXT
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+BEGIN
+  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
+    RAISE EXCEPTION 'Only administrators can approve marketplace accounts';
+  END IF;
+  IF p_user_id IS NULL OR p_role IS NULL OR p_role NOT IN ('seller','reseller') OR p_status IS NULL OR p_status NOT IN ('pending','approved','rejected') THEN
+    RAISE EXCEPTION 'Invalid marketplace approval request';
+  END IF;
+
+  IF p_role = 'seller' THEN
+    UPDATE public.seller_profiles SET status = p_status WHERE id = p_user_id;
+  ELSE
+    UPDATE public.reseller_profiles SET status = p_status WHERE id = p_user_id;
+  END IF;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Marketplace application not found';
+  END IF;
+  RETURN pg_catalog.jsonb_build_object('success',TRUE,'user_id',p_user_id,'role',p_role,'status',p_status);
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.hatbazar_admin_list_marketplace_applications() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_admin_list_marketplace_applications() TO authenticated, postgres;
+REVOKE ALL ON FUNCTION public.hatbazar_admin_update_marketplace_status(UUID,TEXT,TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_marketplace_status(UUID,TEXT,TEXT) TO authenticated, postgres;
+
+-- ==================== supabase/hatbazar_register_marketplace_profile.sql ====================
+-- Secure Supabase Auth profile registration for seller and reseller accounts.
+CREATE OR REPLACE FUNCTION public.hatbazar_register_marketplace_profile(
+  p_full_name TEXT,
+  p_phone TEXT,
+  p_role TEXT
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_existing_role TEXT;
+  v_phone TEXT;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Sign in is required';
+  END IF;
+  IF NULLIF(pg_catalog.btrim(p_full_name), '') IS NULL THEN
+    RAISE EXCEPTION 'Full name is required';
+  END IF;
+  IF p_role IS NULL OR p_role NOT IN ('seller', 'reseller') THEN
+    RAISE EXCEPTION 'Invalid marketplace role';
+  END IF;
+
+  v_phone := pg_catalog.regexp_replace(pg_catalog.btrim(COALESCE(p_phone, '')), '[^0-9]', '', 'g');
+  IF pg_catalog.length(v_phone) <> 11 OR pg_catalog.left(v_phone, 2) <> '01' THEN
+    RAISE EXCEPTION 'A valid Bangladesh mobile number is required';
+  END IF;
+
+  SELECT p.role INTO v_existing_role
+  FROM public.profiles p
+  WHERE p.id = auth.uid();
+
+  IF v_existing_role IS NOT NULL AND v_existing_role <> p_role THEN
+    RAISE EXCEPTION 'This account already has a different role';
+  END IF;
+
+  INSERT INTO public.profiles (id, full_name, phone, role)
+  VALUES (auth.uid(), pg_catalog.btrim(p_full_name), v_phone, p_role)
+  ON CONFLICT (id) DO UPDATE
+  SET full_name = EXCLUDED.full_name, phone = EXCLUDED.phone, role = EXCLUDED.role;
+
+  IF p_role = 'seller' THEN
+    INSERT INTO public.seller_profiles (id, shop_name, status)
+    VALUES (auth.uid(), pg_catalog.btrim(p_full_name), 'pending')
+    ON CONFLICT (id) DO NOTHING;
+  ELSE
+    INSERT INTO public.reseller_profiles (id, status)
+    VALUES (auth.uid(), 'pending')
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
+
+  RETURN pg_catalog.jsonb_build_object('success', TRUE, 'role', p_role, 'status', 'pending');
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.hatbazar_register_marketplace_profile(TEXT,TEXT,TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_register_marketplace_profile(TEXT,TEXT,TEXT) TO authenticated;
 
 -- ==================== supabase/hatbazar_guard_product_base_price.sql ====================
 -- Prevent non-admin sellers or public clients from setting a private wholesale/base price.
@@ -421,221 +588,82 @@ USING (
   )
 );
 
--- ==================== supabase/hatbazar_reseller_order_policies.sql ====================
--- Allow authenticated resellers to view only orders and items attributed to their account.
-DROP POLICY IF EXISTS "Resellers view own attributed orders" ON public.orders;
-CREATE POLICY "Resellers view own attributed orders"
-ON public.orders
-FOR SELECT TO authenticated
-USING (reseller_id = auth.uid());
-
-DROP POLICY IF EXISTS "Resellers view own attributed order items" ON public.order_items;
-CREATE POLICY "Resellers view own attributed order items"
-ON public.order_items
-FOR SELECT TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM public.orders o
-    WHERE o.id = order_items.order_id
-      AND o.reseller_id = auth.uid()
+-- ==================== supabase/hatbazar_approved_seller_storage.sql ====================
+-- Allow approved sellers to upload and manage only their own product image objects.
+DROP POLICY IF EXISTS "Approved sellers upload product images" ON storage.objects;
+CREATE POLICY "Approved sellers upload product images"
+ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id = 'product-images'
+  AND EXISTS (
+    SELECT 1 FROM public.seller_profiles sp
+    WHERE sp.id = auth.uid() AND lower(sp.status) = 'approved'
   )
 );
 
--- ==================== supabase/hatbazar_admin_update_order.sql ====================
--- Hatbazar: admin-only order status and payment verification updates
-CREATE OR REPLACE FUNCTION public.hatbazar_admin_update_order(
-  p_order_id UUID,
-  p_order_status TEXT DEFAULT NULL,
-  p_payment_verified BOOLEAN DEFAULT NULL
+DROP POLICY IF EXISTS "Approved sellers update own product images" ON storage.objects;
+CREATE POLICY "Approved sellers update own product images"
+ON storage.objects
+FOR UPDATE TO authenticated
+USING (
+  bucket_id = 'product-images'
+  AND owner_id = auth.uid()::TEXT
+  AND EXISTS (
+    SELECT 1 FROM public.seller_profiles sp
+    WHERE sp.id = auth.uid() AND lower(sp.status) = 'approved'
+  )
 )
-RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $function$
-DECLARE
-  v_status TEXT;
-  v_old_status TEXT;
-  v_verified BOOLEAN;
-  v_payment_status TEXT;
-BEGIN
-  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
-    RAISE EXCEPTION 'Only an authenticated administrator can update orders';
-  END IF;
+WITH CHECK (
+  bucket_id = 'product-images'
+  AND owner_id = auth.uid()::TEXT
+  AND EXISTS (
+    SELECT 1 FROM public.seller_profiles sp
+    WHERE sp.id = auth.uid() AND lower(sp.status) = 'approved'
+  )
+);
 
-  IF p_order_status IS NOT NULL AND p_order_status NOT IN (
-    'pending', 'pending_verification', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'
-  ) THEN
-    RAISE EXCEPTION 'Invalid order status';
-  END IF;
+DROP POLICY IF EXISTS "Approved sellers delete own product images" ON storage.objects;
+CREATE POLICY "Approved sellers delete own product images"
+ON storage.objects
+FOR DELETE TO authenticated
+USING (
+  bucket_id = 'product-images'
+  AND owner_id = auth.uid()::TEXT
+  AND EXISTS (
+    SELECT 1 FROM public.seller_profiles sp
+    WHERE sp.id = auth.uid() AND lower(sp.status) = 'approved'
+  )
+);
 
-  SELECT o.order_status INTO v_old_status
-  FROM public.orders o
-  WHERE o.id = p_order_id
-  FOR UPDATE;
+-- ==================== supabase/hatbazar_private_base_prices.sql ====================
+-- Keep products.base_price private from public and normal authenticated clients.
+-- Product listing remains available through explicit public columns only.
+REVOKE SELECT ON TABLE public.products FROM anon, authenticated;
+GRANT SELECT (
+  id, category_id, seller_id, name, name_bn, description,
+  price, stock, image_url, is_active, created_at
+) ON TABLE public.products TO anon, authenticated;
 
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Order not found';
-  END IF;
-
-  IF v_old_status = 'cancelled' AND p_order_status IS NOT NULL AND p_order_status <> 'cancelled' THEN
-    RAISE EXCEPTION 'A cancelled order cannot be reopened';
-  END IF;
-
-  IF p_order_status = 'cancelled' AND v_old_status NOT IN ('cancelled', 'delivered') THEN
-    UPDATE public.products p
-    SET stock = p.stock + oi.quantity
-    FROM public.order_items oi
-    WHERE oi.order_id = p_order_id AND oi.product_id = p.id;
-  ELSIF p_order_status = 'cancelled' AND v_old_status = 'delivered' THEN
-    RAISE EXCEPTION 'A delivered order cannot be cancelled';
-  END IF;
-
-  UPDATE public.orders
-  SET
-    order_status = COALESCE(p_order_status, order_status),
-    payment_verified = COALESCE(p_payment_verified, payment_verified),
-    payment_status = CASE
-      WHEN p_payment_verified IS TRUE THEN 'paid'
-      WHEN p_payment_verified IS FALSE THEN 'pending'
-      ELSE payment_status
-    END
-  WHERE id = p_order_id
-  RETURNING order_status, payment_verified, payment_status
-  INTO v_status, v_verified, v_payment_status;
-
-  RETURN pg_catalog.jsonb_build_object(
-    'success', TRUE,
-    'order_status', v_status,
-    'payment_verified', v_verified,
-    'payment_status', v_payment_status
-  );
-END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) TO authenticated, postgres;
-
--- ==================== supabase/hatbazar_register_marketplace_profile.sql ====================
--- Secure Supabase Auth profile registration for seller and reseller accounts.
-CREATE OR REPLACE FUNCTION public.hatbazar_register_marketplace_profile(
-  p_full_name TEXT,
-  p_phone TEXT,
-  p_role TEXT
-)
-RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $function$
-DECLARE
-  v_existing_role TEXT;
-  v_phone TEXT;
-BEGIN
-  IF auth.uid() IS NULL THEN
-    RAISE EXCEPTION 'Sign in is required';
-  END IF;
-  IF NULLIF(pg_catalog.btrim(p_full_name), '') IS NULL THEN
-    RAISE EXCEPTION 'Full name is required';
-  END IF;
-  IF p_role IS NULL OR p_role NOT IN ('seller', 'reseller') THEN
-    RAISE EXCEPTION 'Invalid marketplace role';
-  END IF;
-
-  v_phone := pg_catalog.regexp_replace(pg_catalog.btrim(COALESCE(p_phone, '')), '[^0-9]', '', 'g');
-  IF pg_catalog.length(v_phone) <> 11 OR pg_catalog.left(v_phone, 2) <> '01' THEN
-    RAISE EXCEPTION 'A valid Bangladesh mobile number is required';
-  END IF;
-
-  SELECT p.role INTO v_existing_role
-  FROM public.profiles p
-  WHERE p.id = auth.uid();
-
-  IF v_existing_role IS NOT NULL AND v_existing_role <> p_role THEN
-    RAISE EXCEPTION 'This account already has a different role';
-  END IF;
-
-  INSERT INTO public.profiles (id, full_name, phone, role)
-  VALUES (auth.uid(), pg_catalog.btrim(p_full_name), v_phone, p_role)
-  ON CONFLICT (id) DO UPDATE
-  SET full_name = EXCLUDED.full_name, phone = EXCLUDED.phone, role = EXCLUDED.role;
-
-  IF p_role = 'seller' THEN
-    INSERT INTO public.seller_profiles (id, shop_name, status)
-    VALUES (auth.uid(), pg_catalog.btrim(p_full_name), 'pending')
-    ON CONFLICT (id) DO NOTHING;
-  ELSE
-    INSERT INTO public.reseller_profiles (id, status)
-    VALUES (auth.uid(), 'pending')
-    ON CONFLICT (id) DO NOTHING;
-  END IF;
-
-  RETURN pg_catalog.jsonb_build_object('success', TRUE, 'role', p_role, 'status', 'pending');
-END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.hatbazar_register_marketplace_profile(TEXT,TEXT,TEXT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.hatbazar_register_marketplace_profile(TEXT,TEXT,TEXT) TO authenticated;
-
--- ==================== supabase/hatbazar_admin_marketplace_approvals.sql ====================
--- Admin review queue and approval controls for real authenticated marketplace accounts.
-CREATE OR REPLACE FUNCTION public.hatbazar_admin_list_marketplace_applications()
-RETURNS TABLE(user_id UUID, full_name TEXT, phone TEXT, role TEXT, status TEXT, shop_name TEXT)
+CREATE OR REPLACE FUNCTION public.hatbazar_admin_product_base_prices()
+RETURNS TABLE(product_id UUID, base_price NUMERIC)
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO ''
 AS $function$
 BEGIN
   IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
-    RAISE EXCEPTION 'Only administrators can view marketplace applications';
+    RAISE EXCEPTION 'Only an authenticated administrator can view base prices';
   END IF;
 
   RETURN QUERY
-  SELECT p.id, p.full_name, p.phone, p.role,
-         CASE WHEN p.role = 'seller' THEN sp.status ELSE rp.status END::TEXT,
-         sp.shop_name
-  FROM public.profiles p
-  LEFT JOIN public.seller_profiles sp ON sp.id = p.id AND p.role = 'seller'
-  LEFT JOIN public.reseller_profiles rp ON rp.id = p.id AND p.role = 'reseller'
-  WHERE p.role IN ('seller','reseller')
-  ORDER BY p.created_at DESC;
+  SELECT p.id, p.base_price
+  FROM public.products AS p;
 END;
 $function$;
 
-CREATE OR REPLACE FUNCTION public.hatbazar_admin_update_marketplace_status(
-  p_user_id UUID,
-  p_role TEXT,
-  p_status TEXT
-)
-RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
-AS $function$
-BEGIN
-  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
-    RAISE EXCEPTION 'Only administrators can approve marketplace accounts';
-  END IF;
-  IF p_user_id IS NULL OR p_role IS NULL OR p_role NOT IN ('seller','reseller') OR p_status IS NULL OR p_status NOT IN ('pending','approved','rejected') THEN
-    RAISE EXCEPTION 'Invalid marketplace approval request';
-  END IF;
-
-  IF p_role = 'seller' THEN
-    UPDATE public.seller_profiles SET status = p_status WHERE id = p_user_id;
-  ELSE
-    UPDATE public.reseller_profiles SET status = p_status WHERE id = p_user_id;
-  END IF;
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Marketplace application not found';
-  END IF;
-  RETURN pg_catalog.jsonb_build_object('success',TRUE,'user_id',p_user_id,'role',p_role,'status',p_status);
-END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.hatbazar_admin_list_marketplace_applications() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.hatbazar_admin_list_marketplace_applications() TO authenticated, postgres;
-REVOKE ALL ON FUNCTION public.hatbazar_admin_update_marketplace_status(UUID,TEXT,TEXT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_marketplace_status(UUID,TEXT,TEXT) TO authenticated, postgres;
+REVOKE ALL ON FUNCTION public.hatbazar_admin_product_base_prices() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_admin_product_base_prices() TO authenticated, postgres;
 
 -- ==================== supabase/hatbazar_reseller_margin.sql ====================
 -- Hatbazar reseller margin model: reseller profit is selling_price minus admin-set base_price.
@@ -890,4 +918,3 @@ REVOKE ALL ON FUNCTION public.hatbazar_reseller_request_payout(TEXT,TEXT,NUMERIC
 REVOKE ALL ON FUNCTION public.hatbazar_admin_update_reseller_payout(UUID,TEXT,TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_request_payout(TEXT,TEXT,NUMERIC) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_reseller_payout(UUID,TEXT,TEXT) TO authenticated, postgres;
-
