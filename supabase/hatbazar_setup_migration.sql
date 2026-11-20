@@ -160,7 +160,7 @@ BEGIN
     END IF;
     IF NOT EXISTS (
       SELECT 1 FROM public.reseller_profiles AS rp
-      WHERE rp.id = p_reseller_id
+      WHERE rp.id = p_reseller_id AND pg_catalog.lower(rp.status::TEXT) = 'approved'
     ) THEN
       RAISE EXCEPTION 'Reseller account is not approved';
     END IF;
@@ -179,11 +179,17 @@ BEGIN
     RAISE EXCEPTION 'Delivery settings are unavailable';
   END IF;
 
-  IF EXISTS (
+  IF pg_catalog.jsonb_array_length(p_items) > 100 OR EXISTS (
     SELECT 1
     FROM pg_catalog.jsonb_to_recordset(p_items)
       AS x(product_id UUID, quantity INTEGER)
     WHERE x.product_id IS NULL OR x.quantity IS NULL OR x.quantity < 1 OR x.quantity > 100
+  ) OR EXISTS (
+    SELECT 1
+    FROM pg_catalog.jsonb_to_recordset(p_items)
+      AS x(product_id UUID, quantity INTEGER)
+    GROUP BY x.product_id
+    HAVING SUM(x.quantity) > 100
   ) THEN
     RAISE EXCEPTION 'Invalid product or quantity';
   END IF;
