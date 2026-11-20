@@ -2655,44 +2655,84 @@
       }
     }
 
+    const SUPABASE_CATEGORY_IDS = {
+      'মেন্স ফ্যাশন': 'aee389fa-b863-41b3-9f81-ae076a906c2d',
+      'ওমেন্স ফ্যাশন': 'a7790e28-ec46-423a-b668-fc33eb6da9b1',
+      'কিডস কালেকশন': 'bdab9f55-27e2-4176-9dfa-08e1e42c97ee',
+      'জুতা ও স্যান্ডেল': 'e6120406-3a47-4367-9943-02fff3c67b9c',
+      'স্মার্ট গ্যাজেট': 'a60d47a1-b38f-473c-aa1a-19461d0b3ea9',
+      'অডিও ও হেডফোন': '173349c0-2c35-4154-8258-b931d5117f84',
+      'হোম ডেকর': 'c001c6d7-144f-435d-94dc-727eb59b874b',
+      'কিচেন ডাইনিং': '1e67b0d4-1bfd-4a0e-bf0a-2dd5567731b1',
+      'স্কিন কেয়ার': '408db14e-28c7-4a6b-bb06-45bc75212836',
+      'হেয়ার কেয়ার': '82eae233-ef62-45d8-89ae-39a7e5ca51a6',
+      'পারফিউম ও বডি স্প্রে': 'e34e94a3-d1e1-4b41-9138-d62886c0ef75',
+      'ব্যাগ ও লাগেজ': 'd604a29b-9fd5-43d6-ae7a-3c87a213c93f',
+      'ওয়াচ ও জুয়েলারি': 'c7d6dd3c-820c-4e62-9166-b279bdcd8de8',
+      'স্পোর্টস ও ফিটনেস': '76d56749-f3a9-41ea-ab91-fed988052afb',
+      'বই ও স্টেশনারি': '8a9ae3c3-0a8e-42ff-84b7-94d54fdb5919',
+      'বেবি কেয়ার': '34641659-f958-4a50-898d-05ece59e53dc',
+      'মোবাইল অ্যাক্সেসরিজ': '2c554d10-3a75-4c65-8efd-ae231d9fb3cf',
+      'ইলেকট্রনিক্স ও অ্যাপ্লায়েন্স': '7149d889-f11a-473a-aaf5-9d2dfd912c12',
+      'গিফট ও হ্যাম্পার': 'eca859fa-e1b6-4e2f-88ec-7c36ac40969c',
+      'ট্রাভেল ও আউটডোর': '7b072790-9b26-4e96-860e-59f7317d7572',
+      'হেলথ ও ওয়েলনেস': '6fe7b0a1-59c2-4636-80bf-106c42de1f1e',
+      'গ্রোসারি ও অর্গানিক': '5686ed30-9f02-4b7f-90e1-9eb673475378',
+      'ফেস্টিভ ও এথনিক': 'beace772-1df2-4a87-9eff-6fb15b27e965',
+      'মেগা ডিলস': '95b099ef-c83f-4ff0-9a67-eefc2ac7fbd0'
+    };
+
+    function createUuid() {
+      if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+      const bytes = new Uint8Array(16);
+      window.crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+      return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+    }
+
+    function isUuid(value) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+    }
+
+    function getSupabaseCategoryId(cat) {
+      if (!cat) return null;
+      return SUPABASE_CATEGORY_IDS[cat.name] || null;
+    }
+
+    function getFrontendCategoryBySupabaseId(categoryId) {
+      const entry = Object.entries(SUPABASE_CATEGORY_IDS).find(([, id]) => id === categoryId);
+      return entry ? categoriesData.find((c) => c.name === entry[0]) : null;
+    }
+
     function applyCloudProductsToCategories(rows) {
-      if (!Array.isArray(rows) || rows.length === 0) return false;
+      if (!Array.isArray(rows)) return false;
       let applied = false;
       for (const row of rows) {
-        if (!row || !row.id || !row.category_id) continue;
-        const cat = categoriesData.find((c) => c.id === row.category_id);
+        if (!row?.id || !row.category_id) continue;
+        const cat = getFrontendCategoryBySupabaseId(row.category_id);
         if (!cat) continue;
         if (!Array.isArray(cat.items)) cat.items = [];
-
-        const fallbackImg = makeSvgVisual(
-          row.title || cat.name,
-          cat.emoji,
-          cat.c1,
-          cat.c2,
-          cat.accent,
-          cat.id
-        );
+        const productTitle = String(row.name_bn || row.name || '').trim();
+        const fallbackImg = makeSvgVisual(productTitle || cat.name, cat.emoji, cat.c1, cat.c2, cat.accent, cat.id);
         const mappedItem = {
           id: String(row.id),
-          title: String(row.title || ''),
+          title: productTitle,
           price: Number(row.price) || 0,
-          finalPrice: Number(row.final_price ?? row.price) || 0,
-          discountPercent: Number(row.discount_percent || 0),
-          discountAmount: Number(row.discount_amount || 0),
-          stock: Number.isFinite(Number(row.stock)) ? Math.max(0, Number(row.stock)) : 25,
+          finalPrice: Number(row.price) || 0,
+          discountPercent: 0,
+          discountAmount: 0,
+          stock: Number.isFinite(Number(row.stock)) ? Math.max(0, Number(row.stock)) : 0,
           desc: String(row.description || ''),
-          image: row.image_url && String(row.image_url).trim() ? String(row.image_url).trim() : fallbackImg
+          image: row.image_url && String(row.image_url).trim() ? String(row.image_url).trim() : fallbackImg,
+          gallery: Array.isArray(row.gallery) ? row.gallery : []
         };
-
-        const idx = cat.items.findIndex((i) => i.id === mappedItem.id);
-        if (idx >= 0) {
-          cat.items[idx] = { ...cat.items[idx], ...mappedItem };
-        } else {
-          cat.items.unshift(mappedItem);
-        }
+        const idx = cat.items.findIndex((item) => item.id === mappedItem.id);
+        if (idx >= 0) cat.items[idx] = { ...cat.items[idx], ...mappedItem };
+        else cat.items.unshift(mappedItem);
         applied = true;
       }
-
       if (applied) {
         persistAppState();
         renderCategoriesGrid();
@@ -2712,11 +2752,16 @@
       try {
         const { data, error } = await supabaseClient
           .from(SUPABASE_CONFIG.tables.products)
-          .select('*')
-          .order('updated_at', { ascending: false });
-        if (error || !Array.isArray(data)) return false;
+          .select('id,category_id,name,name_bn,description,price,base_price,stock,image_url,is_active,created_at')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+        if (error || !Array.isArray(data)) {
+          console.error('Hatbazar product sync failed:', error?.message || 'Invalid response');
+          return false;
+        }
         return applyCloudProductsToCategories(data);
-      } catch (_err) {
+      } catch (err) {
+        console.error('Hatbazar product sync failed:', err?.message || err);
         return false;
       }
     }
@@ -2726,40 +2771,78 @@
       if (!cloudSyncEnabled || !supabaseClient || !itemObj) return false;
       try {
         const cat = categoriesData.find((c) => c.id === catId);
+        const categoryId = getSupabaseCategoryId(cat);
+        if (!categoryId) {
+          console.error('Hatbazar product sync: category mapping missing for', cat?.name || catId);
+          return false;
+        }
+        if (!isUuid(itemObj.id)) itemObj.id = createUuid();
         const payload = {
-          id: String(itemObj.id),
-          category_id: String(catId || ''),
-          category_name: cat ? String(cat.name) : '',
-          title: String(itemObj.title || ''),
-          price: Number(itemObj.price) || 0,
-          final_price: Number(itemObj.finalPrice ?? itemObj.price) || 0,
-          discount_percent: Number(itemObj.discountPercent || 0),
-          discount_amount: Number(itemObj.discountAmount || 0),
-          stock: Number.isFinite(Number(itemObj.stock)) ? Math.max(0, Number(itemObj.stock)) : 25,
+          id: itemObj.id,
+          category_id: categoryId,
+          name: String(itemObj.title || '').trim(),
+          name_bn: String(itemObj.title || '').trim(),
           description: String(itemObj.desc || ''),
-          image_url:
-            itemObj.image && !String(itemObj.image).startsWith('data:')
-              ? String(itemObj.image)
-              : '',
-          updated_at: new Date().toISOString()
+          price: Number(itemObj.finalPrice ?? itemObj.price) || 0,
+          base_price: Number(itemObj.basePrice) > 0 ? Number(itemObj.basePrice) : null,
+          stock: Number.isFinite(Number(itemObj.stock)) ? Math.max(0, Math.floor(Number(itemObj.stock))) : 0,
+          image_url: itemObj.image && !String(itemObj.image).startsWith('data:')
+            ? String(itemObj.image) : null,
+          is_active: true
         };
         const { error } = await supabaseClient
           .from(SUPABASE_CONFIG.tables.products)
           .upsert(payload, { onConflict: 'id' });
-        return !error;
-      } catch (_err) {
+        if (error) {
+          console.error('Hatbazar product upsert failed:', error.message);
+          return false;
+        }
+        return true;
+      } catch (err) {
+        console.error('Hatbazar product upsert failed:', err?.message || err);
         return false;
       }
     }
 
     async function persistOrderToSupabase(orderRecord) {
-      persistAppState();
-      if (!cloudSyncEnabled || !supabaseClient) return;
-      try {
-        await supabaseClient.from(SUPABASE_CONFIG.tables.orders).upsert(orderRecord);
-      } catch (_err) {
-        // লোকাল রেকর্ডে ইতিমধ্যে সেভ আছে
+      if (!cloudSyncEnabled || !supabaseClient) {
+        return { success: false, error: 'Cloud database is not connected.' };
       }
+      const paymentMap = {
+        'ক্যাশ অন ডেলিভারি': 'cod',
+        'বিকাশ': 'bkash',
+        'নগদ': 'nagad',
+        'রকেট': 'rocket',
+        'ব্যাংক ট্রান্সফার': 'bank'
+      };
+      const rpcItems = (orderRecord.items || []).map((item) => ({
+        product_id: item.id,
+        quantity: Number(item.qty) || 1
+      }));
+      if (!rpcItems.length || rpcItems.some((item) => !isUuid(item.product_id))) {
+        return { success: false, error: 'Cart contains a product that is not synced to the cloud yet.' };
+      }
+      const { data, error } = await supabaseClient.rpc('hatbazar_checkout_v2', {
+        p_customer_name: orderRecord.customerName,
+        p_phone: orderRecord.customerPhone,
+        p_address: orderRecord.address,
+        p_payment_method: paymentMap[orderRecord.paymentMethod] || '',
+        p_items: rpcItems,
+        p_district: orderRecord.district,
+        p_upazila: orderRecord.upazila,
+        p_delivery_zone: orderRecord.deliveryZone,
+        p_delivery_fee: Number(orderRecord.deliveryFee) || 0,
+        p_payment_trx_id: orderRecord.paymentTrxId || null
+      });
+      if (error || !data?.success) {
+        console.error('Hatbazar checkout failed:', error?.message || data?.message || 'Unknown error');
+        return { success: false, error: error?.message || data?.message || 'Order could not be saved.' };
+      }
+      orderRecord.id = data.order_code || data.order_id;
+      orderRecord.orderUuid = data.order_id;
+      orderRecord.totalAmount = Number(data.total_amount) || orderRecord.totalAmount;
+      orderRecord.createdAt = data.created_at || new Date().toISOString();
+      return { success: true, data };
     }
 
     async function pullCentralOrdersFromSupabase() {
@@ -2767,14 +2850,52 @@
       try {
         const { data, error } = await supabaseClient
           .from(SUPABASE_CONFIG.tables.orders)
-          .select('*')
-          .order('createdAt', { ascending: false });
-        if (!error && Array.isArray(data) && data.length > 0) {
-          ordersData = data;
-          persistAppState();
+          .select('id,order_code,customer_name,phone,address,district,upazila,delivery_zone,subtotal,delivery_fee,total_amount,payment_method,payment_trx_id,payment_verified,payment_status,order_status,created_at')
+          .order('created_at', { ascending: false });
+        if (error || !Array.isArray(data)) {
+          console.error('Hatbazar order fetch failed:', error?.message || 'Invalid response');
+          return ordersData;
         }
-      } catch (_err) {
-        // fallback to local ordersData
+        const ids = data.map((order) => order.id);
+        let itemsByOrder = {};
+        if (ids.length) {
+          const { data: itemRows, error: itemError } = await supabaseClient
+            .from('order_items')
+            .select('order_id,product_id,product_name,quantity,unit_price')
+            .in('order_id', ids);
+          if (!itemError && Array.isArray(itemRows)) {
+            for (const row of itemRows) {
+              (itemsByOrder[row.order_id] ||= []).push({
+                id: row.product_id,
+                title: row.product_name,
+                price: Number(row.unit_price) || 0,
+                qty: Number(row.quantity) || 1
+              });
+            }
+          }
+        }
+        ordersData = data.map((row) => ({
+          id: row.order_code || row.id,
+          orderUuid: row.id,
+          customerName: row.customer_name,
+          customerPhone: row.phone,
+          address: row.address,
+          district: row.district || '',
+          upazila: row.upazila || '',
+          deliveryZone: row.delivery_zone || '',
+          subtotal: Number(row.subtotal) || 0,
+          deliveryFee: Number(row.delivery_fee) || 0,
+          totalAmount: Number(row.total_amount) || 0,
+          paymentMethod: row.payment_method || '',
+          paymentTrxId: row.payment_trx_id || '',
+          paymentVerified: Boolean(row.payment_verified),
+          orderStatus: row.order_status || 'pending',
+          createdAt: row.created_at,
+          items: itemsByOrder[row.id] || []
+        }));
+        persistAppState();
+      } catch (err) {
+        console.error('Hatbazar order fetch failed:', err?.message || err);
       }
       return ordersData;
     }
@@ -2979,7 +3100,7 @@
       }
 
       const newItem = {
-        id: `${cat.id}-seller-${Date.now()}`,
+        id: createUuid(),
         title,
         price,
         finalPrice: price,
@@ -6109,7 +6230,7 @@
           }
 
           const newItem = {
-            id: `${cat.id}-custom-${Date.now()}`,
+            id: createUuid(),
             title,
             price,
             finalPrice,
@@ -6252,6 +6373,11 @@
             .map((i) => `• ${i.title} × ${i.qty} = ৳${(Number(i.price) || 0) * (Number(i.qty) || 1)}`)
             .join('\n');
 
+          if (paymentMethod !== 'ক্যাশ অন ডেলিভারি' && !paymentTrxId) {
+            showToast('অনলাইন পেমেন্টের জন্য TrxID লিখুন।');
+            return;
+          }
+
           const orderId = `HB-${Date.now().toString().slice(-6)}`;
           const orderRecord = {
             id: orderId,
@@ -6263,8 +6389,8 @@
             address,
             paymentMethod,
             paymentTrxId,
-            paymentVerified: paymentMethod === 'ক্যাশ অন ডেলিভারি' ? false : false,
-            orderStatus: 'pending_verification',
+            paymentVerified: false,
+            orderStatus: 'pending',
             subtotal,
             deliveryFee,
             totalAmount: total,
@@ -6277,9 +6403,14 @@
             createdAt: new Date().toISOString()
           };
 
+          const saveResult = await persistOrderToSupabase(orderRecord);
+          if (!saveResult.success) {
+            showToast(currentLang === 'en'
+              ? 'Order was not placed. Please check your connection and try again.'
+              : `অর্ডার সেভ হয়নি: ${saveResult.error || 'আবার চেষ্টা করুন।'}`);
+            return;
+          }
           ordersData.unshift(orderRecord);
-          deductStockForOrderedItems(orderRecord.items);
-          await persistOrderToSupabase(orderRecord);
 
           lastOrderText =
             `Hatbazar অর্ডার (#${orderId})\n` +
