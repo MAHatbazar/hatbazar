@@ -76,6 +76,7 @@ button:disabled{opacity:.5}
  .product img{width:55px;height:55px}
  button{padding:11px 13px}
 }
+.image-preview-thumb{cursor:zoom-in;border:2px solid #d8e2dd!important}.image-preview-modal{position:fixed;inset:0;z-index:9999;background:#07130feF;display:none;align-items:center;justify-content:center;padding:16px}.image-preview-modal.open{display:flex}.image-preview-box{width:min(100%,620px);max-height:95vh;overflow:auto;background:#fff;border-radius:16px;padding:14px}.image-preview-box img{display:block;width:100%;max-height:68vh;object-fit:contain;background:#f3f6f5;border-radius:10px}.image-preview-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.image-preview-actions a{display:inline-block;text-decoration:none;padding:12px 16px;border-radius:9px;background:#173f35;color:white;font-weight:bold}.multi-preview img{cursor:zoom-in}
 </style>
 </head>
 
@@ -286,6 +287,19 @@ Save করার পর নতুন Product-গুলো Facebook Page-এ প
 </section>
 </main>
 
+
+<div id="imagePreviewModal" class="image-preview-modal" role="dialog" aria-modal="true" aria-label="ছবির Preview" onclick="if(event.target===this)closeImagePreview()">
+ <div class="image-preview-box">
+  <div class="top"><strong id="imagePreviewName">ছবির Preview</strong><button type="button" class="secondary" onclick="closeImagePreview()">বন্ধ করুন ✕</button></div>
+  <img id="imagePreviewFull" alt="Product image preview">
+  <div class="image-preview-actions">
+   <a id="imagePreviewDownload" href="#" download="hatbazar-product.jpg">⬇ ছবি Save / Download</a>
+   <a id="imagePreviewOpen" href="#" target="_blank" rel="noopener">নতুন Tab-এ খুলুন</a>
+  </div>
+  <p class="hint">iPhone-এ Save কাজ না করলে ছবির ওপর কিছুক্ষণ চেপে ধরে “Save to Photos” নির্বাচন করুন।</p>
+ </div>
+</div>
+
 <script>
 const SUPABASE_URL='https://wagtpkukzutsxwhutznu.supabase.co';
 const SUPABASE_KEY='sb_publishable_5fqDO6y1eTWIM9BWrYo4tQ_02bO9SJj';
@@ -472,6 +486,21 @@ function validateImages(files){
  return '';
 }
 
+
+function openImagePreview(src,name='Product Image'){
+ const modal=$('imagePreviewModal'),img=$('imagePreviewFull'),download=$('imagePreviewDownload'),open=$('imagePreviewOpen');
+ img.src=src;
+ $('imagePreviewName').textContent=name;
+ download.href=src;download.download=(String(name||'hatbazar-product').replace(/[^a-z0-9._-]/gi,'-')||'hatbazar-product')+'.jpg';
+ open.href=src;
+ modal.classList.add('open');
+}
+function closeImagePreview(){
+ $('imagePreviewModal').classList.remove('open');
+ $('imagePreviewFull').src='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeImagePreview();});
+
 function previewSingleImages(files){
  const selected=Array.from(files||[]);
  const problem=validateImages(selected);
@@ -494,6 +523,8 @@ function previewSingleImages(files){
  selected.forEach(file=>{
   const img=document.createElement('img');
   img.src=URL.createObjectURL(file);
+  img.classList.add('image-preview-thumb');
+  img.addEventListener('click',()=>openImagePreview(img.src,file.name));
   preview.appendChild(img);
  });
 }
@@ -577,7 +608,7 @@ async function generateFiveFreeImageStyles(){
   singleProductImages=made;$('imageFiles').value='';
   $('singleImageNames').textContent='৫টি আলাদা ডিজাইন তৈরি হয়েছে।';
   const preview=$('singleImagePreview');preview.innerHTML='';
-  made.forEach(file=>{const im=document.createElement('img');im.src=URL.createObjectURL(file);preview.appendChild(im);});
+  made.forEach(file=>{const im=document.createElement('img');im.src=URL.createObjectURL(file);im.classList.add('image-preview-thumb');im.addEventListener('click',()=>openImagePreview(im.src,file.name));preview.appendChild(im);});
   status.textContent='৫টি আলাদা লেআউট তৈরি হয়েছে। এগুলো একই মূল পণ্যের ছবি, নতুন ক্যামেরা ভিউ নয়। Save করলে ৫টিই Gallery-তে যাবে।';
  }catch(err){status.textContent='ডিজাইন তৈরি হয়নি: '+(err.message||'অজানা সমস্যা');}
  finally{btn.disabled=false;btn.textContent='🖼️ ফ্রিতে ৫টি ছবি ডিজাইন তৈরি করুন';}
@@ -595,6 +626,8 @@ function showExistingGallery(urls){
   const img=document.createElement('img');
   img.src=url;
   img.alt='Existing product image';
+  img.classList.add('image-preview-thumb');
+  img.addEventListener('click',()=>openImagePreview(url,'Existing product image'));
   preview.appendChild(img);
  });
 }
@@ -1094,6 +1127,8 @@ function setRowImages(row,files){
  selected.forEach(file=>{
   const img=document.createElement('img');
   img.src=URL.createObjectURL(file);
+  img.classList.add('image-preview-thumb');
+  img.addEventListener('click',()=>openImagePreview(img.src,file.name));
   preview.appendChild(img);
  });
 
