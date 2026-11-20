@@ -4986,7 +4986,13 @@
           authResult = await supabaseClient.auth.signUp({
             email,
             password,
-            options: { data: { full_name: name, phone } }
+            options: { data: {
+              full_name: name,
+              phone,
+              ...(window.pendingHatbazarPartnerApplication ? {
+                hatbazar_partner_application: window.pendingHatbazarPartnerApplication
+              } : {})
+            } }
           });
         }
         if (authResult.error || !authResult.data?.user?.id) {
@@ -4999,10 +5005,19 @@
           return;
         }
         const dbRole = role === 'রিসেলার' ? 'reseller' : 'seller';
-        const { data: registration, error: registrationError } = await supabaseClient.rpc('hatbazar_register_marketplace_profile', {
+        const partnerApplication = window.pendingHatbazarPartnerApplication ||
+          supabaseUser.user_metadata?.hatbazar_partner_application || {};
+        if (partnerApplication.role && partnerApplication.role !== dbRole) {
+          showToast('আবেদনের ধরন ও অ্যাকাউন্টের ধরন মিলছে না। সঠিক সেলার/রিসেলার নির্বাচন করে আবার চেষ্টা করুন।');
+          return;
+        }
+        const { data: registration, error: registrationError } = await supabaseClient.rpc('hatbazar_register_marketplace_profile_v2', {
           p_full_name: name,
           p_phone: phone,
-          p_role: dbRole
+          p_role: dbRole,
+          p_shop_name: partnerApplication.shop_name || name,
+          p_district: partnerApplication.district || '',
+          p_notes: partnerApplication.notes || ''
         });
         if (registrationError || !registration?.success) {
           showToast('প্রোফাইল তৈরি হয়নি: ' + (registrationError?.message || 'SQL Migration পরীক্ষা করুন।'));
@@ -5015,6 +5030,16 @@
           return;
         }
         supabaseProfile = profile;
+        if (partnerApplication.shop_name) {
+          window.pendingHatbazarPartnerApplication = null;
+          document.getElementById('partnerRegistrationForm')?.reset();
+          updatePartnerRoleInfo();
+          const confirmationBox = document.getElementById('partnerConfirmationBox');
+          if (confirmationBox) {
+            confirmationBox.textContent = 'আপনার আবেদন Supabase-এ সংরক্ষিত হয়েছে। অ্যাডমিন অনুমোদনের পর সেলার/রিসেলার সুবিধা চালু হবে।';
+            confirmationBox.classList.remove('hidden');
+          }
+        }
         marketplaceProfileLoadedAt = 0;
         resellerCloudLoadedAt = 0;
         resellerCatalogCache = [];
@@ -7541,50 +7566,32 @@
           const name = (document.getElementById('partnerName')?.value || '').trim();
           const phoneRaw = (document.getElementById('partnerPhone')?.value || '').trim();
           const shopName = (document.getElementById('partnerShopName')?.value || '').trim();
-          const district = document.getElementById('partnerDistrict')?.value || 'ঢাকা';
+          const district = document.getElementById('partnerDistrict')?.value || '';
           const notes = (document.getElementById('partnerNotes')?.value || '').trim();
-
           const phone = normalizeBdPhone(phoneRaw);
-          if (!name || !phone || !shopName) {
-            showToast(
-              currentLang === 'en'
-                ? 'Please fill all required fields with a valid BD mobile number'
-                : 'অনুগ্রহ করে সঠিক নাম, ১১ সংখ্যার মোবাইল নম্বর এবং শপ/ব্যবসার নাম দিন'
-            );
+          if (!name || !phone || !shopName || !district) {
+            showToast('সঠিক নাম, ১১ সংখ্যার মোবাইল, শপের নাম এবং জেলা পূরণ করুন।');
             return;
           }
-
-          sellerPartnersData.unshift({
-            id: `sp-${Date.now()}`,
-            name,
-            phone,
-            shopName,
-            district,
-            role,
-            status: 'pending',
-            notes
-          });
-
-          const box = document.getElementById('partnerConfirmationBox');
-          const roleLabel =
-            role === 'reseller'
-              ? (currentLang === 'en' ? 'Reseller' : 'রিসেলার')
-              : (currentLang === 'en' ? 'Seller' : 'সেলার');
-
-          if (box) {
-            box.innerHTML =
-              currentLang === 'en'
-                ? `✅ <strong>${escapeHtml(roleLabel)} Registration Submitted!</strong><br/>Name: <strong>${escapeHtml(name)}</strong> • Mobile: <strong>${escapeHtml(phone)}</strong><br/>Shop/Page: <strong>${escapeHtml(shopName)}</strong> • District: <strong>${escapeHtml(formatDistrictLabel(district))}</strong>`
-                : `✅ <strong>${escapeHtml(roleLabel)} রেজিস্ট্রেশন আবেদন জমা হয়েছে!</strong><br/>নাম: <strong>${escapeHtml(name)}</strong> • মোবাইল: <strong>${escapeHtml(phone)}</strong><br/>শপ/পেজ: <strong>${escapeHtml(shopName)}</strong> • জেলা: <strong>${escapeHtml(district)}</strong>`;
-            box.classList.remove('hidden');
+          if (!cloudSyncEnabled || !supabaseClient) {
+            showToast('অনলাইন রেজিস্ট্রেশনের জন্য Supabase সংযোগ প্রয়োজন। পরে আবার চেষ্টা করুন।');
+            return;
           }
-
-          partnerForm.reset();
-          updatePartnerRoleInfo();
-          renderSellerDashboard();
-          renderAdminSellerApprovals();
-          persistAppState();
-          showToast(currentLang === 'en' ? 'Partner application submitted!' : 'পার্টনার রেজিস্ট্রেশন আবেদন জমা হয়েছে!');
+          window.pendingHatbazarPartnerApplication = {
+            role,
+            shop_name: shopName,
+            district,
+            notes
+          };
+          const authName = document.getElementById('authUserName');
+          const authPhone = document.getElementById('authUserPhone');
+          const authRole = document.getElementById('authUserRole');
+          if (authName) authName.value = name;
+          if (authPhone) authPhone.value = phone;
+          if (authRole) authRole.value = role === 'reseller' ? 'রিসেলার' : 'সেলার';
+          toggleModalAdminPasswordField();
+          document.getElementById('authModal')?.classList.remove('hidden');
+          showToast('আবেদনটি ডেটাবেজে জমা দিতে ইমেইল ও পাসওয়ার্ড দিয়ে অ্যাকাউন্ট সম্পন্ন করুন।');
         });
       }
 
