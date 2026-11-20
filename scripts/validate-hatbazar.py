@@ -20,6 +20,10 @@ checks = {
     "rate-limit table is not directly accessible to API roles": "REVOKE ALL ON TABLE private.hatbazar_rate_limits FROM PUBLIC, anon, authenticated, service_role" in step10,
     "checkout and lookup have separate server-side limits": "'checkout'" in step10 and "'order_lookup'" in step10 and "Too many checkout attempts" in step10 and "Too many order lookup attempts" in step10,
     "no Supabase service-role or secret key is embedded in the storefront": re.search(r"service_role|sb_secret_[A-Za-z0-9]+", html, re.I) is None,
+    "admin and live-editor navigation are hidden until an authenticated admin session": "adminNav.style.display = adminActive ? '' : 'none'" in html and "editorNav.style.display = adminActive ? '' : 'none'" in html,
+    "direct navigation to admin and live editor is guarded": "viewName === 'admin' || viewName === 'liveEditor'" in html and "Admin access only" in html,
+    "home hero uses a real retail photograph": "photo-1441986300917-64674bd600d8" in html and "Real clothing and lifestyle retail store interior" in html,
+    "shipping, return and refund policy cards include relevant photos": "Shipping parcels ready for delivery" in html and "Shopping bag and customer return experience" in html and "Digital refund and payment card" in html,
 }
 
 failed = [name for name, ok in checks.items() if not ok]
