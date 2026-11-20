@@ -6573,7 +6573,7 @@
           }
           itemsListText = orderRecord.items
             .map((item) => `• ${item.title} × ${item.qty} = ৳${(Number(item.price) || 0) * (Number(item.qty) || 1)}`)
-            .join('\\n');
+            .join('\n');
           const confirmedSubtotal = Number(orderRecord.subtotal) || 0;
           const confirmedDeliveryFee = Number(orderRecord.deliveryFee) || 0;
           const confirmedTotal = Number(orderRecord.totalAmount) || 0;
