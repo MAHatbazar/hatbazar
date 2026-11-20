@@ -4846,7 +4846,7 @@
             data-cat="${escapeHtml(cat.id)}"
             class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-800 flex items-center justify-between transition"
           >
-            <span class="truncate">${escapeHtml(cat.name)}</span>
+            <span class="truncate">${escapeHtml(getCategoryName(cat))}</span>
             <span class="text-slate-400">›</span>
           </button>
         `
@@ -4869,11 +4869,11 @@
             <img
               src="${escapeHtml(cat.image || getCategoryPhotoFallback(cat.name, cat.id))}"
               onerror="this.onerror=null;this.src=getCategoryPhotoFallback('${escapeHtml(cat.name)}','${escapeHtml(cat.id)}');"
-              alt="${escapeHtml(cat.name)}"
+              alt="${escapeHtml(getCategoryName(cat))}"
               loading="eager"
               class="w-full h-36 sm:h-40 rounded-xl object-cover object-center mb-2.5 group-hover:scale-[1.03] transition"
             />
-            <div class="text-xs sm:text-sm font-extrabold text-slate-800 truncate">${escapeHtml(cat.name)}</div>
+            <div class="text-xs sm:text-sm font-extrabold text-slate-800 truncate">${escapeHtml(getCategoryName(cat))}</div>
           </button>
         `
           )
@@ -4956,11 +4956,11 @@
                 <img
                   src="${escapeHtml(cat.image || getCategoryPhotoFallback(cat.name, cat.id))}"
                   onerror="this.onerror=null;this.src=getCategoryPhotoFallback('${escapeHtml(cat.name)}','${escapeHtml(cat.id)}');"
-                  alt="${escapeHtml(cat.name)}"
+                  alt="${escapeHtml(getCategoryName(cat))}"
                   loading="eager"
                   class="w-full h-40 sm:h-44 rounded-xl object-cover object-center mb-2.5"
                 />
-                <div class="text-xs sm:text-sm font-extrabold text-slate-900 line-clamp-1">${escapeHtml(cat.name)}</div>
+                <div class="text-xs sm:text-sm font-extrabold text-slate-900 line-clamp-1">${escapeHtml(getCategoryName(cat))}</div>
               </button>
               <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px] font-bold">
                 <button
@@ -5159,7 +5159,7 @@
                       data-pid="${escapeHtml(item.id)}"
                       class="text-left text-sm sm:text-base font-extrabold text-slate-900 hover:text-violet-700 line-clamp-1 transition"
                     >
-                      ${escapeHtml(item.title)}
+                      ${escapeHtml(currentLang === 'en' ? (item.titleEn || item.title) : item.title)}
                     </button>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${
                       outOfStock ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'
@@ -5245,11 +5245,11 @@
 
       if (catsGrid) catsGrid.classList.add('hidden');
       if (badge) badge.textContent = `${cat.emoji || '📂'} ${t.folderBadgePrefix}`;
-      if (titleEl) titleEl.textContent = cat.name;
-      if (descEl) descEl.textContent = cat.desc || '';
+      if (titleEl) titleEl.textContent = getCategoryName(cat);
+      if (descEl) descEl.textContent = getCategoryDescription(cat);
       if (coverImg) {
         coverImg.src = cat.image || getCategoryPhotoFallback(cat.name, cat.id);
-        coverImg.alt = cat.name;
+        coverImg.alt = getCategoryName(cat);
       }
 
       if (panel) {
@@ -5620,8 +5620,45 @@
       'cat-24': 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=900&q=75'
     };
 
+    const CATEGORY_ENGLISH = {
+      'cat-01': ['Men’s Fashion', 'Panjarbi, casual shirts, polos and trousers.'],
+      'cat-02': ['Women’s Fashion', 'Three-piece sets, kurtis, sarees and occasion wear.'],
+      'cat-03': ['Kids Collection', 'Comfortable clothing, toys and essentials for children.'],
+      'cat-04': ['Shoes & Sandals', 'Smart shoes, sneakers, sandals and everyday footwear.'],
+      'cat-05': ['Smart Gadgets', 'Smartwatches, power banks, chargers and modern gadgets.'],
+      'cat-06': ['Audio & Headphones', 'Wireless earbuds, neckbands, speakers and headphones.'],
+      'cat-07': ['Home Decor', 'Wall art, lamps and tasteful interior accessories.'],
+      'cat-08': ['Kitchen & Dining', 'Cookware, kitchen tools and dining essentials.'],
+      'cat-09': ['Skin Care', 'Face wash, serums, sunscreen and daily skincare.'],
+      'cat-10': ['Hair Care', 'Hair oils, shampoos and conditioners.'],
+      'cat-11': ['Perfume & Body Spray', 'Long-lasting perfumes, body mists and attar.'],
+      'cat-12': ['Bags & Luggage', 'Backpacks, handbags, office bags and travel luggage.'],
+      'cat-13': ['Watches & Jewellery', 'Wristwatches, necklaces, bracelets and accessories.'],
+      'cat-14': ['Sports & Fitness', 'Gym, fitness and outdoor sports essentials.'],
+      'cat-15': ['Books & Stationery', 'Books, diaries, notebooks and office stationery.'],
+      'cat-16': ['Baby Care', 'Gentle baby-care, feeding and everyday essentials.'],
+      'cat-17': ['Mobile Accessories', 'Chargers, cables, phone cases and screen protectors.'],
+      'cat-18': ['Electronics & Appliances', 'Useful electronics and home appliances.'],
+      'cat-19': ['Gifts & Hampers', 'Curated gift boxes for birthdays and special occasions.'],
+      'cat-20': ['Travel & Outdoor', 'Travel accessories for easier and more comfortable trips.'],
+      'cat-21': ['Health & Wellness', 'Everyday wellness and personal-care products.'],
+      'cat-22': ['Grocery & Organic', 'Selected honey, ghee, tea and natural food products.'],
+      'cat-23': ['Festive & Ethnic', 'Exclusive ethnic wear for Eid, Puja and celebrations.'],
+      'cat-24': ['Mega Deals', 'Limited-time bundles and seasonal special offers.']
+    };
+
+    function getCategoryName(cat) {
+      if (!cat) return '';
+      return currentLang === 'en' ? (cat.nameEn || CATEGORY_ENGLISH[cat.id]?.[0] || cat.name) : cat.name;
+    }
+
+    function getCategoryDescription(cat) {
+      if (!cat) return '';
+      return currentLang === 'en' ? (cat.descEn || CATEGORY_ENGLISH[cat.id]?.[1] || cat.desc || '') : (cat.desc || '');
+    }
+
     function getRealisticFolderImage(cat) {
-      return buildRichVisualCard(
+      return REALISTIC_PHOTO_MAP[cat?.id] || buildRichVisualCard(
         cat?.name || 'Hatbazar',
         cat?.emoji || '🛍️',
         cat?.c1 || '#4c1d95',
@@ -5632,8 +5669,8 @@
     }
 
     function getCategoryPhotoFallback(label, catId = '') {
-      const cat = categoriesData.find((c) => c.id === catId || c.name === label || c.itemName === label);
-      if (cat) return buildRichVisualCard(cat.name, cat.emoji, cat.c1, cat.c2, cat.accent, cat.id);
+      const cat = categoriesData.find((c) => c.id === catId || c.name === label || c.nameEn === label || c.itemName === label);
+      if (cat) return buildRichVisualCard(getCategoryName(cat), cat.emoji, cat.c1, cat.c2, cat.accent, cat.id);
       return buildRichVisualCard(label || 'Hatbazar', '🛍️', '#4c1d95', '#831843', '#fde047', 'cat-24');
     }
 
