@@ -67,7 +67,7 @@ BEGIN
     'payment_status', v_payment_status
   );
 END;
-
+$function$;
 
 REVOKE ALL ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) TO authenticated, postgres;
