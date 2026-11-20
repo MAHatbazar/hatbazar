@@ -6710,7 +6710,7 @@
         'health and wellness':'cat-21','grocery and organic':'cat-22','festive and ethnic':'cat-23','mega deals':'cat-24'
       };
       function normalizeBulkHeader(value) {
-        return String(value || '').trim().toLowerCase().replace(/[ _-]+/g, ' ').replace(/\s+/g, ' ');
+        return String(value || '').trim().toLowerCase().replace(/[()]/g, '').replace(/[ _-]+/g, ' ').replace(/\s+/g, ' ');
       }
       function resolveBulkCategory(value) {
         const key = normalizeBulkHeader(value);
