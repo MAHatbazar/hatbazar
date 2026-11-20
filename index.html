@@ -6897,10 +6897,11 @@
     }
 
     function updateCartBadge() {
-      const badge = document.getElementById('cartCountBadge');
-      if (!badge) return;
       const totalQty = cartItems.reduce((sum, i) => sum + (Number(i.qty) || 0), 0);
-      badge.textContent = formatNum(totalQty);
+      const badge = document.getElementById('cartCountBadge');
+      const mobileBadge = document.getElementById('mobileCartCountBadge');
+      if (badge) badge.textContent = formatNum(totalQty);
+      if (mobileBadge) mobileBadge.textContent = formatNum(totalQty);
     }
 
     function updateCartSummary() {
