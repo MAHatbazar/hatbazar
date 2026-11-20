@@ -35,6 +35,11 @@ checks = {
     "hero live editor action is hidden unless an admin session is active": 'id="heroLiveEditorBtn"' in html and "heroEditorButton.classList.toggle('hidden', !adminActive)" in html,
     "mobile navigation is hidden on admin management screens": "mobileCustomerNav.classList.toggle('hidden', adminOnlyViews.includes(currentView))" in html,
     "Hatbazar favicon uses the branded shopping bag mark": "M18 25h28" in html and "fill='%234c1d95'" in html,
+    "seller and reseller applications no longer report fake local-only success": "sellerPartnersData.unshift({" not in html and "pendingHatbazarPartnerApplication" in html,
+    "partner application details are persisted through the authenticated v2 RPC": "hatbazar_register_marketplace_profile_v2" in html and "p_shop_name: partnerApplication.shop_name || name" in html and "p_district: partnerApplication.district || ''" in html,
+    "partner form collects account credentials before claiming submission": "window.pendingHatbazarPartnerApplication = {" in html and "authModal" in html and "অ্যাকাউন্ট সম্পন্ন করুন" in html,
+    "partner registration metadata survives email confirmation": "hatbazar_partner_application: window.pendingHatbazarPartnerApplication" in html and "supabaseUser.user_metadata?.hatbazar_partner_application" in html,
+
 }
 
 failed = [name for name, ok in checks.items() if not ok]
