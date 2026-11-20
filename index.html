@@ -2759,6 +2759,26 @@
           console.error('Hatbazar product sync failed:', error?.message || 'Invalid response');
           return false;
         }
+        if (data.length) {
+          const productIds = data.map((row) => row.id);
+          const { data: imageRows, error: imageError } = await supabaseClient
+            .from('product_images')
+            .select('product_id,image_url,sort_order')
+            .in('product_id', productIds)
+            .order('sort_order', { ascending: true });
+          if (!imageError && Array.isArray(imageRows)) {
+            const galleryByProduct = {};
+            for (const imageRow of imageRows) {
+              (galleryByProduct[imageRow.product_id] ||= []).push(imageRow.image_url);
+            }
+            for (const row of data) {
+              row.gallery = galleryByProduct[row.id] || [];
+              if (!row.image_url && row.gallery.length) row.image_url = row.gallery[0];
+            }
+          } else if (imageError) {
+            console.warn('Hatbazar product gallery could not be loaded:', imageError.message);
+          }
+        }
         return applyCloudProductsToCategories(data);
       } catch (err) {
         console.error('Hatbazar product sync failed:', err?.message || err);
@@ -6411,6 +6431,7 @@
             return;
           }
           orderId = orderRecord.id;
+          await pullProductsFromSupabase();
           ordersData.unshift(orderRecord);
 
           lastOrderText =
