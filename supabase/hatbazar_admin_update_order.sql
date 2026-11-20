@@ -11,6 +11,7 @@ SET search_path TO ''
 AS $function$
 DECLARE
   v_status TEXT;
+  v_old_status TEXT;
   v_verified BOOLEAN;
   v_payment_status TEXT;
 BEGIN
@@ -22,6 +23,28 @@ BEGIN
     'pending', 'pending_verification', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'
   ) THEN
     RAISE EXCEPTION 'Invalid order status';
+  END IF;
+
+  SELECT o.order_status INTO v_old_status
+  FROM public.orders o
+  WHERE o.id = p_order_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Order not found';
+  END IF;
+
+  IF v_old_status = 'cancelled' AND p_order_status IS NOT NULL AND p_order_status <> 'cancelled' THEN
+    RAISE EXCEPTION 'A cancelled order cannot be reopened';
+  END IF;
+
+  IF p_order_status = 'cancelled' AND v_old_status NOT IN ('cancelled', 'delivered') THEN
+    UPDATE public.products p
+    SET stock = p.stock + oi.quantity
+    FROM public.order_items oi
+    WHERE oi.order_id = p_order_id AND oi.product_id = p.id;
+  ELSIF p_order_status = 'cancelled' AND v_old_status = 'delivered' THEN
+    RAISE EXCEPTION 'A delivered order cannot be cancelled';
   END IF;
 
   UPDATE public.orders
@@ -37,10 +60,6 @@ BEGIN
   RETURNING order_status, payment_verified, payment_status
   INTO v_status, v_verified, v_payment_status;
 
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Order not found';
-  END IF;
-
   RETURN pg_catalog.jsonb_build_object(
     'success', TRUE,
     'order_status', v_status,
@@ -48,7 +67,7 @@ BEGIN
     'payment_status', v_payment_status
   );
 END;
-$function$;
+
 
 REVOKE ALL ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_order(UUID,TEXT,BOOLEAN) TO authenticated, postgres;
