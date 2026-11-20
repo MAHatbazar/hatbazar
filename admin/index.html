@@ -124,6 +124,10 @@ button:disabled{opacity:.5}
 </div>
 
 <div id="categoryCount" class="category-count">Category লোড হচ্ছে...</div>
+<div class="upload-box">
+ <div class="top"><strong>Facebook Page সংযোগ</strong><button id="facebookConnectBtn" type="button" class="secondary">Facebook Connect</button></div>
+ <p id="facebookConnectionStatus" class="hint">Facebook সংযোগের অবস্থা যাচাই হচ্ছে...</p>
+</div>
 
 <div class="tabs">
 <button class="tab active" id="singleTab" type="button" onclick="showProductMode('single')">Single Product</button>
@@ -160,6 +164,10 @@ button:disabled{opacity:.5}
 <label>
 <input id="is_active" type="checkbox" checked style="width:auto;margin-right:7px">
 Product Active
+</label>
+<label>
+<input id="postToFacebook" type="checkbox" style="width:auto;margin-right:7px">
+Save করার পর Facebook Page-এ পোস্ট করুন (শুধু নতুন Product)
 </label>
 
 <div class="actions">
@@ -213,6 +221,10 @@ Product Active
 <div id="bulkRows"></div>
 </div>
 
+<label>
+<input id="bulkPostToFacebook" type="checkbox" style="width:auto;margin-right:7px">
+Save করার পর নতুন Product-গুলো Facebook Page-এ পোস্ট করুন
+</label>
 <div class="actions" style="margin-top:14px">
 <button id="saveBulkBtn" type="button" onclick="saveBulkProducts()">Save All Products</button>
 <button type="button" class="secondary" onclick="clearBulkRows()">Clear Rows</button>
@@ -312,6 +324,53 @@ function categoryOptions(selected=''){
    return `<option value="${escapeHTML(c.id)}" ${String(c.id)===String(selected)?'selected':''}>${escapeHTML(label)}</option>`;
   }).join('');
 }
+
+
+async function facebookRequest(action,method='GET',body=null){
+ const {data,error}=await db.auth.getSession();
+ if(error||!data.session)throw new Error('Admin login session পাওয়া যায়নি। আবার Login করুন।');
+ const response=await fetch(SUPABASE_URL+'/functions/v1/hatbazar-facebook?action='+encodeURIComponent(action),{
+  method,
+  headers:{'Authorization':'Bearer '+data.session.access_token,'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+  ...(body?{body:JSON.stringify(body)}:{})
+ });
+ const result=await response.json().catch(()=>({error:'Server response পড়া যায়নি।'}));
+ if(!response.ok)throw new Error(result.error||'Facebook request ব্যর্থ হয়েছে।');
+ return result;
+}
+async function refreshFacebookStatus(){
+ const status=$('facebookConnectionStatus');
+ try{
+  const result=await facebookRequest('status');
+  status.textContent=!result.configured
+   ?'Supabase Facebook Secrets কনফিগার করা নেই। Secrets পেজে META_APP_SECRET এবং META_TOKEN_ENCRYPTION_KEY যাচাই করুন।'
+   :result.connected
+    ?'সংযুক্ত: '+(result.page_name||'Facebook Page')
+    :'এখনো Facebook Page সংযুক্ত করা হয়নি।';
+  $('facebookConnectBtn').textContent=result.connected?'Reconnect Facebook':'Facebook Connect';
+ }catch(err){
+  status.textContent='Facebook অবস্থা যাচাই হয়নি: '+err.message;
+ }
+}
+async function connectFacebook(){
+ const button=$('facebookConnectBtn');
+ button.disabled=true;button.textContent='সংযোগ হচ্ছে...';
+ try{
+  const result=await facebookRequest('connect','POST',{});
+  if(!result.url)throw new Error('Facebook Login URL পাওয়া যায়নি।');
+  window.location.href=result.url;
+ }catch(err){
+  $('facebookConnectionStatus').textContent='Facebook সংযোগ শুরু হয়নি: '+err.message;
+  button.disabled=false;button.textContent='Facebook Connect';
+ }
+}
+async function publishProductToFacebook(productId){
+ try{
+  await facebookRequest('publish','POST',{product_id:productId});
+  return {ok:true};
+ }catch(err){return {ok:false,error:err.message};}
+}
+$('facebookConnectBtn').addEventListener('click',connectFacebook);
 
 function showStatus(t,error=false){
  $('status').textContent=t;
@@ -476,6 +535,13 @@ async function verifyAdmin(user){
 
  await loadCategories();
  await loadProducts();
+ await refreshFacebookStatus();
+ const fbResult=new URLSearchParams(location.search).get('facebook');
+ if(fbResult){
+  const messages={connected:'Facebook Page সফলভাবে সংযুক্ত হয়েছে।',cancelled:'Facebook সংযোগ বাতিল করা হয়েছে।',state_error:'নিরাপত্তা যাচাই ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',token_error:'Facebook Token পাওয়া যায়নি।',page_access_error:'এই Facebook Page-এ প্রয়োজনীয় অনুমতি পাওয়া যায়নি।',save_error:'Page সংযোগ সংরক্ষণ করা যায়নি।',server_config_error:'Supabase Secret কনফিগার করা নেই।'};
+  $('facebookConnectionStatus').textContent=messages[fbResult]||'Facebook সংযোগের ফলাফল: '+fbResult;
+  history.replaceState({},document.title,location.pathname);
+ }
  setAdminSection('products');
 
  return true;
@@ -797,7 +863,13 @@ $('productForm').addEventListener('submit',async e=>{
    if(files.length)await saveProductGallery(productId,imageUrls);
   }
 
-  showStatus(wasEditing?'Product Update হয়েছে।':'নতুন Product যোগ হয়েছে।');
+  if(!wasEditing && $('postToFacebook').checked && p.is_active){
+   const fb=await publishProductToFacebook(productId);
+   if(fb.ok)showStatus('নতুন Product যোগ হয়েছে এবং Facebook Page-এ পোস্ট হয়েছে।');
+   else showStatus('Product যোগ হয়েছে, কিন্তু Facebook পোস্ট হয়নি: '+fb.error,true);
+  }else{
+   showStatus(wasEditing?'Product Update হয়েছে।':'নতুন Product যোগ হয়েছে।');
+  }
 
   $('productFormPanel').classList.add('hidden');
   editingProduct=null;
@@ -1226,6 +1298,9 @@ async function saveBulkProducts(){
  btn.disabled=true;
 
  let savedCount=0;
+ let facebookPosted=0;
+ const postBulkToFacebook=$('bulkPostToFacebook').checked;
+ const facebookErrors=[];
 
  try{
   for(let i=0;i<products.length;i++){
@@ -1268,11 +1343,22 @@ async function saveBulkProducts(){
     await saveProductGallery(data.id,imageUrls);
    }
 
+   if(postBulkToFacebook && imageUrls.length){
+    const fb=await publishProductToFacebook(data.id);
+    if(fb.ok)facebookPosted++;
+    else facebookErrors.push('Product '+(i+1)+': '+fb.error);
+   }else if(postBulkToFacebook && !imageUrls.length){
+    facebookErrors.push('Product '+(i+1)+': ছবি নেই, তাই Facebook-এ পোস্ট করা যায়নি।');
+   }
+
    savedCount++;
   }
 
   showStatus(
-   'সফলভাবে '+savedCount+'টি Product এবং '+imageCount+'টি Image যুক্ত হয়েছে।'
+   'সফলভাবে '+savedCount+'টি Product এবং '+imageCount+'টি Image যুক্ত হয়েছে।'+
+   (postBulkToFacebook?' Facebook-এ '+facebookPosted+'টি পোস্ট হয়েছে।':'')+
+   (facebookErrors.length?' Facebook পোস্টের সমস্যা: '+facebookErrors.join(' | '):''),
+   facebookErrors.length>0
   );
 
   clearBulkRows();
