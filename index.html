@@ -585,8 +585,8 @@
                   <div class="relative rounded-2xl overflow-hidden border border-white/25 bg-indigo-950/50 shadow-lg">
                     <div class="relative w-full h-44 sm:h-56 rounded-2xl overflow-hidden bg-slate-900">
                       <img
-                        src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=85"
-                        alt="Real clothing and lifestyle retail store interior"
+                        src="https://wagtpkukzutsxwhutznu.supabase.co/storage/v1/object/public/product-images/1795122102090-dtkh5u481ls.jpeg"
+                        alt="Hatbazar product photography"
                         loading="eager"
                         fetchpriority="high"
                         class="w-full h-full object-cover object-center"
@@ -659,27 +659,7 @@
         <div id="homeTopCategoriesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"></div>
       </section>
 
-      <section aria-labelledby="flashDealsHeading" class="space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-xs">
-          <div class="flex items-center gap-2.5">
-            <span class="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-xs font-extrabold">
-              ⚡ FLASH SALE
-            </span>
-            <h2 id="flashDealsHeading" class="stylish-heading text-base sm:text-xl font-extrabold text-slate-900">
-              Top Selling Products
-            </h2>
-          </div>
-          <button
-            type="button"
-            onclick="navigateTo('shop')"
-            class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition"
-          >
-            আরও দেখুন →
-          </button>
-        </div>
-
-        <div id="flashDealsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
-      </section>
+      
 
       <!-- Premium brand experience sections: added without changing existing products or shopping flow -->
       <section id="homeBrandProof" class="rounded-3xl border border-orange-100 bg-gradient-to-r from-orange-50 via-white to-violet-50 p-5 sm:p-7">
@@ -6621,7 +6601,6 @@
       cart: 'hatbazar_cart_v4',
       sessionUser: 'hatbazar_session_user_v4',
       lang: 'hatbazar_lang_v4',
-      adminPassHash: 'hatbazar_admin_pass_hash_v1',
       orders: 'hatbazar_orders_v1',
       deliveryZone: 'hatbazar_delivery_zone_v1',
       partners: 'hatbazar_seller_partners_v1',
@@ -6629,6 +6608,9 @@
       liveEdits: 'hatbazar_live_edits_v1',
       supabaseCfg: 'hatbazar_supabase_cfg_v1'
     };
+
+    // Remove the retired browser-local admin hash left by older storefront builds.
+    try { localStorage.removeItem('hatbazar_admin_pass_hash_v1'); } catch (_err) {}
 
     const memoryFallbackStorage = {};
     function safeStorageGet(key) {
@@ -6655,7 +6637,6 @@
         safeStorageSet(STORAGE_KEYS.cart, JSON.stringify(cartItems));
         safeStorageSet(STORAGE_KEYS.sessionUser, JSON.stringify(currentSessionUser));
         safeStorageSet(STORAGE_KEYS.lang, currentLang);
-        safeStorageSet(STORAGE_KEYS.adminPassHash, adminPassHash);
         safeStorageSet(STORAGE_KEYS.orders, JSON.stringify(ordersData));
         safeStorageSet(STORAGE_KEYS.deliveryZone, JSON.stringify(deliveryZoneConfig));
         safeStorageSet(STORAGE_KEYS.partners, JSON.stringify(sellerPartnersData));
@@ -6681,11 +6662,6 @@
         const savedLang = safeStorageGet(STORAGE_KEYS.lang);
         if (savedLang === 'en' || savedLang === 'bn') {
           currentLang = savedLang;
-        }
-
-        const savedHash = safeStorageGet(STORAGE_KEYS.adminPassHash);
-        if (savedHash && typeof savedHash === 'string' && savedHash.length === 64) {
-          adminPassHash = savedHash;
         }
 
         const savedUser = safeStorageGet(STORAGE_KEYS.sessionUser);
