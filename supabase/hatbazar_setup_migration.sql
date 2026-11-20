@@ -1,4 +1,81 @@
 -- ==================== supabase/hatbazar_checkout_v2.sql ====================
+-- Central delivery charges: server-side source of truth.
+CREATE TABLE IF NOT EXISTS public.hatbazar_delivery_settings (
+  id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  inside_fee NUMERIC(12,2) NOT NULL DEFAULT 80 CHECK (inside_fee >= 0 AND inside_fee <= 5000),
+  outside_fee NUMERIC(12,2) NOT NULL DEFAULT 130 CHECK (outside_fee >= 0 AND outside_fee <= 5000),
+  inside_eta TEXT NOT NULL DEFAULT '১–৩ কার্যদিবস',
+  outside_eta TEXT NOT NULL DEFAULT '২–৫ কার্যদিবস',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT pg_catalog.now()
+);
+
+INSERT INTO public.hatbazar_delivery_settings (id)
+VALUES (1)
+ON CONFLICT (id) DO NOTHING;
+
+ALTER TABLE public.hatbazar_delivery_settings ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.hatbazar_delivery_settings FROM PUBLIC, anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.hatbazar_get_delivery_settings()
+RETURNS JSONB
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+  SELECT pg_catalog.jsonb_build_object(
+    'inside_fee', s.inside_fee,
+    'outside_fee', s.outside_fee,
+    'inside_eta', s.inside_eta,
+    'outside_eta', s.outside_eta,
+    'updated_at', s.updated_at
+  )
+  FROM public.hatbazar_delivery_settings AS s
+  WHERE s.id = 1;
+$function$;
+
+REVOKE ALL ON FUNCTION public.hatbazar_get_delivery_settings() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.hatbazar_get_delivery_settings() TO anon, authenticated, postgres;
+
+CREATE OR REPLACE FUNCTION public.hatbazar_admin_update_delivery_settings(
+  p_inside_fee NUMERIC,
+  p_outside_fee NUMERIC,
+  p_inside_eta TEXT DEFAULT NULL,
+  p_outside_eta TEXT DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_settings JSONB;
+BEGIN
+  IF auth.uid() IS NULL OR public.is_admin() IS NOT TRUE THEN
+    RAISE EXCEPTION 'Only an authenticated administrator can update delivery settings';
+  END IF;
+  IF p_inside_fee IS NULL OR p_outside_fee IS NULL
+     OR p_inside_fee < 0 OR p_outside_fee < 0
+     OR p_inside_fee > 5000 OR p_outside_fee > 5000 THEN
+    RAISE EXCEPTION 'Invalid delivery fee';
+  END IF;
+
+  UPDATE public.hatbazar_delivery_settings
+  SET inside_fee = p_inside_fee,
+      outside_fee = p_outside_fee,
+      inside_eta = COALESCE(NULLIF(pg_catalog.btrim(p_inside_eta), ''), inside_eta),
+      outside_eta = COALESCE(NULLIF(pg_catalog.btrim(p_outside_eta), ''), outside_eta),
+      updated_at = pg_catalog.now()
+  WHERE id = 1;
+
+  SELECT public.hatbazar_get_delivery_settings() INTO v_settings;
+  RETURN v_settings;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.hatbazar_admin_update_delivery_settings(NUMERIC,NUMERIC,TEXT,TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_admin_update_delivery_settings(NUMERIC,NUMERIC,TEXT,TEXT) TO authenticated, postgres;
+
 -- Hatbazar production checkout RPC v2
 -- Run in Supabase SQL Editor after reviewing the schema.
 -- This function calculates product prices from the database, locks stock rows,
@@ -71,12 +148,18 @@ BEGIN
     RAISE EXCEPTION 'Invalid delivery zone';
   END IF;
 
-  -- Delivery fee is calculated on the server, never trusted from the browser.
-  v_delivery_fee := CASE p_delivery_zone
-    WHEN 'inside' THEN 80
-    WHEN 'outside' THEN 130
-    ELSE NULL
-  END;
+  -- Delivery fee is read from the protected server-side settings row.
+  SELECT CASE p_delivery_zone
+    WHEN 'inside' THEN s.inside_fee
+    WHEN 'outside' THEN s.outside_fee
+  END
+  INTO v_delivery_fee
+  FROM public.hatbazar_delivery_settings AS s
+  WHERE s.id = 1;
+
+  IF v_delivery_fee IS NULL THEN
+    RAISE EXCEPTION 'Delivery settings are unavailable';
+  END IF;
 
   IF EXISTS (
     SELECT 1
@@ -297,3 +380,115 @@ FOR EACH ROW
 EXECUTE FUNCTION public.hatbazar_guard_product_base_price();
 
 REVOKE ALL ON FUNCTION public.hatbazar_guard_product_base_price() FROM PUBLIC, anon, authenticated;
+
+-- ==================== supabase/hatbazar_reseller_margin.sql ====================
+-- Hatbazar reseller margin model: reseller profit is selling_price minus admin-set base_price.
+CREATE TABLE IF NOT EXISTS public.reseller_sales (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reseller_id UUID NOT NULL REFERENCES public.reseller_profiles(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE RESTRICT,
+  order_reference TEXT NOT NULL,
+  base_price NUMERIC(12,2) NOT NULL CHECK (base_price >= 0),
+  selling_price NUMERIC(12,2) NOT NULL CHECK (selling_price >= base_price),
+  quantity INTEGER NOT NULL CHECK (quantity > 0 AND quantity <= 1000),
+  profit_amount NUMERIC(12,2) NOT NULL CHECK (profit_amount >= 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.reseller_sales ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Resellers view own sales" ON public.reseller_sales;
+CREATE POLICY "Resellers view own sales" ON public.reseller_sales
+FOR SELECT TO authenticated
+USING (reseller_id = auth.uid() OR public.is_admin());
+
+REVOKE ALL ON TABLE public.reseller_sales FROM anon, authenticated;
+GRANT SELECT ON TABLE public.reseller_sales TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.hatbazar_reseller_catalog()
+RETURNS TABLE(product_id UUID, product_name TEXT, product_name_bn TEXT, base_price NUMERIC, stock INTEGER)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+BEGIN
+  IF auth.uid() IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.reseller_profiles rp
+    WHERE rp.id = auth.uid() AND lower(rp.status) = 'approved'
+  ) THEN
+    RAISE EXCEPTION 'Only approved resellers can access wholesale prices';
+  END IF;
+
+  RETURN QUERY
+  SELECT p.id, p.name, p.name_bn, p.base_price, p.stock
+  FROM public.products p
+  WHERE p.is_active IS TRUE AND p.base_price IS NOT NULL AND p.stock > 0
+  ORDER BY p.name;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.hatbazar_reseller_record_sale(
+  p_product_id UUID,
+  p_order_reference TEXT,
+  p_selling_price NUMERIC,
+  p_quantity INTEGER
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_base_price NUMERIC(12,2);
+  v_product_name TEXT;
+  v_profit NUMERIC(12,2);
+  v_sale_id UUID;
+BEGIN
+  IF auth.uid() IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.reseller_profiles rp
+    WHERE rp.id = auth.uid() AND lower(rp.status) = 'approved'
+  ) THEN
+    RAISE EXCEPTION 'Only approved resellers can record sales';
+  END IF;
+
+  IF p_product_id IS NULL OR p_selling_price IS NULL OR p_selling_price <= 0
+     OR p_quantity IS NULL OR p_quantity < 1 OR p_quantity > 1000
+     OR NULLIF(btrim(p_order_reference), '') IS NULL THEN
+    RAISE EXCEPTION 'Invalid reseller sale details';
+  END IF;
+
+  SELECT p.base_price, COALESCE(p.name_bn, p.name)
+  INTO v_base_price, v_product_name
+  FROM public.products p
+  WHERE p.id = p_product_id AND p.is_active IS TRUE
+  FOR UPDATE;
+
+  IF NOT FOUND OR v_base_price IS NULL THEN
+    RAISE EXCEPTION 'Product is not available for reseller sales';
+  END IF;
+  IF p_selling_price < v_base_price THEN
+    RAISE EXCEPTION 'Selling price cannot be below the admin base price';
+  END IF;
+
+  v_profit := (p_selling_price - v_base_price) * p_quantity;
+
+  INSERT INTO public.reseller_sales (
+    reseller_id, product_id, order_reference, base_price,
+    selling_price, quantity, profit_amount
+  ) VALUES (
+    auth.uid(), p_product_id, btrim(p_order_reference), v_base_price,
+    p_selling_price, p_quantity, v_profit
+  ) RETURNING id INTO v_sale_id;
+
+  RETURN pg_catalog.jsonb_build_object(
+    'success', TRUE, 'sale_id', v_sale_id, 'product_name', v_product_name,
+    'base_price', v_base_price, 'selling_price', p_selling_price,
+    'quantity', p_quantity, 'profit_amount', v_profit
+  );
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.hatbazar_reseller_catalog() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.hatbazar_reseller_record_sale(UUID,TEXT,NUMERIC,INTEGER) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_catalog() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_record_sale(UUID,TEXT,NUMERIC,INTEGER) TO authenticated;
+
