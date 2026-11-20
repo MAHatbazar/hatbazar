@@ -385,7 +385,7 @@ function formatAIProductDescription(result){
  if(result.cautions_bn?.length)sections.push('সতর্কতা\n'+result.cautions_bn.map(x=>'• '+x).join('\n'));
  const attrs=Object.entries(result.attributes||{}).filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join(' | ');
  if(attrs)sections.push('PRODUCT DETAILS\n'+attrs);
- if(result.sizes?.length)sections.push('প্রযোজ্য Size অপশন (স্টক আপনি নিশ্চিত করবেন): '+result.sizes.join(', '));
+
  return sections.join('\n\n');
 }
 function applyAIProductResult(result,productName=''){
@@ -409,6 +409,7 @@ function applyAIProductResult(result,productName=''){
  }else $('aiFoodDetails').classList.add('hidden');
  if(aiProductMeta.sizes.length)$('aiSizesPanel').innerHTML='<strong>প্রস্তাবিত Size (প্রয়োজনমতো টিক/আনটিক করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>';
  else $('aiSizesPanel').textContent='এই পণ্যের জন্য আলাদা Size প্রযোজ্য নয় বলে AI কোনো Size দেয়নি।';
+ syncSelectedSizesToDescription();
  $('aiStatus').textContent='AI তথ্য তৈরি হয়েছে। দাম, Base Price ও Stock নিজে বসাবেন। প্রস্তাবিত ছবি চাইলে বেছে Gallery-তে যোগ করুন।';
 }
 async function restoreAIImage(path,forBulkRow=null,jobId=null){
@@ -604,7 +605,19 @@ async function generateAIProductDetails(mode='image'){
 }
 
 function selectedAISizes(){
- return [...document.querySelectorAll('[data-ai-size]:checked')].map(x=>x.value);}
+ return [...$('aiSizesPanel').querySelectorAll('[data-ai-size]:checked')].map(x=>x.value);
+}
+function syncSelectedSizesToDescription(){
+ const field=$('description');
+ const base=field.value.replace(/\\n*AVAILABLE SIZES\\n[^\\n]*(?:\\n|$)/g,'').trim();
+ const sizes=selectedAISizes();
+ const updated=base+(sizes.length?(base?'\\n\\n':'')+'AVAILABLE SIZES\\n'+sizes.join(', '):'');
+ field.value=updated;
+ if(!$('aiResultPreview').classList.contains('hidden'))$('aiResultPreview').textContent=updated;
+}
+$('aiSizesPanel').addEventListener('change',e=>{
+ if(e.target.matches('[data-ai-size]'))syncSelectedSizesToDescription();
+});
 async function facebookRequest(action,method='GET',body=null){
  const {data,error}=await db.auth.getSession();
  if(error||!data.session)throw new Error('Admin login session পাওয়া যায়নি। আবার Login করুন।');
