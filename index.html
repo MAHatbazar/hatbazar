@@ -2451,7 +2451,7 @@
         return;
       }
 
-      if (crumbTitle) crumbTitle.textContent = foundProduct.title;
+      if (crumbTitle) crumbTitle.textContent = currentLang === 'en' ? (foundProduct.titleEn || CATEGORY_PRODUCT_ENGLISH[ownerCategory?.id] || foundProduct.title) : foundProduct.title;
       const isOutOfStock = (Number(foundProduct.stock) || 0) <= 0;
       const t = LANG_TEXT_MAP[currentLang];
       const productImages = [...new Set([
@@ -5159,7 +5159,7 @@
                       data-pid="${escapeHtml(item.id)}"
                       class="text-left text-sm sm:text-base font-extrabold text-slate-900 hover:text-violet-700 line-clamp-1 transition"
                     >
-                      ${escapeHtml(currentLang === 'en' ? (item.titleEn || item.title) : item.title)}
+                      ${escapeHtml(getProductDisplayTitle(item, cat))}
                     </button>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${
                       outOfStock ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'
@@ -5655,6 +5655,39 @@
     function getCategoryDescription(cat) {
       if (!cat) return '';
       return currentLang === 'en' ? (cat.descEn || CATEGORY_ENGLISH[cat.id]?.[1] || cat.desc || '') : (cat.desc || '');
+    }
+
+    const CATEGORY_PRODUCT_ENGLISH = {
+      'cat-01': 'Premium Panjabi & Casual Shirt',
+      'cat-02': 'Designer Three-Piece & Saree',
+      'cat-03': 'Comfortable Kids Clothing Set',
+      'cat-04': 'Casual Loafers & Sneakers',
+      'cat-05': 'AMOLED Smartwatch Series',
+      'cat-06': 'Wireless Earbuds & Headphones',
+      'cat-07': 'Modern Wall Art & Lamp',
+      'cat-08': 'Non-Stick Cookware & Dinner Set',
+      'cat-09': 'Hydrating Serum & Moisturizer',
+      'cat-10': 'Herbal Hair Oil & Shampoo',
+      'cat-11': 'Long-Lasting Attar & Perfume',
+      'cat-12': 'Waterproof Laptop Backpack',
+      'cat-13': 'Gold-Plated Pendant & Watch',
+      'cat-14': 'Pro Gym Gloves & Shaker Bottle',
+      'cat-15': 'Premium Notebook & Pen Set',
+      'cat-16': 'Baby Lotion, Wipes & Feeder',
+      'cat-17': 'Fast Charger, Case & Tempered Glass',
+      'cat-18': 'Mini Blender & Portable Fan',
+      'cat-19': 'Luxury Gift Box Collection',
+      'cat-20': 'Travel Pouch & Neck Pillow',
+      'cat-21': 'Digital Thermometer & Massager',
+      'cat-22': 'Pure Honey, Ghee & Organic Tea',
+      'cat-23': 'Festive Ethnic Wear & Shawl',
+      'cat-24': 'Limited-Time Combo Offer'
+    };
+
+    function getProductDisplayTitle(item, cat) {
+      if (!item) return '';
+      if (currentLang !== 'en') return item.title || '';
+      return item.titleEn || (item.id === `${cat?.id}-item-1` ? CATEGORY_PRODUCT_ENGLISH[cat?.id] : '') || item.title || '';
     }
 
     function getRealisticFolderImage(cat) {
