@@ -5285,7 +5285,7 @@
             class="bg-white rounded-2xl border border-violet-100 hover:border-violet-400 p-3 text-left shadow-2xs hover:shadow-md transition group"
           >
             <img
-              src="${escapeHtml(cat.image || getCategoryPhotoFallback(cat.name, cat.id))}"
+              src="${escapeHtml(getRealisticFolderImage(cat))}"
               onerror="this.onerror=null;this.src=getCategoryPhotoFallback('${escapeHtml(cat.name)}','${escapeHtml(cat.id)}');"
               alt="${escapeHtml(getCategoryName(cat))}"
               loading="eager"
@@ -5666,7 +5666,7 @@
       if (titleEl) titleEl.textContent = getCategoryName(cat);
       if (descEl) descEl.textContent = getCategoryDescription(cat);
       if (coverImg) {
-        coverImg.src = cat.image || getCategoryPhotoFallback(cat.name, cat.id);
+        coverImg.src = getRealisticFolderImage(cat);
         coverImg.alt = getCategoryName(cat);
       }
 
@@ -6110,7 +6110,7 @@
 
     function getRealisticFolderImage(cat) {
       // Keep an admin-uploaded category cover first; otherwise use its matching photo.
-      return cat?.image || cat?.image_url || REALISTIC_PHOTO_MAP[cat?.id] || buildRichVisualCard(
+      return (cat?.customCover && cat?.image) || cat?.image_url || REALISTIC_PHOTO_MAP[cat?.id] || buildRichVisualCard(
         cat?.name || 'Hatbazar',
         cat?.emoji || '🛍️',
         cat?.c1 || '#4c1d95',
