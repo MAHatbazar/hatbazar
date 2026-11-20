@@ -2842,18 +2842,24 @@
       if (!rpcItems.length || rpcItems.some((item) => !isUuid(item.product_id))) {
         return { success: false, error: 'Cart contains a product that is not synced to the cloud yet.' };
       }
-      const { data, error } = await supabaseClient.rpc('hatbazar_checkout_v2', {
-        p_customer_name: orderRecord.customerName,
-        p_phone: orderRecord.customerPhone,
-        p_address: orderRecord.address,
-        p_payment_method: paymentMap[orderRecord.paymentMethod] || '',
-        p_items: rpcItems,
-        p_district: orderRecord.district,
-        p_upazila: orderRecord.upazila,
-        p_delivery_zone: orderRecord.deliveryZone,
-        p_delivery_fee: Number(orderRecord.deliveryFee) || 0,
-        p_payment_trx_id: orderRecord.paymentTrxId || null
-      });
+      let data;
+      let error;
+      try {
+        ({ data, error } = await supabaseClient.rpc('hatbazar_checkout_v2', {
+          p_customer_name: orderRecord.customerName,
+          p_phone: orderRecord.customerPhone,
+          p_address: orderRecord.address,
+          p_payment_method: paymentMap[orderRecord.paymentMethod] || '',
+          p_items: rpcItems,
+          p_district: orderRecord.district,
+          p_upazila: orderRecord.upazila,
+          p_delivery_zone: orderRecord.deliveryZone,
+          p_delivery_fee: Number(orderRecord.deliveryFee) || 0,
+          p_payment_trx_id: orderRecord.paymentTrxId || null
+        }));
+      } catch (rpcError) {
+        return { success: false, error: rpcError?.message || 'Network error while saving the order.' };
+      }
       if (error || !data?.success) {
         console.error('Hatbazar checkout failed:', error?.message || data?.message || 'Unknown error');
         return { success: false, error: error?.message || data?.message || 'Order could not be saved.' };
