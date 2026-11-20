@@ -609,9 +609,9 @@ function selectedAISizes(){
 }
 function syncSelectedSizesToDescription(){
  const field=$('description');
- const base=field.value.replace(/\\n*AVAILABLE SIZES\\n[^\\n]*(?:\\n|$)/g,'').trim();
+ const base=field.value.replace(/\n*AVAILABLE SIZES\n[^\n]*(?:\n|$)/g,'').trim();
  const sizes=selectedAISizes();
- const updated=base+(sizes.length?(base?'\\n\\n':'')+'AVAILABLE SIZES\\n'+sizes.join(', '):'');
+ const updated=base+(sizes.length?(base?'\n\n':'')+'AVAILABLE SIZES\n'+sizes.join(', '):'');
  field.value=updated;
  if(!$('aiResultPreview').classList.contains('hidden'))$('aiResultPreview').textContent=updated;
 }
