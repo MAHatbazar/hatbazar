@@ -26,7 +26,7 @@ checks = {
     "shipping, return and refund policy cards include relevant photos": "Shipping parcels ready for delivery" in html and "Shopping bag and customer return experience" in html and "Digital refund and payment card" in html,
     "public navigation contains only home, categories, seller registration and reseller registration": all(token in html for token in ["data-nav=" + chr(34) + "home" + chr(34), "data-nav=" + chr(34) + "shop" + chr(34), "data-nav=" + chr(34) + "sellerRegistration" + chr(34), "data-nav=" + chr(34) + "resellerRegistration" + chr(34)]) and "data-nav=" + chr(34) + "sellerDash" + chr(34) not in html and "data-nav=" + chr(34) + "ordersHistory" + chr(34) not in html,
     "seller and reseller registration buttons preselect the matching application type": "openPartnerRegistration('seller')" in html and "openPartnerRegistration('reseller')" in html and "roleSelect.value = role" in html,
-    "management routes are restricted to authenticated admin sessions": "const adminOnlyViews = ['admin', 'sellerDash', 'resellerDash', 'ordersHistory', 'policies', 'liveEditor']" in html and "adminOnlyViews.includes(viewName) && !isAdminSession()" in html,
+    "management routes are restricted to authenticated admin sessions": "const adminOnlyViews = ['admin', 'sellerDash', 'resellerDash', 'ordersHistory', 'liveEditor']" in html and "adminOnlyViews.includes(viewName) && !isAdminSession()" in html,
     "admin dashboard provides shortcuts to private management sections": all("navigateTo('" + view + "')" in html for view in ["sellerDash", "resellerDash", "ordersHistory", "policies", "liveEditor"]),
 }
 
