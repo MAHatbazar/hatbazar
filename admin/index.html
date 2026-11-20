@@ -376,7 +376,7 @@ async function generateAIProductDetails(mode='image'){
  $('aiStatus').textContent=mode==='name'?'পণ্যের নাম বিশ্লেষণ করে বিবরণ, পুষ্টিগুণ ও উপকারিতা তৈরি হচ্ছে...':'ছবি বিশ্লেষণ করে বাংলা ও ইংরেজি তথ্য তৈরি হচ্ছে...';
  $('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';$('aiFoodDetails').classList.add('hidden');$('aiImageSuggestions').classList.add('hidden');
  try{
-  const payload={product_name:productName,categories:categories.map(c=>({name:c.name,name_bn:c.name_bn}))};
+  const payload={product_name:productName,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn}))};
   if(mode==='image'){
    const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('ছবি পড়া যায়নি।'));reader.readAsDataURL(file);});
    payload.mime_type=file.type||'image/jpeg';payload.image_base64=String(dataUrl).split(',')[1]||'';
@@ -396,6 +396,10 @@ async function generateAIProductDetails(mode='image'){
   if(enFeatures)sections.push('KEY FEATURES\n'+enFeatures);
   if(aiProductMeta.description_bn)sections.push('বিবরণ (বাংলা)\n'+aiProductMeta.description_bn);
   if(bnFeatures)sections.push('বিশেষ বৈশিষ্ট্য\n'+bnFeatures);
+  if(result.nutrition_en?.length)sections.push('NUTRITION INFORMATION\n'+result.nutrition_en.map(x=>'• '+x).join('\n'));
+  if(result.benefits_en?.length)sections.push('POTENTIAL BENEFITS\n'+result.benefits_en.map(x=>'• '+x).join('\n'));
+  if(result.how_to_eat_en?.length)sections.push('HOW TO USE / EAT\n'+result.how_to_eat_en.map(x=>'• '+x).join('\n'));
+  if(result.cautions_en?.length)sections.push('CAUTIONS\n'+result.cautions_en.map(x=>'• '+x).join('\n'));
   if(result.nutrition_bn?.length)sections.push('পুষ্টিগুণ সম্পর্কে\n'+result.nutrition_bn.map(x=>'• '+x).join('\n'));
   if(result.benefits_bn?.length)sections.push('সম্ভাব্য উপকারিতা\n'+result.benefits_bn.map(x=>'• '+x).join('\n'));
   if(result.how_to_eat_bn?.length)sections.push('কীভাবে খাবেন / ব্যবহার করবেন\n'+result.how_to_eat_bn.map(x=>'• '+x).join('\n'));
