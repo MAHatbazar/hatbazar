@@ -1131,7 +1131,7 @@ function readLocalSamsungProducts(){
    (Array.isArray(cat.items)?cat.items:[]).forEach(item=>{
     const label=[item.title,item.titleEn,item.name,item.name_bn,item.desc].filter(Boolean).join(' ');
     if(/samsung/i.test(label)&&!String(item.id||'').endsWith('-item-1')){
-     matches.push({sourceCategory:cat,item});
+     matches.push({sourceCategory:cat,item,originalId:item.id,originalTitle:item.title,originalTitleEn:item.titleEn});
     }
    });
   });
@@ -1255,11 +1255,18 @@ async function importLocalSamsungProducts(){
  }
  try{
   const localCategories=JSON.parse(localStorage.getItem('hatbazar_categories_v4')||'[]');
-  const idMap=new Map(matches.map(entry=>[entry.item,entry.item.id]));
-  localCategories.forEach(cat=>(cat.items||[]).forEach(item=>{
-   const found=matches.find(entry=>entry.item.title===item.title&&entry.item.titleEn===item.titleEn&&entry.item.id===item.id);
-   if(found)item.id=found.item.id;
-  }));
+  matches.forEach(entry=>{
+   const localCat=localCategories.find(cat=>cat.id===entry.sourceCategory.id);
+   const localItem=(localCat?.items||[]).find(item=>
+    (entry.originalId&&String(item.id)===String(entry.originalId))||
+    (item.title===entry.originalTitle&&item.titleEn===entry.originalTitleEn)
+   );
+   if(localItem){
+    localItem.id=entry.item.id;
+    localItem.image=entry.item.image;
+    localItem.gallery=entry.item.gallery;
+   }
+  });
   localStorage.setItem('hatbazar_categories_v4',JSON.stringify(localCategories));
  }catch(_){}
  output.innerHTML='<strong>Sync সম্পন্ন। সফল: '+saved+' · ব্যর্থ: '+failed+'</strong><br>'+details.map(escapeHTML).join('<br>')+
