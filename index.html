@@ -6683,18 +6683,16 @@
     }
 
     function getRealisticFolderImage(cat) {
-      // Prefer a shared Supabase cover, then a real uploaded cover.
-      // Ignore locally generated SVG/emoji cards so every device gets the
-      // same photographic default when no shared/custom photo is available.
+      // Prefer shared Supabase covers, then genuine uploaded photos.
+      // Ignore generated SVG/emoji cards saved in an individual browser.
       const sharedCover = typeof cat?.image_url === 'string' ? cat.image_url.trim() : '';
-      if (sharedCover && !/^data:image\\/svg\\+xml/i.test(sharedCover)) return sharedCover;
+      if (sharedCover && !sharedCover.toLowerCase().startsWith('data:image/svg+xml')) return sharedCover;
 
       const uploadedCover = cat?.customCover && typeof cat?.image === 'string' ? cat.image.trim() : '';
-      if (
-        uploadedCover &&
-        !/^data:image\\/svg\\+xml/i.test(uploadedCover) &&
-        (/^https?:\\/\\//i.test(uploadedCover) || /^data:image\\/(?:png|jpe?g|webp|gif);/i.test(uploadedCover))
-      ) return uploadedCover;
+      const isUploadedRaster = /^https?:/.test(uploadedCover) ||
+        ['data:image/png;', 'data:image/jpeg;', 'data:image/jpg;', 'data:image/webp;', 'data:image/gif;']
+          .some((prefix) => uploadedCover.toLowerCase().startsWith(prefix));
+      if (uploadedCover && isUploadedRaster) return uploadedCover;
 
       return REALISTIC_PHOTO_MAP[cat?.id] || buildRichVisualCard(
         cat?.name || 'Hatbazar',
