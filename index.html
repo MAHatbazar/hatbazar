@@ -4209,6 +4209,7 @@
                 <span class="rounded-full bg-white border border-sky-200 px-3 py-1 text-xs font-bold">${escapeHtml(statusMap[data.order_status] || data.order_status || '')}</span>
               </div>
               <div class="text-sm text-slate-700">${currentLang === 'en' ? 'Payment' : 'পেমেন্ট'}: <strong>${escapeHtml(paymentLabel)}</strong></div>
+              ${['cancelled','returned'].includes(data.order_status) && data.cancellation_reason ? `<div class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-800">${currentLang === 'en' ? 'Reason for cancellation/return' : 'বাতিল / রিটার্নের কারণ'}: ${escapeHtml(data.cancellation_reason)}</div>` : ''}
               <div class="text-sm text-slate-700">${currentLang === 'en' ? 'Items' : 'পণ্য'}:<ul class="list-disc pl-5 mt-1">${itemsHtml}</ul></div>
               <div class="text-base font-black text-violet-900">${currentLang === 'en' ? 'Total' : 'সর্বমোট'}: ৳${formatNum(data.total_amount || 0)}</div>
               <div class="text-xs text-slate-500">${data.created_at ? new Date(data.created_at).toLocaleString(currentLang === 'en' ? 'en-GB' : 'bn-BD') : ''}</div>
