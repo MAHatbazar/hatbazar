@@ -2273,6 +2273,7 @@ async function importSingleProductLink(){
   if(!['http:','https:'].includes(parsed.protocol)||!parsed.hostname)throw new Error('সঠিক Product Link পাওয়া যায়নি।');
   url=parsed.href;
   input.value=url;
+  $('bbazarSourceUrl').value=url;
  }catch(err){status.textContent='লেখার মধ্যে পাওয়া Link-টি সঠিক নয়। Product-এর Share/Copy Link-সহ আবার পেস্ট করুন।';return;}
  button.disabled=true;status.textContent='Product-এর তথ্য ও ছবি আনা হচ্ছে...';
  try{
