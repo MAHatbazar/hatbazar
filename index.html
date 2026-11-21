@@ -3053,17 +3053,35 @@
             isAdminSession() &&
             cat.customCover &&
             typeof cat.image === 'string' &&
-            /^https?:\/\//i.test(cat.image)
+            (/^https?:\/\//i.test(cat.image) || /^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(cat.image))
           ) {
-            // Migrate an existing phone/browser-only cover to the shared database once.
-            const { error: migrateError } = await supabaseClient
-              .from('categories')
-              .update({ image_url: cat.image })
-              .eq('id', row.id);
-            if (migrateError) {
-              console.warn('Hatbazar category cover migration failed:', migrateError.message);
-            } else {
+            // Migrate phone/browser-only covers, including base64 data URLs, into shared Storage.
+            try {
+              let sharedImageUrl = cat.image;
+              if (/^data:image\//i.test(sharedImageUrl)) {
+                const response = await fetch(sharedImageUrl);
+                if (!response.ok) throw new Error('Could not read the saved category image');
+                const blob = await response.blob();
+                const extension = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+                const imageFile = new File([blob], `category-${cat.id}.${extension}`, { type: blob.type || 'image/jpeg' });
+                sharedImageUrl = await uploadProductImageToSupabase(imageFile, '');
+                if (!/^https?:\/\//i.test(sharedImageUrl || '')) {
+                  throw new Error('Category image was not uploaded to shared Storage');
+                }
+              }
+              const { data: savedCategory, error: migrateError } = await supabaseClient
+                .from('categories')
+                .update({ image_url: sharedImageUrl })
+                .eq('id', row.id)
+                .select('id')
+                .maybeSingle();
+              if (migrateError) throw migrateError;
+              if (!savedCategory?.id) throw new Error('Category image URL was not saved');
+              cat.image = sharedImageUrl;
+              cat.customCover = true;
               changed = true;
+            } catch (migrateError) {
+              console.warn('Hatbazar category cover migration failed:', cat.name, migrateError?.message || migrateError);
             }
           }
         }
