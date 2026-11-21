@@ -1308,7 +1308,6 @@ async function verifyAdmin(user){
  }
  currentAdminRole=data.role;
  document.body.classList.toggle('sub-admin',currentAdminRole==='sub_admin');
- document.querySelectorAll('[data-super-admin-only]').forEach(el=>el.classList.toggle('hidden',currentAdminRole!=='admin'));
  $('adminEmail').textContent=(user.email||'')+(currentAdminRole==='sub_admin'?' · Sub Admin':' · Super Admin');
  $('loginPanel').classList.add('hidden');
  $('dashboard').classList.remove('hidden');
