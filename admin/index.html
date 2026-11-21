@@ -322,6 +322,11 @@ Save করার পর প্রতিটি Product-এর Facebook Marketpla
 
 <div id="status"></div>
 <div id="marketplaceAssistPanel" class="upload-box hidden" style="margin:14px 0"></div>
+<div class="upload-box" id="stockInventoryPanel">
+ <div class="top"><div><strong>📊 Stock Inventory / স্টক লিস্ট</strong><p class="hint">সব পণ্যের বর্তমান Stock Quantity এখানে দেখা যাবে।</p></div><button type="button" class="secondary" onclick="loadProducts()">Refresh Stock</button></div>
+ <div id="stockInventorySummary" class="category-count">Stock লোড হচ্ছে...</div>
+ <div class="table-scroll"><div id="stockInventoryList">Stock লোড হচ্ছে...</div></div>
+</div>
 <div id="productList">Products লোড হচ্ছে...</div>
 
 </div>
@@ -1311,6 +1316,8 @@ async function loadCategories(){
 
 async function loadProducts(){
  $('productList').textContent='Products লোড হচ্ছে...';
+ $('stockInventorySummary').textContent='Stock লোড হচ্ছে...';
+ $('stockInventoryList').textContent='Stock লোড হচ্ছে...';
 
  const {data,error}=await db.from('products')
   .select('id,name,name_bn,description,price,base_price,stock,image_url,is_active,category_id,created_at')
@@ -1318,28 +1325,42 @@ async function loadProducts(){
 
  if(error){
   $('productList').textContent='Products লোড হয়নি: '+error.message;
+  $('stockInventorySummary').textContent='Stock লোড হয়নি।';
+  $('stockInventoryList').textContent=error.message;
   return;
  }
 
  if(!data||!data.length){
   $('productList').textContent='এখনো কোনো Product যোগ করা হয়নি।';
+  $('stockInventorySummary').textContent='কোনো Product নেই।';
+  $('stockInventoryList').textContent='কোনো Stock তথ্য নেই।';
   return;
  }
 
+ const totalStock=data.reduce((sum,p)=>sum+(Number(p.stock)||0),0);
+ const lowStock=data.filter(p=>(Number(p.stock)||0)<=5).length;
+ $('stockInventorySummary').textContent='মোট '+data.length+'টি Product · মোট Stock '+totalStock+' ইউনিট · Low/Out of Stock '+lowStock+'টি';
+ $('stockInventoryList').innerHTML=`<table style="width:100%;border-collapse:collapse;min-width:560px;font-size:13px">
+  <thead><tr style="text-align:left;background:#f3f6f5"><th style="padding:10px">Product</th><th style="padding:10px">Category</th><th style="padding:10px">Selling Price</th><th style="padding:10px">Stock</th><th style="padding:10px">Status</th></tr></thead>
+  <tbody>${data.map(p=>{
+   const c=categories.find(x=>x.id===p.category_id);
+   const qty=Number(p.stock)||0;
+   const stockLabel=qty===0?'Out of Stock':qty<=5?'Low Stock':'In Stock';
+   return `<tr style="border-top:1px solid #e8eeeb"><td style="padding:10px">${escapeHTML(p.name_bn||p.name)}<br><span class="hint">${escapeHTML(p.name)}</span></td><td style="padding:10px">${escapeHTML(c?.name_bn||c?.name||'No category')}</td><td style="padding:10px">৳${Number(p.price).toLocaleString('en-US')}</td><td style="padding:10px;font-weight:bold">${qty}</td><td style="padding:10px"><span class="badge ${qty<=5?'off':''}">${stockLabel}</span></td></tr>`;
+  }).join('')}</tbody></table>`;
+
  $('productList').innerHTML=data.map(p=>{
   const c=categories.find(x=>x.id===p.category_id);
-
   const im=p.image_url
    ?`<img src="${escapeHTML(p.image_url)}" alt="Product">`
    :'<img src="https://placehold.co/100x100?text=No+Image" alt="No image">';
-
   return `<div class="product">
    ${im}
    <div class="product-info">
     <strong>${escapeHTML(p.name_bn||p.name)}</strong>
     <small>
      ${escapeHTML(p.name)}<br>
-     ৳${Number(p.price).toLocaleString('en-US')} | Stock: ${p.stock}<br>
+     ৳${Number(p.price).toLocaleString('en-US')} | Stock: ${Number(p.stock)||0}<br>
      ${escapeHTML(c?.name_bn||c?.name||'No category')}
     </small>
     <span class="badge ${p.is_active?'':'off'}">${p.is_active?'Active':'Inactive'}</span>
