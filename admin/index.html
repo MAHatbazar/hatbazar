@@ -129,9 +129,19 @@ button:disabled{opacity:.5}
 
 <div id="categoryCount" class="category-count">Category লোড হচ্ছে...</div>
 <div class="upload-box">
- <div class="top"><strong>Facebook Page সংযোগ</strong><button id="facebookConnectBtn" type="button" class="secondary">Facebook Connect</button></div>
+ <div class="top"><strong>📘 Facebook Page সংযোগ</strong><button id="facebookConnectBtn" type="button" class="secondary">Facebook Page Connect</button></div>
  <p id="facebookConnectionStatus" class="hint">Facebook Page সংযোগের অবস্থা যাচাই হচ্ছে...</p>
-<p class="hint">Marketplace Listing আলাদাভাবে প্রস্তুত হবে। ব্যক্তিগত Marketplace-এ চূড়ান্ত Publish আপনাকে Facebook-এ গিয়ে করতে হবে।</p>
+ <p class="hint">এটি শুধু Facebook Page-এ পোস্ট করার সংযোগ। Marketplace প্রোফাইলের সংযোগ আলাদা।</p>
+</div>
+<div class="upload-box">
+ <div class="top"><strong>🛍️ Facebook Marketplace</strong><span class="badge">আলাদা সুবিধা</span></div>
+ <p class="hint">নিচের বাটনে Facebook Marketplace খুলবে। Facebook-এ যে অ্যাকাউন্ট/প্রোফাইলে লগইন করা আছে, সেটিই সেখানে ব্যবহার হবে। Listing তৈরির সময় Facebook যে Seller Profile দেখাবে, সেখান থেকে নির্বাচন করুন।</p>
+ <div class="actions">
+  <button id="marketplaceOpenBtn" type="button">Marketplace খুলুন</button>
+  <button id="marketplaceSellerBtn" type="button" class="secondary">আমার Selling Listings</button>
+  <button id="marketplaceCreateBtn" type="button" class="secondary">নতুন Listing তৈরি করুন</button>
+ </div>
+ <p class="hint">গুরুত্বপূর্ণ: ব্যক্তিগত Marketplace প্রোফাইলের পরিচয় বা পোস্ট করার অনুমতি Hatbazar-এ OAuth দিয়ে সংরক্ষিত হচ্ছে না। এই বাটনগুলো Facebook খুলে দেয়; চূড়ান্ত Seller Profile নির্বাচন ও Publish Facebook-এর ভেতরেই হবে।</p>
 </div>
 
 <div class="tabs">
@@ -772,6 +782,13 @@ async function prepareMarketplaceListing(productId){
  if(!popup)showStatus('Popup বন্ধ থাকলে Facebook Marketplace লিংকে চাপুন: https://www.facebook.com/marketplace/create/item/',true);
 }
 $('facebookConnectBtn').addEventListener('click',connectFacebook);
+function openFacebookMarketplace(path){
+ const popup=window.open('https://www.facebook.com'+path,'_blank','noopener');
+ if(!popup)showStatus('নতুন Tab খোলেনি। এই লিংকটি Safari-তে খুলুন: https://www.facebook.com'+path,true);
+}
+$('marketplaceOpenBtn').addEventListener('click',()=>openFacebookMarketplace('/marketplace/'));
+$('marketplaceSellerBtn').addEventListener('click',()=>openFacebookMarketplace('/marketplace/you/selling'));
+$('marketplaceCreateBtn').addEventListener('click',()=>openFacebookMarketplace('/marketplace/create/item/'));
 
 function showStatus(t,error=false){
  $('status').textContent=t;
