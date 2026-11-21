@@ -771,7 +771,7 @@ async function renderMarketplaceAssist(productIds){
 async function prepareMarketplaceListing(productId){
  const textArea=$('marketText_'+productId);
  if(!textArea)return;
- const popup=window.open('https://www.facebook.com/marketplace/create/item/','_blank');
+ const popup=window.open('https://www.facebook.com/marketplace/create/','_blank');
  try{
   textArea.focus();textArea.select();
   await navigator.clipboard.writeText(textArea.value);
@@ -779,7 +779,7 @@ async function prepareMarketplaceListing(productId){
  }catch(err){
   showStatus('Marketplace খোলা হয়েছে। নিচের Details লেখা Select করে Copy করুন, তারপর Facebook-এ Paste করুন।',true);
  }
- if(!popup)showStatus('Popup বন্ধ থাকলে Facebook Marketplace লিংকে চাপুন: https://www.facebook.com/marketplace/create/item/',true);
+ if(!popup)showStatus('Popup বন্ধ থাকলে Facebook Marketplace লিংকে চাপুন: https://www.facebook.com/marketplace/create/',true);
 }
 $('facebookConnectBtn').addEventListener('click',connectFacebook);
 function openFacebookMarketplace(path){
@@ -788,7 +788,7 @@ function openFacebookMarketplace(path){
 }
 $('marketplaceOpenBtn').addEventListener('click',()=>openFacebookMarketplace('/marketplace/'));
 $('marketplaceSellerBtn').addEventListener('click',()=>openFacebookMarketplace('/marketplace/you/selling'));
-$('marketplaceCreateBtn').addEventListener('click',()=>openFacebookMarketplace('/marketplace/create/item/'));
+$('marketplaceCreateBtn').addEventListener('click',()=>openFacebookMarketplace('/marketplace/create/'));
 
 function showStatus(t,error=false){
  $('status').textContent=t;
