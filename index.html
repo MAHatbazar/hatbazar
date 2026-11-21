@@ -659,7 +659,17 @@
         <div id="homeTopCategoriesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"></div>
       </section>
 
-      
+      <section id="homeNewArrivals" class="space-y-4">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900" data-bn="🆕 নতুন পণ্য" data-en="🆕 New Arrivals">🆕 নতুন পণ্য</h2>
+            <p class="text-xs sm:text-sm text-slate-500" data-bn="সর্বশেষ যুক্ত হওয়া পণ্যগুলো এখানে দেখুন" data-en="Explore the latest products added to Hatbazar">সর্বশেষ যুক্ত হওয়া পণ্যগুলো এখানে দেখুন</p>
+          </div>
+          <button type="button" onclick="navigateTo('shop')" class="shrink-0 rounded-xl bg-orange-50 px-3 py-2 text-xs font-bold text-orange-700 border border-orange-100 hover:bg-orange-100" data-bn="সব পণ্য →" data-en="All Products →">সব পণ্য →</button>
+        </div>
+        <div id="homeNewArrivalsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
+        <p id="homeNewArrivalsEmpty" class="hidden rounded-2xl border border-dashed border-orange-200 bg-white p-6 text-center text-sm text-slate-500" data-bn="নতুন পণ্য যুক্ত হলে এখানে স্বয়ংক্রিয়ভাবে দেখা যাবে।" data-en="Newly added products will appear here automatically.">নতুন পণ্য যুক্ত হলে এখানে স্বয়ংক্রিয়ভাবে দেখা যাবে।</p>
+      </section>
 
       <!-- Premium brand experience sections: added without changing existing products or shopping flow -->
       <section id="homeBrandProof" class="rounded-3xl border border-orange-100 bg-gradient-to-r from-orange-50 via-white to-violet-50 p-5 sm:p-7">
@@ -5524,6 +5534,49 @@
         `
           )
           .join('');
+      }
+
+      const newArrivalsGrid = document.getElementById('homeNewArrivalsGrid');
+      const newArrivalsEmpty = document.getElementById('homeNewArrivalsEmpty');
+      if (newArrivalsGrid) {
+        const latestProducts = [];
+        const seenProductIds = new Set();
+        for (const cat of categoriesData) {
+          for (const item of (Array.isArray(cat.items) ? cat.items : [])) {
+            if (!item?.id || seenProductIds.has(String(item.id))) continue;
+            seenProductIds.add(String(item.id));
+            latestProducts.push({ item, cat });
+          }
+        }
+        latestProducts.sort((a, b) => {
+          const aTime = Date.parse(a.item.createdAt || a.item.created_at || '') || 0;
+          const bTime = Date.parse(b.item.createdAt || b.item.created_at || '') || 0;
+          return bTime - aTime;
+        });
+        const visibleProducts = latestProducts.slice(0, 8);
+        const t = LANG_TEXT_MAP[currentLang];
+        newArrivalsGrid.innerHTML = visibleProducts.map(({ item, cat }) => {
+          const title = getProductDisplayTitle(item, cat) || item.titleEn || item.title || '';
+          const image = item.image || item.image_url || '';
+          const price = Number(item.finalPrice ?? item.price) || 0;
+          return `
+            <article class="min-w-0 overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+              <button type="button" data-act="pdp" data-pid="${escapeHtml(item.id)}" class="block w-full text-left">
+                <img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy" class="h-36 sm:h-48 w-full bg-white object-contain p-2" onerror="this.onerror=null;this.src=makeSvgVisual('${escapeHtml(title)}','${escapeHtml(cat.emoji || '🛍️')}','${escapeHtml(cat.c1 || '#4c1d95')}','${escapeHtml(cat.c2 || '#831843')}','${escapeHtml(cat.accent || '#fde047')}','${escapeHtml(cat.id)}');" />
+                <div class="px-3 pt-2">
+                  <span class="text-[10px] font-bold text-orange-700">${escapeHtml(getCategoryName(cat))}</span>
+                  <h3 class="mt-1 min-h-10 text-xs sm:text-sm font-extrabold leading-5 text-slate-900 line-clamp-2">${escapeHtml(title)}</h3>
+                  <p class="mt-2 text-base font-black text-orange-700">৳${formatNum(price)}</p>
+                </div>
+              </button>
+              <div class="grid grid-cols-2 gap-2 p-3 pt-2">
+                <button type="button" data-act="add" data-pid="${escapeHtml(item.id)}" class="rounded-lg bg-orange-50 px-2 py-2 text-[10px] sm:text-xs font-extrabold text-orange-800">${t.addToCartLabel}</button>
+                <button type="button" data-act="order" data-pid="${escapeHtml(item.id)}" class="rounded-lg bg-orange-500 px-2 py-2 text-[10px] sm:text-xs font-extrabold text-white">${t.orderNowLabel}</button>
+              </div>
+            </article>
+          `;
+        }).join('');
+        if (newArrivalsEmpty) newArrivalsEmpty.classList.toggle('hidden', visibleProducts.length > 0);
       }
 
       const flashContainer = document.getElementById('flashDealsContainer');
