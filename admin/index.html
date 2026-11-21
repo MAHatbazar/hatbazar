@@ -1139,12 +1139,9 @@ async function prepareBBazarOrder(orderId){
   if(orderError)throw orderError;if(itemError)throw itemError;if(!items?.length)throw new Error('এই অর্ডারে পণ্য পাওয়া যায়নি।');
   const ids=[...new Set(items.map(x=>x.product_id).filter(Boolean))];
   if(ids.length!==new Set(items.map(x=>x.product_id)).size)throw new Error('কিছু অর্ডার পণ্যের Product ID নেই।');
-  const [{data:products,error:productError},{data:sources,error:sourceError}]=await Promise.all([
-   db.from('products').select('id,base_price').in('id',ids),
-   db.from('product_supplier_sources').select('product_id,source_url').eq('supplier_key','bbazar').in('product_id',ids)
-  ]);
-  if(productError)throw productError;if(sourceError)throw sourceError;
-  const pm=Object.fromEntries((products||[]).map(x=>[x.id,x]));const sm=Object.fromEntries((sources||[]).map(x=>[x.product_id,x]));
+  const {data:sources,error:sourceError}=await db.from('product_supplier_sources').select('product_id,source_url').eq('supplier_key','bbazar').in('product_id',ids);
+  if(sourceError)throw sourceError;
+  const sm=Object.fromEntries((sources||[]).map(x=>[x.product_id,x]));
   if(items.some(x=>!sm[x.product_id]?.source_url))throw new Error('এক বা একাধিক পণ্যের BBazar Link নেই। Product Edit করে Supplier URL সংরক্ষণ করুন।');
   const user=await db.auth.getUser();
   const {error:saveError}=await db.from('supplier_order_submissions').upsert({order_id:order.id,supplier_key:'bbazar',status:'ready_to_submit',customer_collection_amount:Number(order.total_amount||0),approved_by:user.data.user?.id||null,approved_at:new Date().toISOString(),updated_at:new Date().toISOString(),admin_note:'অর্ডারের তথ্য কপি করা হয়েছে। BBazar Reseller App-এ ম্যানুয়ালি অর্ডার সাবমিট করতে হবে।'},{onConflict:'order_id,supplier_key'});
