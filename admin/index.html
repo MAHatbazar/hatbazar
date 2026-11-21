@@ -576,6 +576,11 @@ async function applyAIJob(job){
   const expected=String(job.payload?.source_name||'').trim();
   const current=String(row.querySelector('[data-field="name"]')?.value||'').trim();
   if(expected&&normalizeCategory(expected)!==normalizeCategory(current))return;
+  const expectedDescription=String(job.payload?.source_description||'').trim();
+  const currentDescription=String(row.querySelector('[data-field="description"]')?.value||'').trim();
+  if(expectedDescription&&normalizeCategory(expectedDescription)!==normalizeCategory(currentDescription))return;
+  const bnInput=row.querySelector('[data-field="name_bn"]');
+  if(bnInput&&result.name_bn&&!bnInput.value.trim())bnInput.value=String(result.name_bn).trim();
   if(result.category_id){
    const select=row.querySelector('[data-field="category_id"]');
    if(select){select.value=result.category_id;select.title='AI নির্বাচন করেছে: '+(result.category_name||'');}
@@ -698,53 +703,42 @@ let autoCategoryLastQueuedName='';
 let autoCategoryJobBusy=false;
 async function queueAutomaticCategory(){
  const productName=String($('name').value||'').trim()||String($('name_bn').value||'').trim();
+ const productDescription=String($('description').value||'').trim().slice(0,5000);
  if(productName.length<3||!categories.length)return;
- if(productName===autoCategoryLastQueuedName||autoCategoryJobBusy)return;
- autoCategoryJobBusy=true;
- autoCategoryLastQueuedName=productName;
- $('autoCategoryStatus').textContent='AI নাম, ব্র্যান্ড ও পণ্যের ধরন বিশ্লেষণ করছে...';
+ const contextKey=productName+' | '+productDescription;
+ if(contextKey===autoCategoryLastQueuedName||autoCategoryJobBusy)return;
+ autoCategoryJobBusy=true;autoCategoryLastQueuedName=contextKey;
+ $('autoCategoryStatus').textContent='AI নাম ও Description বিশ্লেষণ করছে...';
  try{
-  const {data,error}=await db.auth.getSession();
-  const user=data?.session?.user;
+  const {data,error}=await db.auth.getSession();const user=data?.session?.user;
   if(error||!user)throw new Error('Admin login session পাওয়া যায়নি।');
   const jobId=crypto.randomUUID();
-  const payload={product_name:productName,source_name:productName,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn})),purpose:'category_only'};
+  const payload={product_name:productName,description:productDescription,source_name:productName,source_description:productDescription,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn})),purpose:'category_only'};
   const {error:insertError}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:'name',payload});
   if(insertError)throw insertError;
-  aiActiveJobId=jobId;
-  $('autoCategoryStatus').textContent='AI বিশ্লেষণ চলছে। ফলাফল নিজে থেকেই Category Dropdown-এ বসবে...';
+  aiActiveJobId=jobId;$('autoCategoryStatus').textContent='AI নাম ও Description বিশ্লেষণ করছে। বাংলা নাম ও Category Form-এ বসবে...';
   await loadAIJobs();
- }catch(err){
-  $('autoCategoryStatus').textContent='স্বয়ংক্রিয় Category নির্বাচন ব্যর্থ: '+(err.message||'আবার চেষ্টা করুন।');
-  autoCategoryLastQueuedName='';
- }finally{
+ }catch(err){$('autoCategoryStatus').textContent='স্বয়ংক্রিয় AI বিশ্লেষণ ব্যর্থ: '+(err.message||'আবার চেষ্টা করুন।');autoCategoryLastQueuedName='';}
+ finally{
   autoCategoryJobBusy=false;
-  const latest=String($('name').value||'').trim()||String($('name_bn').value||'').trim();
-  if(latest.length>=3&&latest!==autoCategoryLastQueuedName){
-   clearTimeout(autoCategoryTimer);
-   autoCategoryTimer=setTimeout(queueAutomaticCategory,500);
-  }
+  const latestName=String($('name').value||'').trim()||String($('name_bn').value||'').trim();
+  const latestDescription=String($('description').value||'').trim().slice(0,5000);
+  if(latestName.length>=3&&latestName+' | '+latestDescription!==autoCategoryLastQueuedName){clearTimeout(autoCategoryTimer);autoCategoryTimer=setTimeout(queueAutomaticCategory,500);}
  }
 }
-$('name').addEventListener('input',()=>{
- const current=String($('name').value||'').trim();
- if(current.length<3)autoCategoryLastQueuedName='';
- $('autoCategoryStatus').textContent='নাম সম্পূর্ণ হলে AI নিজে Category নির্বাচন করবে...';
- clearTimeout(autoCategoryTimer);
- autoCategoryTimer=setTimeout(()=>{
-  if(String($('name').value||'').trim()===current)queueAutomaticCategory();
- },1300);
-});
-$('name_bn').addEventListener('blur',()=>{
- if(!$('name').value.trim())queueAutomaticCategory();
-});
+$('name').addEventListener('input',()=>{clearTimeout(autoCategoryTimer);autoCategoryTimer=setTimeout(queueAutomaticCategory,1300);});
+$('name_bn').addEventListener('blur',()=>{if(!$('name').value.trim())queueAutomaticCategory();});
+$('description').addEventListener('input',()=>{clearTimeout(autoCategoryTimer);autoCategoryTimer=setTimeout(queueAutomaticCategory,1600);});
+
 async function queueBulkRowCategory(row){
  if(!row?.isConnected)return;
  const productName=String(row.querySelector('[data-field="name"]')?.value||'').trim();
+ const productDescription=String(row.querySelector('[data-field="description"]')?.value||'').trim().slice(0,5000);
+ const contextKey=productName+' | '+productDescription;
  if(productName.length<3||!categories.length)return;
- if(row.dataset.aiCategoryName===productName||row.dataset.aiCategoryBusy==='true')return;
+ if(row.dataset.aiCategoryName===contextKey||row.dataset.aiCategoryBusy==='true')return;
  row.dataset.aiCategoryBusy='true';
- row.dataset.aiCategoryName=productName;
+ row.dataset.aiCategoryName=contextKey;
  row.dataset.aiRowToken=row.dataset.aiRowToken||crypto.randomUUID();
  const categorySelect=row.querySelector('[data-field="category_id"]');
  if(categorySelect)categorySelect.dataset.aiStatus='AI Category বিশ্লেষণ করছে...';
@@ -753,7 +747,7 @@ async function queueBulkRowCategory(row){
   const user=data?.session?.user;
   if(error||!user)throw new Error('Admin login session পাওয়া যায়নি।');
   const jobId=crypto.randomUUID();
-  const payload={product_name:productName,source_name:productName,row_token:row.dataset.aiRowToken,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn})),purpose:'bulk_category_only'};
+  const payload={product_name:productName,description:productDescription,source_name:productName,source_description:productDescription,row_token:row.dataset.aiRowToken,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn})),purpose:'bulk_category_only'};
   const {error:insertError}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:'name',payload});
   if(insertError)throw insertError;
   row.dataset.aiCategoryJobId=jobId;
@@ -764,7 +758,7 @@ async function queueBulkRowCategory(row){
   row.dataset.aiCategoryName='';
  }finally{
   row.dataset.aiCategoryBusy='false';
-  if(row.isConnected&&String(row.querySelector('[data-field="name"]')?.value||'').trim()!==productName){
+  if(row.isConnected&&(String(row.querySelector('[data-field="name"]')?.value||'').trim()+' | '+String(row.querySelector('[data-field="description"]')?.value||'').trim().slice(0,5000))!==contextKey){
    row.dataset.aiCategoryName='';
    queueBulkRowCategory(row);
   }
@@ -2257,9 +2251,11 @@ async function importSingleProductLink(){
      :' সব পাওয়া ছবি Preview-তে দেখুন।';
   const imageWarning=(p.image_warnings||[]).length?' ছবি সংরক্ষণের সতর্কতা: '+p.image_warnings.join(' | '):'';
   status.textContent='Product-এর তথ্য ও '+imageFiles.length+'টি ছবি এসেছে।'+partialImageNote+imageWarning+' AI এখন নিজে সঠিক Category নির্বাচন করছে...';
-  const categoryContext=[p.name,p.description||'',(p.variants||[]).join(', ')].filter(Boolean).join(' | ').slice(0,200);
   const categoryJobId=await enqueueAIJob('name',{
-   product_name:categoryContext,
+   product_name:p.name,
+   description:String(p.description||'').slice(0,5000),
+   source_name:p.name,
+   source_description:String(p.description||'').slice(0,5000),
    categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn})),
    purpose:'category_only'
   });
