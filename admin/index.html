@@ -204,7 +204,7 @@ body.sub-admin #basePriceField,body.sub-admin .base-price-column,body.sub-admin 
 
 <div class="ai-panel">
  <strong>✨ AI Product Assistant</strong>
- <p class="hint">এই AI সুবিধাটি Admin Panel-এ লগইন করা অনুমোদিত Admin-এর জন্য।</p>
+ <p class="hint">এই AI সুবিধাটি অনুমোদিত Admin ও Sub Admin ব্যবহার করতে পারবেন।</p>
  <p class="hint">পণ্যের নাম লিখে অথবা ছবি দিয়ে বাংলা-ইংরেজি বিবরণ, খাবারের পুষ্টিগুণ, সম্ভাব্য উপকারিতা ও সতর্কতা তৈরি করুন।</p>
  <button id="aiNameGenerateBtn" type="button" class="secondary" onclick="generateAIProductDetails('name')">✨ শুধু নাম লিখে Details + Food Benefits তৈরি করুন</button>
   <button id="aiGenerateBtn" type="button" class="secondary" onclick="generateAIProductDetails('image')">🖼️ ছবি থেকে Product Details তৈরি করুন</button>
@@ -370,6 +370,7 @@ Save করার পর প্রতিটি Product-এর Facebook Marketpla
 
 <div id="section-staff" class="card section admin-section hidden" data-super-admin-only>
  <div class="top"><div><h2>🛡️ Sub Admin Management</h2><p>শুধু মূল অ্যাডমিন সাব-অ্যাডমিন আমন্ত্রণ, বন্ধ বা পুনরায় চালু করতে পারবেন।</p></div><button type="button" class="secondary" onclick="loadSubAdmins()">Refresh</button></div>
+ <div class="upload-box"><strong>সাব-অ্যাডমিনের সীমাবদ্ধতা</strong><p class="hint">সাব-অ্যাডমিন সাব-অ্যাডমিন তৈরি/বন্ধ, ডেলিভারি সেটিংস পরিবর্তন, গোপন Base Price দেখা/বদল, স্থায়ী অর্ডার ডিলিট এবং রিসেলার পেআউট অনুমোদন করতে পারবে না।</p></div>
  <div class="upload-box">
   <form id="subAdminInviteForm">
    <div class="formgrid">
