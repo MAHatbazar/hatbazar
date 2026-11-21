@@ -1815,6 +1815,18 @@ function importExcel(){
  reader.readAsArrayBuffer(f);
 }
 
+async function describeProductImportError(error){
+ let message=error?.message||'Server request ব্যর্থ হয়েছে।';
+ try{
+  const context=error?.context;
+  if(context){
+   const body=await context.clone().json();
+   if(body?.error)message=body.error;
+  }
+ }catch(_){}
+ return message;
+}
+
 /* CLIPBOARD HELPERS */
 async function readClipboardText(){
  if(!navigator.clipboard?.readText)throw new Error('এই Browser Clipboard পড়তে দিচ্ছে না। Paste বক্সে আঙুল চেপে ধরে Paste করুন।');
@@ -1859,7 +1871,7 @@ async function importBulkPastedLinks(){
    status.textContent='সিরিয়াল '+item.serial+' Import হচ্ছে ('+(i+1)+'/'+entries.length+')...';
    try{
     const {data:result,error}=await db.functions.invoke('hatbazar-product-import',{body:{url:item.url}});
-    if(error)throw new Error(error.message||'Server request ব্যর্থ হয়েছে।');
+    if(error)throw new Error(await describeProductImportError(error));
     if(!result?.ok||!result.product)throw new Error(result?.error||'পণ্যের তথ্য পাওয়া যায়নি।');
     const p=result.product;
     const description=formatImportedDescription([p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n'));
@@ -1908,7 +1920,7 @@ async function importSingleProductLink(){
  button.disabled=true;status.textContent='Product-এর তথ্য ও ছবি আনা হচ্ছে...';
  try{
   const {data:result,error}=await db.functions.invoke('hatbazar-product-import',{body:{url}});
-  if(error)throw new Error(error.message||'Server request ব্যর্থ হয়েছে।');
+  if(error)throw new Error(await describeProductImportError(error));
   if(!result?.ok||!result.product)throw new Error(result?.error||'পণ্যের তথ্য পাওয়া যায়নি।');
   const p=result.product;
   $('name').value=p.name||'';
@@ -2013,7 +2025,7 @@ async function importProductLinksExcel(){
    const item=entries[i];status.textContent='সিরিয়াল '+item.serial+' Import হচ্ছে ('+(i+1)+'/'+entries.length+')...';
    try{
     const {data:result,error}=await db.functions.invoke('hatbazar-product-import',{body:{url:item.url}});
-    if(error)throw new Error(error.message||'Server request ব্যর্থ হয়েছে।');
+    if(error)throw new Error(await describeProductImportError(error));
     if(!result?.ok||!result.product)throw new Error(result?.error||'পণ্যের তথ্য পাওয়া যায়নি।');
     const p=result.product;
     const description=[p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n');
