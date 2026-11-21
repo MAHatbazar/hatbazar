@@ -144,9 +144,9 @@ button:disabled{opacity:.5}
 
 <div class="upload-box" id="singleLinkImportBox">
  <strong>🔗 Single Product Link Import</strong>
- <p class="hint">একটি Product URL পেস্ট করুন। Hatbazar তথ্য ও ছবিগুলো এনে নিচের ফর্মে বসাবে। যাচাই করে Selling Price ও Stock দিয়ে Save করুন।</p>
- <label for="singleProductUrl">Product URL</label>
- <input id="singleProductUrl" type="url" inputmode="url" placeholder="https://example.com/product/..." autocomplete="url">
+ <p class="hint">Product-এর নাম, বিবরণ ও Link একসঙ্গে কপি করে দিলেও হবে। Hatbazar লেখার ভেতর থেকে আসল Product Link নিজে খুঁজে নেবে।</p>
+ <label for="singleProductUrl">Product Details / Link</label>
+ <textarea id="singleProductUrl" rows="4" placeholder="এখানে Product-এর নাম, Description, ছবি/লিংকের তথ্যসহ যা কপি করেছেন পেস্ট করুন..." autocomplete="off"></textarea>
  <div class="actions">
   <button type="button" class="secondary" id="singleProductFetchBtn" onclick="importSingleProductLink()">Fetch Product</button>
   <button type="button" class="danger" id="clearSingleImportBtn" onclick="clearSingleProductImport()">🗑️ Delete Imported</button>
@@ -1713,10 +1713,21 @@ function importExcel(){
 /* SINGLE PRODUCT LINK IMPORT */
 async function importSingleProductLink(){
  const input=$('singleProductUrl'),status=$('singleProductImportStatus'),button=$('singleProductFetchBtn');
- const url=input.value.trim();
- if(!url){status.textContent='আগে Product URL পেস্ট করুন।';input.focus();return;}
- try{const parsed=new URL(url);if(!['http:','https:'].includes(parsed.protocol))throw new Error('শুধু HTTP/HTTPS Product URL ব্যবহার করুন.');}
- catch(err){status.textContent=err.message||'সঠিক Product URL দিন।';return;}
+ const pastedText=input.value.trim();
+ if(!pastedText){status.textContent='Product-এর Link বা Link-সহ পুরো লেখা এখানে পেস্ট করুন।';input.focus();return;}
+ // Accept a complete product URL or a copied product description containing a URL.
+ const matches=pastedText.match(/https?:\\/\\/[^\\s<>"'`]+/gi)||[];
+ let url=(matches[0]||'').replace(/[.,;:!?)}\\]]+$/g,'').replace(/&amp;/gi,'&');
+ if(!url){
+  status.textContent='আপনার লেখার মধ্যে কোনো Product Link পাওয়া যায়নি। Product পেজের Share/Copy Link-সহ পুরো লেখাটি পেস্ট করুন।';
+  input.focus();return;
+ }
+ try{
+  const parsed=new URL(url);
+  if(!['http:','https:'].includes(parsed.protocol)||!parsed.hostname)throw new Error('সঠিক Product Link পাওয়া যায়নি।');
+  url=parsed.href;
+  input.value=url;
+ }catch(err){status.textContent='লেখার মধ্যে পাওয়া Link-টি সঠিক নয়। Product-এর Share/Copy Link-সহ আবার পেস্ট করুন।';return;}
  button.disabled=true;status.textContent='Product-এর তথ্য ও ছবি আনা হচ্ছে...';
  try{
   const {data:result,error}=await db.functions.invoke('hatbazar-product-import',{body:{url}});
