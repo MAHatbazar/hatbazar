@@ -4217,7 +4217,11 @@
                 <span class="rounded-full bg-white border border-sky-200 px-3 py-1 text-xs font-bold">${escapeHtml(statusMap[data.order_status] || data.order_status || '')}</span>
               </div>
               <div class="text-sm text-slate-700">${currentLang === 'en' ? 'Payment' : 'পেমেন্ট'}: <strong>${escapeHtml(paymentLabel)}</strong></div>
-              ${['cancelled','returned'].includes(data.order_status) && data.cancellation_reason ? `<div class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-800">${currentLang === 'en' ? 'Reason for cancellation/return' : 'বাতিল / রিটার্নের কারণ'}: ${escapeHtml(data.cancellation_reason)}</div>` : ''}
+              ${['cancelled','returned'].includes(data.order_status) ? `
+                <div class="rounded-xl border border-rose-200 bg-rose-50 p-3 space-y-3">
+                  ${data.cancellation_reason ? `<div class="text-sm font-semibold text-rose-800">${currentLang === 'en' ? 'Reason for cancellation/return' : 'বাতিল / রিটার্নের কারণ'}: ${escapeHtml(data.cancellation_reason)}</div>` : ''}
+                  <button type="button" onclick="deleteCustomerArchivedOrder()" class="inline-flex items-center justify-center rounded-lg bg-rose-600 hover:bg-rose-700 px-4 py-2 text-xs font-extrabold text-white">${currentLang === 'en' ? '🗑️ Delete this order' : '🗑️ অর্ডার ডিলিট করুন'}</button>
+                </div>` : ''}
               <div class="text-sm text-slate-700">${currentLang === 'en' ? 'Items' : 'পণ্য'}:<ul class="list-disc pl-5 mt-1">${itemsHtml}</ul></div>
               <div class="text-base font-black text-violet-900">${currentLang === 'en' ? 'Total' : 'সর্বমোট'}: ৳${formatNum(data.total_amount || 0)}</div>
               <div class="text-xs text-slate-500">${data.created_at ? new Date(data.created_at).toLocaleString(currentLang === 'en' ? 'en-GB' : 'bn-BD') : ''}</div>
@@ -4226,6 +4230,50 @@
       } catch (lookupError) {
         console.error('Hatbazar order lookup failed:', lookupError?.message || lookupError);
         if (container) container.innerHTML = `<div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-center text-sm text-rose-700">${currentLang === 'en' ? 'Could not retrieve this order. Please try again.' : 'অর্ডারটি খুঁজে পাওয়া যায়নি। আবার চেষ্টা করুন।'}</div>`;
+      }
+    }
+
+    async function deleteCustomerArchivedOrder() {
+      const phoneInput = document.getElementById('orderHistoryPhoneFilter');
+      const codeInput = document.getElementById('orderHistoryCodeFilter');
+      const container = document.getElementById('customerOrderHistoryList');
+      const phone = normalizeBdPhone((phoneInput?.value || '').trim());
+      const orderCode = (codeInput?.value || '').trim().toUpperCase();
+
+      if (!phone || !/^01[0-9]{9}$/.test(phone) || !/^HB-[0-9]{6}-[A-F0-9]{16}$/.test(orderCode)) {
+        showToast(currentLang === 'en' ? 'Enter the order mobile number and code again.' : 'অর্ডারের মোবাইল নম্বর ও কোড আবার লিখুন।');
+        return;
+      }
+      const confirmed = window.confirm(currentLang === 'en'
+        ? 'Permanently delete this cancelled/returned order and its items? This cannot be undone.'
+        : 'এই বাতিল / রিটার্ন অর্ডারটি ও এর পণ্যতালিকা স্থায়ীভাবে ডিলিট করবেন? এটি আর ফিরিয়ে আনা যাবে না।');
+      if (!confirmed) return;
+      if (!cloudSyncEnabled || !supabaseClient) {
+        showToast(currentLang === 'en' ? 'Order deletion is unavailable right now.' : 'এই মুহূর্তে অর্ডার ডিলিট করা যাচ্ছে না।');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_customer_delete_archived_order', {
+          p_order_code: orderCode,
+          p_phone: phone
+        });
+        if (error) throw error;
+        if (!data?.success) {
+          showToast(currentLang === 'en'
+            ? 'This order could not be deleted. Only cancelled/returned orders can be deleted.'
+            : 'অর্ডারটি ডিলিট করা যায়নি। শুধু বাতিল বা রিটার্ন অর্ডার ডিলিট করা যাবে।');
+          return;
+        }
+        if (container) {
+          container.innerHTML = `<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center text-sm font-bold text-emerald-800">${currentLang === 'en' ? 'The cancelled/returned order has been permanently deleted.' : 'বাতিল / রিটার্ন অর্ডারটি স্থায়ীভাবে ডিলিট করা হয়েছে।'}</div>`;
+        }
+        if (codeInput) codeInput.value = '';
+      } catch (deleteError) {
+        console.error('Customer archived order deletion failed:', deleteError?.message || deleteError);
+        showToast(currentLang === 'en'
+          ? 'Could not delete this order. Please check the order details and try again.'
+          : 'অর্ডার ডিলিট করা যায়নি। অর্ডারের তথ্য যাচাই করে আবার চেষ্টা করুন।');
       }
     }
 
