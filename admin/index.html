@@ -56,7 +56,7 @@ button:disabled{opacity:.5}
 .badge.off{background:#fce9e7;color:#b42318}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .tab.active{background:#d9f36a;color:#173f35}
-.bulk-row{display:grid;grid-template-columns:38px 1.3fr 1.2fr .75fr .75fr .65fr 1.5fr 1.3fr 1.5fr auto;gap:7px;align-items:start;border-bottom:1px solid #e8eeeb;padding:8px 0}
+.bulk-row{display:grid;grid-template-columns:38px 1.3fr 1.2fr .75fr .75fr .75fr .65fr 1.5fr 1.3fr 1.5fr auto;gap:7px;align-items:start;border-bottom:1px solid #e8eeeb;padding:8px 0}
 .bulk-row input,.bulk-row select,.bulk-row textarea{margin:0;min-width:0;padding:10px;font-size:13px}.bulk-row textarea{min-height:82px;resize:vertical}
 .bulk-head{font-size:12px;font-weight:bold;color:#52645d}
 .row-number{padding:10px 0;font-weight:bold}
@@ -187,7 +187,8 @@ button:disabled{opacity:.5}
 <div><label>Product Name (বাংলা)</label><input id="name_bn" maxlength="200"></div>
 <div><label>Category</label><select id="category_id"><option value="">AI Category নির্বাচন করছে...</option></select><small id="autoCategoryStatus" class="hint">Product Name লিখে একটু থামুন, AI নিজে Category নির্বাচন করবে।</small></div>
 <div><label>Selling Price (৳) *</label><input id="price" type="number" min="0" step="0.01" required></div>
-<div><label>Base Price (৳)</label><input id="base_price" type="number" min="0" step="0.01"></div>
+<div><label>Original Price / কাটা দাম (৳)</label><input id="original_price" type="number" min="0" step="0.01" placeholder="ঐচ্ছিক"></div>
+<div><label>Base Price (৳) · Reseller ক্রয়মূল্য</label><input id="base_price" type="number" min="0" step="0.01"></div>
 <div><label>Stock Quantity *</label><input id="stock" type="number" min="0" step="1" value="100" required></div>
 </div>
 
@@ -1541,6 +1542,7 @@ async function editProduct(id){
 
  $('price').value=data.price??0;
  $('base_price').value=data.base_price??'';
+ $('original_price').value=data.original_price??'';
  $('stock').value=data.stock??100;
  $('category_id').value=data.category_id||'';
  $('is_active').checked=data.is_active;
@@ -1643,6 +1645,7 @@ $('productForm').addEventListener('submit',async e=>{
    sizes:selectedAISizes(),
    category_id:$('category_id').value||null,
    price:Number($('price').value),
+   original_price:$('original_price').value===''?null:Number($('original_price').value),
    base_price:$('base_price').value===''?null:Number($('base_price').value),
    stock:$('stock').value===''?100:Math.max(0,Math.floor(Number($('stock').value))),
    is_active:$('is_active').checked
@@ -1775,6 +1778,8 @@ function addBulkRow(v={}){
   <input data-field="name_bn" placeholder="বাংলা নাম" value="${escapeHTML(v.name_bn||'')}">
 
   <input data-field="price" type="number" min="0" step="0.01" placeholder="Selling" value="${escapeHTML(v.price??'')}">
+
+  <input data-field="original_price" type="number" min="0" step="0.01" placeholder="Original / MRP" value="${escapeHTML(v.original_price??'')}">
 
   <input data-field="base_price" type="number" min="0" step="0.01" placeholder="Base" value="${escapeHTML(v.base_price??'')}">
 
@@ -1942,6 +1947,7 @@ function downloadTemplate(){
   'Product Name (English)',
   'Product Name (Bangla)',
   'Selling Price',
+  'Original Price (Optional)',
   'Base Price',
   'Stock Quantity',
   'Description',
@@ -1951,13 +1957,13 @@ function downloadTemplate(){
  const data=[headers];
 
  for(let i=0;i<500;i++){
-  data.push(['','','','','','','']);
+  data.push(['','','','','','','','']);
  }
 
  const ws=XLSX.utils.aoa_to_sheet(data);
 
  ws['!cols']=[
-  {wch:25},{wch:25},{wch:16},{wch:16},{wch:16},{wch:40},{wch:25}
+  {wch:25},{wch:25},{wch:16},{wch:20},{wch:16},{wch:16},{wch:40},{wch:25}
  ];
 
  const wb=XLSX.utils.book_new();
@@ -2028,6 +2034,8 @@ function importExcel(){
 
     price:findIndex(['Selling Price','Selling','Price','selling_price']),
 
+    original_price:findIndex(['Original Price','Original','MRP','Regular Price','List Price','Compare At Price','original_price']),
+
     base_price:findIndex(['Base Price','Base','base_price']),
 
     stock:findIndex(['Stock Quantity','Stock','Quantity','stock_quantity']),
@@ -2052,6 +2060,7 @@ function importExcel(){
     name:String(get(r,'name')).trim(),
     name_bn:String(get(r,'name_bn')).trim(),
     price:get(r,'price'),
+    original_price:get(r,'original_price'),
     base_price:get(r,'base_price'),
     stock:get(r,'stock'),
     description:String(get(r,'description')).trim(),
@@ -2090,6 +2099,7 @@ function importExcel(){
      name:r.name,
      name_bn:r.name_bn,
      price:r.price,
+     original_price:r.original_price,
      base_price:r.base_price,
      stock:r.stock===''?100:r.stock,
      description:r.description,
@@ -2179,12 +2189,12 @@ async function importBulkPastedLinks(){
     const description=formatImportedDescription([p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n'));
     const currency=String(p.currency||'').toUpperCase();
     const localCurrency=!currency||['BDT','TKA','TK','৳'].includes(currency);
-    const base=p.supplier_price!==''&&localCurrency?Number(p.supplier_price):'';
+    const base='';
     const attributes={};
     if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
     if(p.source_url)attributes['Source URL']=p.source_url;
     if(p.variants?.length)attributes['Variant Options']=p.variants;
-    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',base_price:Number.isFinite(base)?base:'',stock:100,description,image_urls:p.image_urls||[],_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:localCurrency?(Number(p.selling_price??p.price??p.supplier_price)||''):'',original_price:localCurrency?(Number(p.original_price)||''):'',base_price:'',stock:100,description,image_urls:p.image_urls||[],_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0),savedImages=Number(p.image_count||0);
     status.textContent='Serial '+item.serial+' সফল: '+(p.name||'Product')+' | '+savedImages+'/'+foundImages+'টি ছবি | '+imported+'/'+entries.length+' সম্পন্ন।';
@@ -2230,9 +2240,12 @@ async function importSingleProductLink(){
   $('description').value=formatImportedDescription([p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n'));
   const currency=String(p.currency||'').toUpperCase();
   const localCurrency=!currency||['BDT','TKA','TK','৳'].includes(currency);
-  const supplierPrice=p.supplier_price!==''&&localCurrency?Number(p.supplier_price):NaN;
-  $('base_price').value=Number.isFinite(supplierPrice)?supplierPrice:'';
-  $('price').value='';
+  const importedSellingPrice=p.selling_price??p.price??p.supplier_price;
+  const sellingPrice=importedSellingPrice!==''&&localCurrency?Number(importedSellingPrice):NaN;
+  const importedOriginalPrice=p.original_price!==''&&localCurrency?Number(p.original_price):NaN;
+  $('price').value=Number.isFinite(sellingPrice)?sellingPrice:'';
+  $('original_price').value=Number.isFinite(importedOriginalPrice)&&importedOriginalPrice>sellingPrice?importedOriginalPrice:'';
+  $('base_price').value='';
   $('stock').value='100';
   aiProductMeta={attributes:{...(p.brand?{Brand:p.brand}:{}),...(p.sku?{SKU:p.sku}:{}),...(p.source_url?{'Source URL':p.source_url}:{}),...(p.variants?.length?{'Variant Options':p.variants}:{})},sizes:[],description_en:'',description_bn:''};
   $('aiGeneratedDetails').textContent='লিংক থেকে Product তথ্য এসেছে। AI স্বয়ংক্রিয়ভাবে বাংলা নাম তৈরি ও Category নির্বাচন করবে।';
@@ -2401,6 +2414,7 @@ async function saveBulkProducts(){
   const price=get('price');
   const stock=get('stock');
   const base=get('base_price');
+  const original=get('original_price');
   const category_id=get('category_id');
 
   if(!name&&!price&&!stock&&!name_bn&&!category_id)return;
@@ -2415,6 +2429,8 @@ async function saveBulkProducts(){
 
   if(base!==''&&(!Number.isFinite(Number(base))||Number(base)<0))
    errors.push('সারি '+(i+1)+': Base Price সঠিক নয়।');
+  if(original!==''&&(!Number.isFinite(Number(original))||Number(original)<0))
+   errors.push('সারি '+(i+1)+': Original Price সঠিক নয়।');
 
   if(category_id&&!categories.some(c=>String(c.id)===String(category_id)))
    errors.push('সারি '+(i+1)+': Category নির্বাচন সঠিক নয়।');
@@ -2427,12 +2443,14 @@ async function saveBulkProducts(){
   if(name&&price!==''&&Number.isFinite(Number(price))&&Number(price)>=0&&
      stock!==''&&Number.isInteger(Number(stock))&&Number(stock)>=0&&
      (base===''||(Number.isFinite(Number(base))&&Number(base)>=0))&&
+     (original===''||(Number.isFinite(Number(original))&&Number(original)>=0))&&
      !imageProblem){
 
    products.push({
     name,
     name_bn:name_bn||null,
     price:Number(price),
+    original_price:original===''?null:Number(original),
     base_price:base===''?null:Number(base),
     stock:Number(stock),
     description:get('description')||null,
@@ -2488,6 +2506,7 @@ async function saveBulkProducts(){
     name:product.name,
     name_bn:product.name_bn,
     price:product.price,
+    original_price:product.original_price,
     base_price:product.base_price,
     stock:product.stock,
     description:product.description,
