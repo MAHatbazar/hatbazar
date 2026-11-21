@@ -1095,7 +1095,7 @@ function toggleArchivedOrders(show){showArchivedOrders=!!show;showDatabaseDelete
 function toggleDatabaseDelete(show){showArchivedOrders=true;showDatabaseDelete=!!show;loadOrders();}
 async function loadOrders(){
  $('ordersList').textContent='অর্ডার লোড হচ্ছে...';
- const {data,error}=await db.from('orders').select('id,order_code,customer_name,phone,address,total_amount,payment_method,payment_status,payment_verified,order_status,created_at').order('created_at',{ascending:false}).limit(200);
+ const {data,error}=await db.from('orders').select('id,order_code,customer_name,phone,address,total_amount,payment_method,payment_status,payment_verified,order_status,cancellation_reason,created_at').order('created_at',{ascending:false}).limit(200);
  if(error){$('ordersList').textContent='অর্ডার লোড হয়নি: '+error.message;return;}
  const rows=(data||[]).filter(o=>showArchivedOrders?['cancelled','returned'].includes(o.order_status):!['cancelled','returned'].includes(o.order_status));
  const itemResult=rows.length?await db.from('order_items').select('order_id,product_id,product_name,quantity,unit_price').in('order_id',rows.map(x=>x.id)): {data:[],error:null};
@@ -1108,7 +1108,7 @@ async function loadOrders(){
  const sourceMap=Object.fromEntries((sourceResult.data||[]).map(x=>[x.product_id,x.source_url]));
  const itemMap={};items.forEach(it=>{(itemMap[it.order_id]||(itemMap[it.order_id]=[])).push(it);});
  $('ordersSummary').textContent='মোট '+rows.length+'টি অর্ডার পাওয়া গেছে'+(rows.length===200?' (সর্বশেষ ২০০টি দেখানো হচ্ছে)':'')+'.';
- renderRows('ordersList',rows.map(o=>{const orderItems=itemMap[o.id]||[];const itemText=orderItems.map(it=>{const url=sourceMap[it.product_id];return escapeHTML(it.product_name)+' × '+it.quantity+' · ৳'+Number(it.unit_price||0).toLocaleString('en-US')+(url?' · <a href="'+escapeHTML(url)+'" target="_blank" rel="noopener">BBazar Link</a>':' · <span style="color:#b42318">BBazar Link নেই</span>');}).join('<br>');const ready=orderItems.length>0&&orderItems.every(it=>!!sourceMap[it.product_id]);return `<div class="product"><div class="product-info"><strong>${escapeHTML(o.order_code||o.id)} · ${escapeHTML(o.customer_name||'নাম নেই')}</strong><small>ফোন: ${escapeHTML(o.phone||'—')}<br>ঠিকানা: ${escapeHTML(o.address||'—')}<br>পণ্য: ${itemText||'পণ্যতথ্য নেই'}<br>মোট/COD সংগ্রহ: ৳${Number(o.total_amount||0).toLocaleString('en-US')} · পেমেন্ট: ${escapeHTML(o.payment_method||'—')} / ${escapeHTML(o.payment_status||'pending')} · ${o.payment_verified?'যাচাইকৃত':'যাচাই বাকি'}<br>${o.created_at?new Date(o.created_at).toLocaleString('bn-BD'):''}</small><label>Order Status</label><select onchange="updateOrderStatus('${o.id}',this.value)">${['pending','confirmed','processing','shipped','delivered','cancelled','returned'].map(v=>'<option value="'+v+'" '+(o.order_status===v?'selected':'')+'>'+v+'</option>').join('')}</select><div class="actions" style="margin-top:10px"><button type="button" ${ready?'':'disabled'} onclick="prepareBBazarOrder('${o.id}')">📋 BBazar-এর জন্য অর্ডার কপি করুন</button>${ready?'':'<small class="hint">প্রথমে প্রতিটি পণ্যের BBazar Link যোগ করুন।</small>'}${showDatabaseDelete?'<button type="button" onclick="deleteArchivedOrder(\''+o.id+'\')">🗑️ স্থায়ীভাবে ডিলিট</button>':''}</div></div></div>`;}),'এখনো কোনো অর্ডার পাওয়া যায়নি।');
+ renderRows('ordersList',rows.map(o=>{const orderItems=itemMap[o.id]||[];const itemText=orderItems.map(it=>{const url=sourceMap[it.product_id];return escapeHTML(it.product_name)+' × '+it.quantity+' · ৳'+Number(it.unit_price||0).toLocaleString('en-US')+(url?' · <a href="'+escapeHTML(url)+'" target="_blank" rel="noopener">BBazar Link</a>':' · <span style="color:#b42318">BBazar Link নেই</span>');}).join('<br>');const ready=orderItems.length>0&&orderItems.every(it=>!!sourceMap[it.product_id]);return `<div class="product"><div class="product-info"><strong>${escapeHTML(o.order_code||o.id)} · ${escapeHTML(o.customer_name||'নাম নেই')}</strong><small>ফোন: ${escapeHTML(o.phone||'—')}<br>ঠিকানা: ${escapeHTML(o.address||'—')}<br>পণ্য: ${itemText||'পণ্যতথ্য নেই'}<br>মোট/COD সংগ্রহ: ৳${Number(o.total_amount||0).toLocaleString('en-US')} · পেমেন্ট: ${escapeHTML(o.payment_method||'—')} / ${escapeHTML(o.payment_status||'pending')} · ${o.payment_verified?'যাচাইকৃত':'যাচাই বাকি'}<br>${o.created_at?new Date(o.created_at).toLocaleString('bn-BD'):''}${o.cancellation_reason?'<br><strong>বাতিল/রিটার্নের কারণ:</strong> '+escapeHTML(o.cancellation_reason):''}</small><label>Order Status</label><select onchange="updateOrderStatus('${o.id}',this.value)">${['pending','confirmed','processing','shipped','delivered','cancelled','returned'].map(v=>'<option value="'+v+'" '+(o.order_status===v?'selected':'')+'>'+v+'</option>').join('')}</select><div class="actions" style="margin-top:10px"><button type="button" ${ready?'':'disabled'} onclick="prepareBBazarOrder('${o.id}')">📋 BBazar-এর জন্য অর্ডার কপি করুন</button>${ready?'':'<small class="hint">প্রথমে প্রতিটি পণ্যের BBazar Link যোগ করুন।</small>'}${showDatabaseDelete?'<button type="button" onclick="deleteArchivedOrder(\''+o.id+'\')">🗑️ স্থায়ীভাবে ডিলিট</button>':''}</div></div></div>`;}),'এখনো কোনো অর্ডার পাওয়া যায়নি।');
 }
 async function prepareBBazarOrder(orderId){
  try{
@@ -1145,9 +1145,45 @@ async function deleteArchivedOrder(id){
  alert('অর্ডারটি ডেটাবেজ থেকে স্থায়ীভাবে ডিলিট হয়েছে।');
  await loadOrders();
 }
+let pendingOrderReasonUpdate=null;
+function openOrderReasonModal(id,status){
+ pendingOrderReasonUpdate={id,status};
+ const modal=$('orderReasonModal');if(modal)modal.classList.remove('hidden');
+ const title=$('orderReasonTitle');if(title)title.textContent=status==='cancelled'?'অর্ডার বাতিলের কারণ':'অর্ডার রিটার্নের কারণ';
+ const select=$('orderReasonSelect');if(select)select.value='stock_out';
+ const note=$('orderReasonNote');if(note)note.value='';
+}
+function closeOrderReasonModal(){
+ pendingOrderReasonUpdate=null;
+ $('orderReasonModal')?.classList.add('hidden');
+ loadOrders();
+}
+async function saveOrderReason(){
+ if(!pendingOrderReasonUpdate)return;
+ const select=$('orderReasonSelect');
+ const labels={
+  stock_out:'পণ্য স্টক আউট',
+  supplier_unavailable:'সরবরাহকারীর কাছে পণ্য নেই',
+  temporarily_unavailable:'এই মুহূর্তে পণ্য স্টকে নেই',
+  damaged:'পণ্য নষ্ট বা ত্রুটিপূর্ণ',
+  customer_request:'গ্রাহকের অনুরোধে',
+  delivery_issue:'ডেলিভারি সমস্যা',
+  other:'অন্যান্য'
+ };
+ const selected=select?.value||'';
+ const note=($('orderReasonNote')?.value||'').trim();
+ if(!labels[selected]){alert('একটি কারণ নির্বাচন করুন।');return;}
+ if(selected==='other'&&!note){alert('অন্যান্য নির্বাচন করলে কারণটি লিখুন।');return;}
+ const reason=labels[selected]+(note?' — '+note:'');
+ const {id,status}=pendingOrderReasonUpdate;
+ const {error}=await db.from('orders').update({order_status:status,cancellation_reason:reason}).eq('id',id);
+ if(error){alert('স্ট্যাটাস আপডেট হয়নি: '+error.message);return;}
+ pendingOrderReasonUpdate=null;$('orderReasonModal')?.classList.add('hidden');
+ alert('স্ট্যাটাস ও কারণ সংরক্ষণ হয়েছে।');await loadOrders();
+}
 async function updateOrderStatus(id,value){
  if(!['pending','confirmed','processing','shipped','delivered','cancelled','returned'].includes(value))return;
- if(['cancelled','returned'].includes(value)&&!confirm(value==='cancelled'?'অর্ডারটি বাতিল করবেন? এটি চলমান অর্ডার থেকে সরিয়ে বাতিল/রিটার্ন তালিকায় যাবে।':'অর্ডারটি রিটার্ন হিসেবে চিহ্নিত করবেন? এটি চলমান অর্ডার থেকে সরিয়ে বাতিল/রিটার্ন তালিকায় যাবে।')){loadOrders();return;}
+ if(['cancelled','returned'].includes(value)){openOrderReasonModal(id,value);return;}
  const {error}=await db.from('orders').update({order_status:value}).eq('id',id);
  if(error){alert('স্ট্যাটাস আপডেট হয়নি: '+error.message);return;}alert('অর্ডার স্ট্যাটাস আপডেট হয়েছে।');await loadOrders();
 }
@@ -2773,5 +2809,24 @@ document.addEventListener('DOMContentLoaded',applyAdminLanguage);
 setTimeout(applyAdminLanguage,0);
 
 </script>
+<div id="orderReasonModal" class="hidden" style="position:fixed;inset:0;z-index:10000;background:#07130fcc;display:flex;align-items:center;justify-content:center;padding:16px">
+ <div style="width:min(100%,480px);background:#fff;border-radius:16px;padding:20px;box-shadow:0 10px 40px #0004">
+  <h2 id="orderReasonTitle" style="margin-top:0">অর্ডারের কারণ</h2>
+  <p class="hint">এই কারণটি গ্রাহক তাঁর অর্ডার ট্র্যাকিংয়ে দেখতে পাবেন।</p>
+  <label for="orderReasonSelect">কারণ নির্বাচন করুন *</label>
+  <select id="orderReasonSelect">
+   <option value="stock_out">পণ্য স্টক আউট</option>
+   <option value="supplier_unavailable">সরবরাহকারীর কাছে পণ্য নেই</option>
+   <option value="temporarily_unavailable">এই মুহূর্তে পণ্য স্টকে নেই</option>
+   <option value="damaged">পণ্য নষ্ট বা ত্রুটিপূর্ণ</option>
+   <option value="customer_request">গ্রাহকের অনুরোধে</option>
+   <option value="delivery_issue">ডেলিভারি সমস্যা</option>
+   <option value="other">অন্যান্য</option>
+  </select>
+  <label for="orderReasonNote">অতিরিক্ত বিস্তারিত (ঐচ্ছিক)</label>
+  <textarea id="orderReasonNote" placeholder="প্রয়োজনে বিস্তারিত লিখুন..."></textarea>
+  <div class="actions"><button type="button" onclick="saveOrderReason()">কারণসহ সংরক্ষণ করুন</button><button type="button" class="secondary" onclick="closeOrderReasonModal()">ফিরে যান</button></div>
+ </div>
+</div>
 </body>
 </html>
