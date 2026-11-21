@@ -369,11 +369,11 @@ function escapeHTML(v){
 }
 
 function formatImportedDescription(value){
- let text=String(value??'').replace(/\\r\\n?/g,'\\n').replace(/\\u00a0/g,' ');
- // Keep supplier-provided paragraphs and put emoji-led feature points on separate lines.
- text=text.replace(/(?<!^)(?<!\\n)(?=[\\p{Extended_Pictographic}])/gu,'\\n');
- return text.split('\\n').map(line=>line.trim()).join('\\n')
-  .replace(/\\n{3,}/g,'\\n\\n').trim();
+ let text=String(value??'').replace(/\r\n?/g,'\n').replace(/\u00a0/g,' ');
+ // Keep supplier paragraphs and put emoji-led feature points on separate lines.
+ text=text.replace(/(?<!^)(?<!\n)(?=[\p{Extended_Pictographic}])/gu,'\n');
+ return text.split('\n').map(line=>line.trim()).join('\n')
+  .replace(/\n{3,}/g,'\n\n').trim();
 }
 
 function normalizeCategory(value){
@@ -1784,7 +1784,7 @@ async function importBulkPastedLinks(){
     if(error)throw new Error(error.message||'Server request ব্যর্থ হয়েছে।');
     if(!result?.ok||!result.product)throw new Error(result?.error||'পণ্যের তথ্য পাওয়া যায়নি।');
     const p=result.product;
-    const description=[p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n');
+    const description=formatImportedDescription([p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n'));
     const currency=String(p.currency||'').toUpperCase();
     const localCurrency=!currency||['BDT','TKA','TK','৳'].includes(currency);
     const base=p.supplier_price!==''&&localCurrency?Number(p.supplier_price):'';
@@ -1835,7 +1835,7 @@ async function importSingleProductLink(){
   const p=result.product;
   $('name').value=p.name||'';
   $('name_bn').value=p.name_bn||'';
-  $('description').value=[p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n');
+  $('description').value=formatImportedDescription([p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n'));
   const currency=String(p.currency||'').toUpperCase();
   const localCurrency=!currency||['BDT','TKA','TK','৳'].includes(currency);
   const supplierPrice=p.supplier_price!==''&&localCurrency?Number(p.supplier_price):NaN;
