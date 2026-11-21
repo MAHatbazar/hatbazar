@@ -4158,6 +4158,67 @@
         .join('');
     }
 
+    let currentCustomerOrderLookup = { orderCode: '', phone: '', status: '' };
+
+    function openCustomerCancelBox() {
+      const box = document.getElementById('customerCancelBox');
+      if (box) box.classList.toggle('hidden');
+    }
+
+    async function submitCustomerOrderCancellation() {
+      const reasonSelect = document.getElementById('customerCancelReason');
+      const noteInput = document.getElementById('customerCancelNote');
+      const reasonLabels = {
+        no_longer_needed: 'এখন আর প্রয়োজন নেই',
+        not_liked: 'পণ্যটি পছন্দ হয়নি',
+        ordered_by_mistake: 'ভুল করে অর্ডার করেছি',
+        bought_elsewhere: 'অন্য জায়গা থেকে কিনেছি',
+        other: 'অন্যান্য'
+      };
+      const selected = reasonSelect?.value || '';
+      const note = (noteInput?.value || '').trim();
+      if (!reasonLabels[selected]) {
+        showToast('অর্ডার বাতিলের একটি কারণ নির্বাচন করুন।');
+        return;
+      }
+      if (selected === 'other' && !note) {
+        showToast('অন্যান্য নির্বাচন করলে কারণটি লিখুন।');
+        return;
+      }
+      const reason = reasonLabels[selected] + (note ? ' — ' + note : '');
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_customer_cancel_order', {
+          p_order_code: currentCustomerOrderLookup.orderCode,
+          p_phone: currentCustomerOrderLookup.phone,
+          p_reason: reason
+        });
+        if (error) throw error;
+        if (!data?.success) throw new Error('অর্ডার বাতিল করা যায়নি।');
+        showToast('আপনার অর্ডারটি বাতিল হয়েছে।');
+        await lookupCustomerOrder();
+      } catch (err) {
+        showToast(err?.message || 'অর্ডার বাতিল করা যায়নি।');
+      }
+    }
+
+    async function deleteCustomerArchivedOrder() {
+      if (!confirm('আপনি কি এই বাতিল/রিটার্ন অর্ডারটি আপনার অর্ডার তালিকা থেকে স্থায়ীভাবে ডিলিট করতে চান?')) return;
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_customer_delete_archived_order', {
+          p_order_code: currentCustomerOrderLookup.orderCode,
+          p_phone: currentCustomerOrderLookup.phone
+        });
+        if (error) throw error;
+        if (!data?.success) throw new Error('অর্ডার ডিলিট করা যায়নি।');
+        const container = document.getElementById('customerOrderHistoryList');
+        if (container) container.innerHTML = '<div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center text-sm font-semibold text-emerald-800">অর্ডারটি আপনার তালিকা থেকে ডিলিট হয়েছে।</div>';
+        showToast('অর্ডারটি ডিলিট হয়েছে।');
+        currentCustomerOrderLookup = { orderCode: '', phone: '', status: '' };
+      } catch (err) {
+        showToast(err?.message || 'অর্ডার ডিলিট করা যায়নি।');
+      }
+    }
+
     async function lookupCustomerOrder() {
       const phoneInput = document.getElementById('orderHistoryPhoneFilter');
       const codeInput = document.getElementById('orderHistoryCodeFilter');
@@ -4192,6 +4253,12 @@
           return;
         }
 
+        currentCustomerOrderLookup = { orderCode, phone, status: data.order_status };
+        const canCancelCustomerOrder =
+          ['pending', 'pending_verification'].includes(data.order_status) &&
+          data.created_at &&
+          (Date.now() - new Date(data.created_at).getTime()) <= 3 * 60 * 60 * 1000;
+        const canDeleteCustomerOrder = ['cancelled', 'returned'].includes(data.order_status);
         const statusMap = {
           pending: currentLang === 'en' ? 'Pending' : 'অপেক্ষমাণ',
           pending_verification: currentLang === 'en' ? 'Pending verification' : 'যাচাইাধীন',
@@ -4221,6 +4288,25 @@
               <div class="text-sm text-slate-700">${currentLang === 'en' ? 'Items' : 'পণ্য'}:<ul class="list-disc pl-5 mt-1">${itemsHtml}</ul></div>
               <div class="text-base font-black text-violet-900">${currentLang === 'en' ? 'Total' : 'সর্বমোট'}: ৳${formatNum(data.total_amount || 0)}</div>
               <div class="text-xs text-slate-500">${data.created_at ? new Date(data.created_at).toLocaleString(currentLang === 'en' ? 'en-GB' : 'bn-BD') : ''}</div>
+              ${canCancelCustomerOrder ? `
+                <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                  <p class="text-sm font-bold text-amber-900">অর্ডার দেওয়ার ৩ ঘণ্টার মধ্যে, Confirm হওয়ার আগে আপনি নিজেই অর্ডার বাতিল করতে পারবেন।</p>
+                  <button type="button" onclick="openCustomerCancelBox()" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-bold text-white">অর্ডার ক্যানসেল করুন</button>
+                  <div id="customerCancelBox" class="hidden space-y-2">
+                    <label for="customerCancelReason" class="block text-sm font-bold">ক্যানসেলের কারণ নির্বাচন করুন *</label>
+                    <select id="customerCancelReason" class="w-full rounded-lg border border-slate-300 p-2 text-sm">
+                      <option value="">কারণ নির্বাচন করুন</option>
+                      <option value="no_longer_needed">এখন আর প্রয়োজন নেই</option>
+                      <option value="not_liked">পণ্যটি পছন্দ হয়নি</option>
+                      <option value="ordered_by_mistake">ভুল করে অর্ডার করেছি</option>
+                      <option value="bought_elsewhere">অন্য জায়গা থেকে কিনেছি</option>
+                      <option value="other">অন্যান্য</option>
+                    </select>
+                    <textarea id="customerCancelNote" rows="2" maxlength="350" placeholder="প্রয়োজনে অতিরিক্ত কারণ লিখুন..." class="w-full rounded-lg border border-slate-300 p-2 text-sm"></textarea>
+                    <button type="button" onclick="submitCustomerOrderCancellation()" class="rounded-lg bg-rose-700 px-4 py-2 text-sm font-bold text-white">কারণসহ অর্ডার বাতিল করুন</button>
+                  </div>
+                </div>` : ''}
+              ${canDeleteCustomerOrder ? `<button type="button" onclick="deleteCustomerArchivedOrder()" class="rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-bold text-rose-700">🗑️ অর্ডার ডিলিট করুন</button>` : ''}
             </div>`;
         }
       } catch (lookupError) {
