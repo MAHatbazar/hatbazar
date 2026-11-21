@@ -4165,7 +4165,8 @@
           processing: currentLang === 'en' ? 'Processing' : 'প্রসেসিং',
           shipped: currentLang === 'en' ? 'Shipped' : 'কুরিয়ারে পাঠানো হয়েছে',
           delivered: currentLang === 'en' ? 'Delivered' : 'ডেলিভারি সম্পন্ন',
-          cancelled: currentLang === 'en' ? 'Cancelled' : 'বাতিল'
+          cancelled: currentLang === 'en' ? 'Cancelled' : 'বাতিল',
+          returned: currentLang === 'en' ? 'Returned' : 'রিটার্ন সম্পন্ন'
         };
         const items = Array.isArray(data.items) ? data.items : [];
         const itemsHtml = items.map(item =>
