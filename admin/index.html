@@ -86,6 +86,7 @@ button:disabled{opacity:.5}
 
 .language-toggle{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border-radius:9px;background:#fff;color:#173f35;border:1px solid #cbd9d2;font-weight:700}
 .language-toggle:hover{background:#eef6f1}
+body.sub-admin #basePriceField,body.sub-admin .base-price-column,body.sub-admin [data-super-admin-only]{display:none!important}
 
 </style>
 </head>
@@ -122,7 +123,8 @@ button:disabled{opacity:.5}
 <button type="button" class="tile" data-section="sellers" onclick="setAdminSection('sellers')"><h3>👥 Sellers</h3><p>Seller ব্যবস্থাপনা</p></button>
 <button type="button" class="tile" data-section="resellers" onclick="setAdminSection('resellers')"><h3>🤝 Resellers</h3><p>Reseller ব্যবস্থাপনা</p></button>
 <button type="button" class="tile" data-section="reports" onclick="setAdminSection('reports')"><h3>📊 Reports</h3><p>বিক্রয় ও রিপোর্ট</p></button>
-<button type="button" class="tile" data-section="settings" onclick="setAdminSection('settings')"><h3>⚙️ Settings</h3><p>ওয়েবসাইট সেটিংস</p></button>
+<button type="button" class="tile" data-section="settings" data-super-admin-only onclick="setAdminSection('settings')"><h3>⚙️ Settings</h3><p>ওয়েবসাইট সেটিংস</p></button>
+<button type="button" class="tile" data-section="staff" data-super-admin-only onclick="setAdminSection('staff')"><h3>🛡️ Sub Admins</h3><p>সাব-অ্যাডমিন নিয়ন্ত্রণ</p></button>
 </div>
 
 <div id="section-products" class="card section admin-section">
@@ -189,7 +191,7 @@ button:disabled{opacity:.5}
 <div><label>BBazar Product Link (Supplier URL)</label><input id="bbazarSourceUrl" type="url" placeholder="https://bbazar.com.bd/product/..."><small class="hint">এই লিংকটি সংরক্ষণ হবে, যাতে অর্ডার এলে আবার খুঁজতে না হয়।</small></div>
 <div><label>Selling Price (৳) *</label><input id="price" type="number" min="0" step="0.01" required></div>
 <div><label>Original Price / কাটা দাম (৳)</label><input id="original_price" type="number" min="0" step="0.01" placeholder="ঐচ্ছিক"></div>
-<div><label>Base Price (৳) · Reseller ক্রয়মূল্য</label><input id="base_price" type="number" min="0" step="0.01"></div>
+<div id="basePriceField" data-super-admin-only><label>Base Price (৳) · Reseller ক্রয়মূল্য</label><input id="base_price" type="number" min="0" step="0.01"></div>
 <div><label>Stock Quantity *</label><input id="stock" type="number" min="0" step="1" value="100" required></div>
 </div>
 
@@ -300,7 +302,7 @@ Save করার পর Facebook Marketplace Listing প্রস্তুত �
 <span>English Name *</span>
 <span>বাংলা নাম</span>
 <span>Selling ৳ *</span>
-<span>Base ৳</span>
+<span class="base-price-column">Base ৳</span>
 <span>Stock *</span>
 <span>Description</span>
 <span>Category</span>
@@ -339,7 +341,7 @@ Save করার পর প্রতিটি Product-এর Facebook Marketpla
 
 <div id="section-orders" class="card section admin-section hidden">
   <div class="top"><div><h2>🛒 Orders Management</h2><p>গ্রাহকের অর্ডার, পেমেন্ট ও ডেলিভারি স্ট্যাটাস দেখুন এবং আপডেট করুন।</p></div><button type="button" class="secondary" onclick="loadOrders()">Refresh</button></div>
-  <div class="actions" style="margin:12px 0"><button type="button" onclick="toggleArchivedOrders(false)">চলমান অর্ডার</button><button type="button" class="secondary" onclick="toggleArchivedOrders(true)">বাতিল / রিটার্ন অর্ডার</button><button type="button" class="secondary" onclick="toggleDatabaseDelete(true)">Database Order Delete</button></div><div id="ordersSummary" class="category-count">অর্ডার লোড হচ্ছে...</div><div id="ordersList">লোড হচ্ছে...</div>
+  <div class="actions" style="margin:12px 0"><button type="button" onclick="toggleArchivedOrders(false)">চলমান অর্ডার</button><button type="button" class="secondary" onclick="toggleArchivedOrders(true)">বাতিল / রিটার্ন অর্ডার</button><button id="ordersDeleteToggle" type="button" class="secondary" data-super-admin-only onclick="toggleDatabaseDelete(true)">Database Order Delete</button></div><div id="ordersSummary" class="category-count">অর্ডার লোড হচ্ছে...</div><div id="ordersList">লোড হচ্ছে...</div>
 </div>
 <div id="section-sellers" class="card section admin-section hidden">
   <div class="top"><div><h2>👥 Sellers Management</h2><p>Seller আবেদন, যোগাযোগ ও অনুমোদনের অবস্থা পরিচালনা করুন।</p></div><button type="button" class="secondary" onclick="loadSellers()">Refresh</button></div>
@@ -348,7 +350,7 @@ Save করার পর প্রতিটি Product-এর Facebook Marketpla
 <div id="section-resellers" class="card section admin-section hidden">
   <div class="top"><div><h2>🤝 Resellers Management</h2><p>Reseller প্রোফাইল, বিক্রয় ও পেআউট অনুরোধ দেখুন।</p></div><button type="button" class="secondary" onclick="loadResellers()">Refresh</button></div>
   <div id="resellersSummary" class="category-count">Reseller লোড হচ্ছে...</div><div id="resellersList">লোড হচ্ছে...</div>
-  <h3>পেআউট অনুরোধ</h3><div id="payoutList">লোড হচ্ছে...</div>
+  <div id="payoutAdminOnly" data-super-admin-only><h3>পেআউট অনুরোধ</h3><div id="payoutList">লোড হচ্ছে...</div></div>
 </div>
 <div id="section-reports" class="card section admin-section hidden">
   <div class="top"><div><h2>📊 Reports</h2><p>বর্তমান ডেটাবেসের পণ্য, অর্ডার ও বিক্রয় সারাংশ।</p></div><button type="button" class="secondary" onclick="loadReports()">Refresh</button></div>
@@ -364,6 +366,22 @@ Save করার পর প্রতিটি Product-এর Facebook Marketpla
    <div><label>ঢাকার বাইরে ডেলিভারি সময়</label><input id="outsideEta" maxlength="80" required></div>
   </div><button id="saveSettingsBtn" type="submit">Save Settings</button></form>
   <p class="hint">সেটিংস সংরক্ষণের আগে মানগুলো ভালোভাবে যাচাই করুন।</p>
+
+<div id="section-staff" class="card section admin-section hidden">
+ <div class="top"><div><h2>🛡️ Sub Admin Management</h2><p>শুধু মূল অ্যাডমিন সাব-অ্যাডমিন আমন্ত্রণ, বন্ধ বা পুনরায় চালু করতে পারবেন।</p></div><button type="button" class="secondary" onclick="loadSubAdmins()">Refresh</button></div>
+ <div class="upload-box">
+  <form id="subAdminInviteForm">
+   <div class="formgrid">
+    <div><label>সাব-অ্যাডমিনের নাম</label><input id="subAdminName" maxlength="100" required placeholder="নাম লিখুন"></div>
+    <div><label>Email Address</label><input id="subAdminEmail" type="email" maxlength="254" required placeholder="name@example.com"></div>
+   </div>
+   <button id="subAdminInviteBtn" type="submit">ইমেইলে নিরাপদ Invite পাঠান</button>
+  </form>
+  <p class="hint">কোনো পাসওয়ার্ড আপনাকে দিতে হবে না। আমন্ত্রণ পাওয়া ব্যক্তি নিজের ইমেইল থেকে অ্যাকাউন্ট সেট করবেন।</p>
+  <div id="subAdminStatus" class="hint" aria-live="polite"></div>
+ </div>
+ <h3>সাব-অ্যাডমিন তালিকা</h3><div id="subAdminsList">তালিকা লোড হচ্ছে...</div>
+</div>
 </div>
 </section>
 </main>
@@ -389,6 +407,7 @@ const BUCKET='product-images';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 
+let currentAdminRole=null;
 let editingProduct=null;
 let categories=[];
 let bulkCount=0;
@@ -1081,10 +1100,11 @@ function showExistingGallery(urls){
 
 
 function setAdminSection(name){
+ if(currentAdminRole==='sub_admin'&&['settings','staff'].includes(name))name='products';
  document.querySelectorAll('.admin-section').forEach(el=>el.classList.add('hidden'));
  const panel=$('section-'+name);if(panel)panel.classList.remove('hidden');
  document.querySelectorAll('.admin-nav [data-section]').forEach(btn=>btn.classList.toggle('active',btn.dataset.section===name));
- if(name==='orders')loadOrders();if(name==='sellers')loadSellers();if(name==='resellers')loadResellers();if(name==='reports')loadReports();if(name==='settings')loadSettings();
+ if(name==='orders')loadOrders();if(name==='sellers')loadSellers();if(name==='resellers')loadResellers();if(name==='reports')loadReports();if(name==='settings'&&currentAdminRole==='admin')loadSettings();if(name==='staff'&&currentAdminRole==='admin')loadSubAdmins();
 }
 function isBBazarSupplierUrl(raw){try{const u=new URL(raw);return u.protocol==='https:'&&(u.hostname==='bbazar.com.bd'||u.hostname.endsWith('.bbazar.com.bd'));}catch{return false;}}
 function renderRows(target,rows,emptyText){$(target).innerHTML=rows.length?rows.join(''):'<p class="hint">'+escapeHTML(emptyText)+'</p>';}
@@ -1101,7 +1121,7 @@ async function loadOrders(){
  const itemResult=rows.length?await db.from('order_items').select('order_id,product_id,product_name,quantity,unit_price').in('order_id',rows.map(x=>x.id)): {data:[],error:null};
  if(itemResult.error){$('ordersList').textContent='অর্ডারের পণ্যতালিকা লোড হয়নি: '+itemResult.error.message;return;}
  const items=itemResult.data||[],productIds=[...new Set(items.map(x=>x.product_id).filter(Boolean))];
- const productResult=productIds.length?await db.from('products').select('id,name,base_price').in('id',productIds):{data:[],error:null};
+ const productResult=productIds.length?await db.from('products').select('id,name').in('id',productIds):{data:[],error:null};
  if(productResult.error){$('ordersList').textContent='পণ্যের তথ্য লোড হয়নি: '+productResult.error.message;return;}
  const sourceResult=productIds.length?await db.from('product_supplier_sources').select('product_id,source_url').eq('supplier_key','bbazar').in('product_id',productIds):{data:[],error:null};
  if(sourceResult.error){$('ordersList').textContent='BBazar লিংক লোড হয়নি: '+sourceResult.error.message;return;}
@@ -1196,6 +1216,7 @@ async function loadResellers(){
  if(ids.length){const r=await db.from('profiles').select('id,full_name,phone,address').in('id',ids);if(r.error){$('resellersList').textContent='যোগাযোগের তথ্য লোড হয়নি: '+r.error.message;return;}profiles=r.data||[];}
  const byId=Object.fromEntries(profiles.map(p=>[p.id,p]));$('resellersSummary').textContent='মোট '+rows.length+'টি Reseller প্রোফাইল।';
  renderRows('resellersList',rows.map(x=>{const p=byId[x.id]||{};return `<div class="product"><div class="product-info"><strong>${escapeHTML(x.shop_name||p.full_name||'নাম নেই')}</strong><small>নাম: ${escapeHTML(p.full_name||'—')} · ফোন: ${escapeHTML(p.phone||'—')}<br>জেলা: ${escapeHTML(x.district||'—')}<br>ঠিকানা: ${escapeHTML(p.address||'—')}<br>নোট: ${escapeHTML(x.notes||'—')}</small><label>Approval Status</label><select onchange="updateMemberStatus('reseller_profiles','${x.id}',this.value)">${['pending','approved','rejected','suspended'].map(v=>'<option value="'+v+'" '+(x.status===v?'selected':'')+'>'+v+'</option>').join('')}</select></div></div>`;}),'এখনো কোনো Reseller আবেদন/প্রোফাইল নেই।');
+ if(currentAdminRole!=='admin')return;
  const payouts=await db.from('reseller_payout_requests').select('id,reseller_id,payout_method,payout_account,amount,status,admin_note,created_at').order('created_at',{ascending:false}).limit(100);
  if(payouts.error){$('payoutList').textContent='পেআউট লোড হয়নি: '+payouts.error.message;return;}
  renderRows('payoutList',(payouts.data||[]).map(x=>`<div class="product"><div class="product-info"><strong>৳${Number(x.amount).toLocaleString('en-US')} · ${escapeHTML(x.status)}</strong><small>Reseller ID: ${escapeHTML(x.reseller_id)}<br>মাধ্যম: ${escapeHTML(x.payout_method)} · অ্যাকাউন্ট: ${escapeHTML(x.payout_account)}<br>নোট: ${escapeHTML(x.admin_note||'—')}</small></div></div>`),'এখনো কোনো পেআউট অনুরোধ নেই।');
@@ -1233,6 +1254,49 @@ $('settingsForm').addEventListener('submit',async e=>{
  finally{btn.disabled=false;btn.textContent='Save Settings';}
 });
 
+
+async function subAdminRequest(action,payload={}){
+ const {data,error}=await db.auth.getSession();
+ const token=data?.session?.access_token;
+ if(error||!token)throw new Error('Admin Login session পাওয়া যায়নি।');
+ const response=await fetch(SUPABASE_URL+'/functions/v1/hatbazar-admin-users',{
+  method:'POST',
+  headers:{'Authorization':'Bearer '+token,'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+  body:JSON.stringify({action,...payload})
+ });
+ const result=await response.json().catch(()=>({error:'Server response পড়া যায়নি।'}));
+ if(!response.ok)throw new Error(result.error||'অনুরোধটি সম্পন্ন হয়নি।');
+ return result;
+}
+async function loadSubAdmins(){
+ $('subAdminsList').textContent='সাব-অ্যাডমিন তালিকা লোড হচ্ছে...';
+ try{
+  const result=await subAdminRequest('list');
+  const rows=result.users||[];
+  renderRows('subAdminsList',rows.map(user=>{
+   const disabled=!!user.banned_until&&new Date(user.banned_until)>new Date();
+   const safeEmail=String(user.email||'').replace(/\\\\/g,'\\\\\\\\').replace(/'/g,"\\\\'");
+   return '<div class="product"><div class="product-info"><strong>'+escapeHTML(user.full_name||user.email||'নাম নেই')+'</strong><small>'+escapeHTML(user.email||'')+'<br>অবস্থা: '+(disabled?'বন্ধ':'সক্রিয়')+'<br>তৈরি: '+(user.created_at?new Date(user.created_at).toLocaleString('bn-BD'):'—')+'</small></div><div class="actions">'+(disabled?'<button type="button" onclick="setSubAdminAccess(\\''+escapeHTML(safeEmail)+'\\',true)">চালু করুন</button>':'<button type="button" class="danger" onclick="setSubAdminAccess(\\''+escapeHTML(safeEmail)+'\\',false)">সাময়িক বন্ধ করুন</button>')+'</div></div>';
+  }),'এখনো কোনো সাব-অ্যাডমিন নেই।');
+ }catch(error){$('subAdminsList').textContent='তালিকা লোড হয়নি: '+error.message;}
+}
+async function setSubAdminAccess(email,enabled){
+ if(!confirm((enabled?'এই সাব-অ্যাডমিনের লগইন আবার চালু':'এই সাব-অ্যাডমিনের লগইন বন্ধ')+' করতে চান?'))return;
+ try{await subAdminRequest(enabled?'enable':'disable',{email});$('subAdminStatus').textContent='সাব-অ্যাডমিন অ্যাক্সেস আপডেট হয়েছে।';await loadSubAdmins();}
+ catch(error){$('subAdminStatus').textContent='আপডেট হয়নি: '+error.message;}
+}
+$('subAdminInviteForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const btn=$('subAdminInviteBtn');btn.disabled=true;btn.textContent='Invite পাঠানো হচ্ছে...';
+ $('subAdminStatus').textContent='';
+ try{
+  const result=await subAdminRequest('invite',{email:$('subAdminEmail').value.trim(),full_name:$('subAdminName').value.trim()});
+  $('subAdminStatus').textContent=result.message||'Invite পাঠানো হয়েছে।';
+  $('subAdminInviteForm').reset();await loadSubAdmins();
+ }catch(error){$('subAdminStatus').textContent='Invite পাঠানো যায়নি: '+error.message;}
+ finally{btn.disabled=false;btn.textContent='ইমেইলে নিরাপদ Invite পাঠান';}
+});
+
 async function verifyAdmin(user){
  if(!user)return false;
 
@@ -1241,18 +1305,20 @@ async function verifyAdmin(user){
   .eq('id',user.id)
   .maybeSingle();
 
- if(error||!data||data.role!=='admin'){
+ if(error||!data||!['admin','sub_admin'].includes(data.role)){
   await db.auth.signOut();
   return false;
  }
-
- $('adminEmail').textContent=user.email||'';
+ currentAdminRole=data.role;
+ document.body.classList.toggle('sub-admin',currentAdminRole==='sub_admin');
+ document.querySelectorAll('[data-super-admin-only]').forEach(el=>el.classList.toggle('hidden',currentAdminRole!=='admin'));
+ $('adminEmail').textContent=(user.email||'')+(currentAdminRole==='sub_admin'?' · Sub Admin':' · Super Admin');
  $('loginPanel').classList.add('hidden');
  $('dashboard').classList.remove('hidden');
 
  await loadCategories();
  await loadProducts();
- await refreshFacebookStatus();
+ if(currentAdminRole==='admin')await refreshFacebookStatus();
  const fbResult=new URLSearchParams(location.search).get('facebook');
  if(fbResult){
   const messages={connected:'Facebook Page সফলভাবে সংযুক্ত হয়েছে।',cancelled:'Facebook সংযোগ বাতিল করা হয়েছে।',state_error:'নিরাপত্তা যাচাই ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',token_error:'Facebook Token পাওয়া যায়নি।',page_access_error:'এই Facebook Page-এ প্রয়োজনীয় অনুমতি পাওয়া যায়নি।',save_error:'Page সংযোগ সংরক্ষণ করা যায়নি।',server_config_error:'Supabase Secret কনফিগার করা নেই।'};
@@ -1498,7 +1564,7 @@ async function loadProducts(){
  $('stockInventoryList').textContent='Stock লোড হচ্ছে...';
 
  const {data,error}=await db.from('products')
-  .select('id,name,name_bn,description,price,base_price,stock,image_url,is_active,category_id,created_at')
+  .select('id,name,name_bn,description,price,stock,image_url,is_active,category_id,created_at')
   .order('created_at',{ascending:false});
 
  if(error){
@@ -1515,6 +1581,12 @@ async function loadProducts(){
   return;
  }
 
+ if(currentAdminRole==='admin'){
+  const {data:baseRows,error:baseError}=await db.rpc('hatbazar_admin_product_base_prices');
+  if(baseError)throw new Error('Base Price লোড হয়নি: '+baseError.message);
+  const baseMap=Object.fromEntries((baseRows||[]).map(x=>[x.product_id,Number(x.base_price)||0]));
+  data.forEach(p=>p.base_price=baseMap[p.id]??null);
+ }
  const totalStock=data.reduce((sum,p)=>sum+(Number(p.stock)||0),0);
  const lowStock=data.filter(p=>(Number(p.stock)||0)<=5).length;
  $('stockInventorySummary').textContent='মোট '+data.length+'টি Product · মোট Stock '+totalStock+' ইউনিট · Low/Out of Stock '+lowStock+'টি';
@@ -1602,7 +1674,7 @@ async function editProduct(id){
  showStatus('Product তথ্য লোড হচ্ছে...');
 
  const {data,error}=await db.from('products')
-  .select('*')
+  .select('id,seller_id,category_id,name,name_bn,description,description_en,description_bn,attributes,sizes,price,original_price,stock,image_url,is_active,created_at')
   .eq('id',id)
   .single();
 
@@ -1611,6 +1683,11 @@ async function editProduct(id){
   return;
  }
 
+ if(currentAdminRole==='admin'){
+  const {data:baseRows,error:baseError}=await db.rpc('hatbazar_admin_product_base_prices');
+  if(baseError)throw new Error('Base Price লোড হয়নি: '+baseError.message);
+  data.base_price=(baseRows||[]).find(x=>x.product_id===id)?.base_price??null;
+ }
  editingProduct=data; const sourceLookup=await db.from('product_supplier_sources').select('source_url').eq('product_id',id).eq('supplier_key','bbazar').maybeSingle(); $('bbazarSourceUrl').value=sourceLookup.data?.source_url||''; $('productForm').dataset.aiJobId=''; aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''}; $('aiGeneratedDetails').textContent='সংরক্ষিত AI তথ্য লোড হয়েছে।';
  $('aiSizesPanel').innerHTML=aiProductMeta.sizes.length?'<strong>Size অপশন (প্রয়োজনমতো পরিবর্তন করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>':'এই পণ্যে Size অপশন সংরক্ষিত নেই।'; $('name').value=data.name||'';
  $('name_bn').value=data.name_bn||'';
@@ -1722,7 +1799,6 @@ $('productForm').addEventListener('submit',async e=>{
    category_id:$('category_id').value||null,
    price:Number($('price').value),
    original_price:$('original_price').value===''?null:Number($('original_price').value),
-   base_price:$('base_price').value===''?null:Number($('base_price').value),
    stock:$('stock').value===''?100:Math.max(0,Math.floor(Number($('stock').value))),
    is_active:$('is_active').checked
   };
@@ -1758,6 +1834,11 @@ $('productForm').addEventListener('submit',async e=>{
    productId=data.id;
 
    if(files.length)await saveProductGallery(productId,imageUrls);
+  }
+
+  if(currentAdminRole==='admin'){
+   const {error:baseError}=await db.rpc('hatbazar_admin_set_product_base_price',{p_product_id:productId,p_base_price:$('base_price').value===''?null:Number($('base_price').value)});
+   if(baseError)throw new Error('Base Price সংরক্ষণ হয়নি: '+baseError.message);
   }
 
   const supplierUrl=$('bbazarSourceUrl').value.trim();
@@ -1866,7 +1947,7 @@ function addBulkRow(v={}){
 
   <input data-field="original_price" type="number" min="0" step="0.01" placeholder="Original / MRP" value="${escapeHTML(v.original_price??'')}">
 
-  <input data-field="base_price" type="number" min="0" step="0.01" placeholder="Base" value="${escapeHTML(v.base_price??'')}">
+  <input class="base-price-column" data-field="base_price" type="number" min="0" step="0.01" placeholder="Base" value="${escapeHTML(v.base_price??'')}">
 
   <input data-field="stock" type="number" min="0" step="1" placeholder="Stock" value="${escapeHTML(v.stock??100)}">
 
@@ -2597,7 +2678,6 @@ async function saveBulkProducts(){
     name_bn:product.name_bn,
     price:product.price,
     original_price:product.original_price,
-    base_price:product.base_price,
     stock:product.stock,
     description:product.description,
     description_en:product._aiMeta?.description_en||null,
@@ -2618,6 +2698,10 @@ async function saveBulkProducts(){
 
    if(error)throw new Error('Product '+(i+1)+': '+error.message);
 
+   if(currentAdminRole==='admin'){
+    const {error:baseError}=await db.rpc('hatbazar_admin_set_product_base_price',{p_product_id:data.id,p_base_price:product.base_price===''||product.base_price==null?null:Number(product.base_price)});
+    if(baseError)throw new Error('Product '+(i+1)+' এর Base Price সংরক্ষণ হয়নি: '+baseError.message);
+   }
    if(imageUrls.length){
     await saveProductGallery(data.id,imageUrls);
    }
