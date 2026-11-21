@@ -3145,7 +3145,6 @@
           description: String(itemObj.desc || ''),
           price: Number(itemObj.finalPrice ?? itemObj.price) || 0,
           original_price: Number(itemObj.originalPrice ?? itemObj.original_price) > 0 ? Number(itemObj.originalPrice ?? itemObj.original_price) : null,
-          base_price: Number(itemObj.basePrice) > 0 ? Number(itemObj.basePrice) : null,
           stock: Number.isFinite(Number(itemObj.stock)) ? Math.max(0, Math.floor(Number(itemObj.stock))) : 0,
           image_url: itemObj.image && !String(itemObj.image).startsWith('data:')
             ? String(itemObj.image) : null,
@@ -3157,6 +3156,16 @@
         if (error) {
           console.error('Hatbazar product upsert failed:', error.message);
           return false;
+        }
+        if (isAdminSession()) {
+          const { error: basePriceError } = await supabaseClient.rpc('hatbazar_admin_set_product_base_price', {
+            p_product_id: itemObj.id,
+            p_base_price: Number(itemObj.basePrice) > 0 ? Number(itemObj.basePrice) : null
+          });
+          if (basePriceError) {
+            console.error('Hatbazar base price save failed:', basePriceError.message);
+            return false;
+          }
         }
 
         // Admin-managed product gallery rows are stored separately from the cover image.
