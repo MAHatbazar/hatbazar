@@ -132,6 +132,11 @@ button:disabled{opacity:.5}
 </div>
 
 <div id="categoryCount" class="category-count">Category লোড হচ্ছে...</div>
+<div class="upload-box" id="localSamsungRecovery">
+ <div class="top"><strong>📦 এই ব্রাউজারে Local Save হওয়া Samsung পণ্য উদ্ধার</strong><button type="button" class="secondary" onclick="scanLocalSamsungProducts()">Scan Local Samsung</button></div>
+ <p class="hint">যে কম্পিউটার/ব্রাউজারে Samsung পণ্যটি আগে দেখা যেত, সেই একই ব্রাউজার থেকে Admin খুলে Scan করুন। পাওয়া গেলে পণ্যটি বর্তমান Supabase-এ Sync হবে, ফলে সব ডিভাইসে দেখা যাবে। শুধু Samsung নামে থাকা Local পণ্যই নেওয়া হবে।</p>
+ <div id="localSamsungRecoveryResult" class="hint" aria-live="polite">এখনো Scan করা হয়নি।</div>
+</div>
 <div class="upload-box">
  <div class="top"><strong>📘 Facebook Page সংযোগ</strong><button id="facebookConnectBtn" type="button" class="secondary">Facebook Page Connect</button></div>
  <p id="facebookConnectionStatus" class="hint">Facebook Page সংযোগের অবস্থা যাচাই হচ্ছে...</p>
@@ -1115,6 +1120,153 @@ $('logoutBtn').addEventListener('click',async()=>{
  $('loginPanel').classList.remove('hidden');
 });
 
+function readLocalSamsungProducts(){
+ try{
+  const raw=localStorage.getItem('hatbazar_categories_v4');
+  if(!raw)return [];
+  const savedCategories=JSON.parse(raw);
+  if(!Array.isArray(savedCategories))return [];
+  const matches=[];
+  savedCategories.forEach(cat=>{
+   (Array.isArray(cat.items)?cat.items:[]).forEach(item=>{
+    const label=[item.title,item.titleEn,item.name,item.name_bn,item.desc].filter(Boolean).join(' ');
+    if(/samsung/i.test(label)&&!String(item.id||'').endsWith('-item-1')){
+     matches.push({sourceCategory:cat,item});
+    }
+   });
+  });
+  return matches;
+ }catch(error){
+  console.warn('Local Samsung recovery scan failed:',error);
+  return [];
+ }
+}
+function localSamsungTargetCategory(sourceCategory,item){
+ const label=[sourceCategory?.name,sourceCategory?.nameEn,sourceCategory?.itemName].filter(Boolean).join(' ').toLowerCase();
+ const productName=[item?.title,item?.titleEn,item?.name].filter(Boolean).join(' ').toLowerCase();
+ if(/smartphone|mobile phone|cell phone|samsung phone|phone/i.test(productName)){
+  return categories.find(c=>String(c.name||'').toLowerCase()==='smart gadgets')||
+   categories.find(c=>String(c.name||'').toLowerCase()==='electronics and appliances')||null;
+ }
+ const idMap={
+  'cat-05':'a60d47a1-b38f-473c-aa1a-19461d0b3ea9',
+  'cat-17':'2c554d10-3a75-4c65-8efd-ae231d9fb3cf',
+  'cat-18':'7149d889-f11a-473a-aaf5-9d2dfd912c12'
+ };
+ const mappedId=idMap[sourceCategory?.id];
+ if(mappedId)return categories.find(c=>c.id===mappedId)||null;
+ const exact=categories.find(c=>
+  normalizeCategory(c.name)===normalizeCategory(sourceCategory?.nameEn||sourceCategory?.name)||
+  normalizeCategory(c.name_bn)===normalizeCategory(sourceCategory?.name)
+ );
+ if(exact)return exact;
+ if(/mobile|gadget|phone|electronics/i.test(label)){
+  return categories.find(c=>String(c.name||'').toLowerCase()==='smart gadgets')||null;
+ }
+ return null;
+}
+function collectLocalProductImages(item){
+ const found=[];
+ const add=value=>{
+  if(!value)return;
+  if(Array.isArray(value)){value.forEach(add);return;}
+  if(typeof value!=='string')return;
+  const trimmed=value.trim();
+  if(!trimmed)return;
+  if(trimmed.startsWith('[')){
+   try{add(JSON.parse(trimmed));return;}catch(_){}
+  }
+  if(/^https?:\/\//i.test(trimmed)||/^data:image\//i.test(trimmed)){
+   if(!found.includes(trimmed))found.push(trimmed);
+  }
+ };
+ add(item.image);add(item.gallery);add(item.image_url);add(item.images);
+ return found.slice(0,10);
+}
+async function uploadLocalRecoveryImage(value,productId,index){
+ if(!String(value).startsWith('data:image/'))return value;
+ const response=await fetch(value);
+ if(!response.ok)throw new Error('Local image read failed');
+ const blob=await response.blob();
+ const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg').replace(/[^a-z0-9]/gi,'')||'jpg';
+ const path='local-recovery/'+productId+'/'+index+'.'+ext;
+ const {error}=await db.storage.from(BUCKET).upload(path,blob,{upsert:true,contentType:blob.type||'image/jpeg'});
+ if(error)throw error;
+ return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+async function scanLocalSamsungProducts(){
+ const output=$('localSamsungRecoveryResult');
+ output.textContent='এই ব্রাউজারের Local Storage পরীক্ষা করা হচ্ছে...';
+ const matches=readLocalSamsungProducts();
+ if(!matches.length){
+  output.innerHTML='<strong>এই ব্রাউজারে Samsung পণ্য পাওয়া যায়নি।</strong><br>যে কম্পিউটার/ব্রাউজারে Samsung পণ্যটি দেখা যেত, ঠিক সেই ব্রাউজারেই Hatbazar খুলে Admin Login করে আবার Scan করুন। অন্য ডিভাইসের Local Storage এখান থেকে পড়া যায় না।';
+  return;
+ }
+ output.innerHTML='<strong>'+matches.length+'টি Samsung পণ্য পাওয়া গেছে।</strong>'+
+  matches.map((entry,index)=>{
+   const item=entry.item,cat=localSamsungTargetCategory(entry.sourceCategory,item);
+   return '<div class="product" style="margin-top:10px"><div class="product-info"><strong>'+escapeHTML(item.title||item.titleEn||'Samsung Product')+'</strong><small>লোকাল ক্যাটাগরি: '+escapeHTML(entry.sourceCategory.name||entry.sourceCategory.nameEn||'—')+'<br>Cloud ক্যাটাগরি: '+escapeHTML(cat?.name_bn||cat?.name||'ম্যাপ পাওয়া যায়নি')+'<br>দাম: ৳'+Number(item.finalPrice??item.price??0).toLocaleString('en-US')+' · ছবি: '+collectLocalProductImages(item).length+'</small></div></div>';
+  }).join('')+
+  '<div class="actions" style="margin-top:12px"><button type="button" id="importLocalSamsungBtn" onclick="importLocalSamsungProducts()">Samsung পণ্য Cloud-এ Sync করুন</button></div>';
+}
+async function importLocalSamsungProducts(){
+ const button=$('importLocalSamsungBtn'),output=$('localSamsungRecoveryResult');
+ if(button)button.disabled=true;
+ const matches=readLocalSamsungProducts();
+ if(!matches.length){output.textContent='এই ব্রাউজারে Samsung পণ্য পাওয়া যায়নি।';return;}
+ let saved=0,failed=0,details=[];
+ for(const entry of matches){
+  const item=entry.item;
+  try{
+   const name=String(item.titleEn||item.name||item.title||'').trim();
+   const nameBn=String(item.title||item.name_bn||name).trim();
+   const price=Number(item.finalPrice??item.price);
+   const category=localSamsungTargetCategory(entry.sourceCategory,item);
+   if(!name||!Number.isFinite(price)||price<=0||!category)throw new Error('নাম/দাম/সঠিক ক্যাটাগরি পাওয়া যায়নি');
+   const productId=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(item.id||''))?String(item.id):crypto.randomUUID();
+   const rawImages=collectLocalProductImages(item);
+   const imageUrls=[];
+   for(let i=0;i<rawImages.length;i++)imageUrls.push(await uploadLocalRecoveryImage(rawImages[i],productId,i+1));
+   const payload={
+    id:productId,category_id:category.id,seller_id:null,name,name_bn:nameBn,
+    description:String(item.desc||item.description||''),
+    price,base_price:Number(item.basePrice)>0?Number(item.basePrice):null,
+    stock:Number.isFinite(Number(item.stock))?Math.max(0,Math.floor(Number(item.stock))):0,
+    image_url:imageUrls[0]||null,is_active:true
+   };
+   const {error}=await db.from('products').upsert(payload,{onConflict:'id'});
+   if(error)throw error;
+   const {error:deleteError}=await db.from('product_images').delete().eq('product_id',productId);
+   if(deleteError)throw deleteError;
+   if(imageUrls.length){
+    const rows=imageUrls.map((url,index)=>({product_id:productId,image_url:url,sort_order:index}));
+    const {error:imageError}=await db.from('product_images').insert(rows);
+    if(imageError)throw imageError;
+   }
+   item.id=productId;
+   item.image=imageUrls[0]||item.image||'';
+   item.gallery=imageUrls;
+   saved++;
+   details.push(nameBn+' ✓');
+  }catch(error){
+   failed++;
+   details.push(String(item.title||item.titleEn||'Samsung')+' ✕ '+(error.message||'Sync failed'));
+  }
+ }
+ try{
+  const localCategories=JSON.parse(localStorage.getItem('hatbazar_categories_v4')||'[]');
+  const idMap=new Map(matches.map(entry=>[entry.item,entry.item.id]));
+  localCategories.forEach(cat=>(cat.items||[]).forEach(item=>{
+   const found=matches.find(entry=>entry.item.title===item.title&&entry.item.titleEn===item.titleEn&&entry.item.id===item.id);
+   if(found)item.id=found.item.id;
+  }));
+  localStorage.setItem('hatbazar_categories_v4',JSON.stringify(localCategories));
+ }catch(_){}
+ output.innerHTML='<strong>Sync সম্পন্ন। সফল: '+saved+' · ব্যর্থ: '+failed+'</strong><br>'+details.map(escapeHTML).join('<br>')+
+  '<p class="hint">এখন Product List রিফ্রেশ করা হচ্ছে...</p>';
+ await loadProducts();
+ if(button)button.disabled=false;
+}
 async function loadCategories(){
 
  // এখানে Active/Inactive কোনো ফিল্টার নেই।
