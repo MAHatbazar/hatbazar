@@ -1122,16 +1122,14 @@ async function prepareBBazarOrder(orderId){
   if(productError)throw productError;if(sourceError)throw sourceError;
   const pm=Object.fromEntries((products||[]).map(x=>[x.id,x]));const sm=Object.fromEntries((sources||[]).map(x=>[x.product_id,x]));
   if(items.some(x=>!sm[x.product_id]?.source_url))throw new Error('এক বা একাধিক পণ্যের BBazar Link নেই। Product Edit করে Supplier URL সংরক্ষণ করুন।');
-  const supplierCost=items.reduce((sum,x)=>sum+(Number(pm[x.product_id]?.base_price)||0)*Number(x.quantity||1),0);
   const user=await db.auth.getUser();
-  const {error:saveError}=await db.from('supplier_order_submissions').upsert({order_id:order.id,supplier_key:'bbazar',status:'ready_to_submit',customer_collection_amount:Number(order.total_amount||0),supplier_cost_amount:supplierCost,approved_by:user.data.user?.id||null,approved_at:new Date().toISOString(),updated_at:new Date().toISOString(),admin_note:'অর্ডারের তথ্য কপি করা হয়েছে। BBazar Reseller App-এ ম্যানুয়ালি অর্ডার সাবমিট করতে হবে।'},{onConflict:'order_id,supplier_key'});
+  const {error:saveError}=await db.from('supplier_order_submissions').upsert({order_id:order.id,supplier_key:'bbazar',status:'ready_to_submit',customer_collection_amount:Number(order.total_amount||0),approved_by:user.data.user?.id||null,approved_at:new Date().toISOString(),updated_at:new Date().toISOString(),admin_note:'অর্ডারের তথ্য কপি করা হয়েছে। BBazar Reseller App-এ ম্যানুয়ালি অর্ডার সাবমিট করতে হবে।'},{onConflict:'order_id,supplier_key'});
   if(saveError)throw saveError;
   const lines=['BBazar Reseller Order','Hatbazar Order: '+(order.order_code||order.id),'Customer: '+(order.customer_name||''),'Phone: '+(order.phone||''),'Full Address: '+(order.address||''),'COD Amount to Collect: BDT '+Number(order.total_amount||0).toFixed(2),'','Products:'];
   items.forEach((x,i)=>{lines.push((i+1)+'. '+x.product_name+' | Qty: '+x.quantity+' | Supplier Link: '+sm[x.product_id].source_url);});
   const payload=lines.join('\n');
   if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(payload);else{const ta=document.createElement('textarea');ta.value=payload;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}
   alert('অর্ডারের তথ্য কপি হয়েছে। এখন BBazar Reseller App-এ পণ্য ও কাস্টমারের তথ্য ব্যবহার করে অর্ডারটি সম্পন্ন করুন।');
-  window.open(sm[items[0].product_id].source_url,'_blank','noopener');
   await loadOrders();
  }catch(err){alert('BBazar অর্ডার প্রস্তুত হয়নি: '+(err.message||err));}
 }
