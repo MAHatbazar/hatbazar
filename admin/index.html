@@ -83,6 +83,10 @@ button:disabled{opacity:.5}
  button{padding:11px 13px}
 }
 .image-preview-thumb{cursor:zoom-in;border:2px solid #d8e2dd!important}.image-preview-modal{position:fixed;inset:0;z-index:9999;background:#07130feF;display:none;align-items:center;justify-content:center;padding:16px}.image-preview-modal.open{display:flex}.image-preview-box{width:min(100%,620px);max-height:95vh;overflow:auto;background:#fff;border-radius:16px;padding:14px}.image-preview-box img{display:block;width:100%;max-height:68vh;object-fit:contain;background:#f3f6f5;border-radius:10px}.image-preview-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.image-preview-actions a{display:inline-block;text-decoration:none;padding:12px 16px;border-radius:9px;background:#173f35;color:white;font-weight:bold}.multi-preview img{cursor:zoom-in}
+
+.language-toggle{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border-radius:9px;background:#fff;color:#173f35;border:1px solid #cbd9d2;font-weight:700}
+.language-toggle:hover{background:#eef6f1}
+
 </style>
 </head>
 
@@ -90,7 +94,7 @@ button:disabled{opacity:.5}
 <main class="wrap">
 
 <section id="loginPanel" class="card login">
-<h1>Hatbazar Admin</h1>
+<div class="top"><h1>Hatbazar Admin</h1><button id="loginLanguageToggle" type="button" class="language-toggle" onclick="toggleAdminLanguage()">🌐 English</button></div>
 <p>শুধু অনুমোদিত অ্যাডমিন প্রবেশ করতে পারবেন।</p>
 <form id="loginForm">
 <label>Email Address</label>
@@ -109,7 +113,7 @@ button:disabled{opacity:.5}
 <div class="dashboard-title"><h1>Hatbazar Admin Dashboard</h1><a class="website-link" href="https://mahatbazar.github.io/hatbazar/" target="_blank" rel="noopener noreferrer">🌐 Visit Website</a></div>
 <p id="adminEmail"></p>
 </div>
-<button id="logoutBtn">Logout</button>
+<div class="actions"><button id="languageToggle" type="button" class="language-toggle" onclick="toggleAdminLanguage()">🌐 English</button><button id="logoutBtn">Logout</button></div>
 </div>
 
 <div class="grid admin-nav">
@@ -2567,6 +2571,120 @@ async function checkExistingSession(){
 }
 
 checkExistingSession();
+
+
+/* ADMIN INTERFACE LANGUAGE */
+const ADMIN_I18N = {
+"শুধু অনুমোদিত অ্যাডমিন প্রবেশ করতে পারবেন।":"Only authorized administrators can log in.",
+"পণ্য ব্যবস্থাপনা":"Product Management","অর্ডার ব্যবস্থাপনা":"Order Management","Seller ব্যবস্থাপনা":"Seller Management","Reseller ব্যবস্থাপনা":"Reseller Management","বিক্রয় ও রিপোর্ট":"Sales & Reports","ওয়েবসাইট সেটিংস":"Website Settings",
+"একটি পণ্য অথবা একসঙ্গে অনেক পণ্য যোগ ও পরিচালনা করুন।":"Add and manage one product or multiple products at once.",
+"Category লোড হচ্ছে...":"Loading categories...",
+"📦 এই ব্রাউজারে Local Save হওয়া Samsung পণ্য উদ্ধার":"📦 Recover Samsung Products Saved in This Browser",
+"যে কম্পিউটার/ব্রাউজারে Samsung পণ্যটি আগে দেখা যেত, সেই একই ব্রাউজার থেকে Admin খুলে Scan করুন। পাওয়া গেলে পণ্যটি বর্তমান Supabase-এ Sync হবে, ফলে সব ডিভাইসে দেখা যাবে। শুধু Samsung নামে থাকা Local পণ্যই নেওয়া হবে।":"Open Admin in the same computer and browser where the Samsung products were saved, then scan. Found products will sync to Supabase and become available on all devices. Only locally saved products with Samsung in the name will be included.",
+"এখনো Scan করা হয়নি।":"Not scanned yet.",
+"📘 Facebook Page সংযোগ":"📘 Facebook Page Connection","Facebook Page সংযোগের অবস্থা যাচাই হচ্ছে...":"Checking Facebook Page connection...",
+"এটি শুধু Facebook Page-এ পোস্ট করার সংযোগ। Marketplace প্রোফাইলের সংযোগ আলাদা।":"This connection is only for posting to a Facebook Page. Marketplace profile access is separate.",
+"আলাদা সুবিধা":"Separate feature",
+"নিচের বাটনে Facebook Marketplace খুলবে। Facebook-এ যে অ্যাকাউন্ট/প্রোফাইলে লগইন করা আছে, সেটিই সেখানে ব্যবহার হবে। Listing তৈরির সময় Facebook যে Seller Profile দেখাবে, সেখান থেকে নির্বাচন করুন।":"The buttons below open Facebook Marketplace using your currently logged-in Facebook account. Select the Seller Profile shown by Facebook when creating a listing.",
+"Marketplace খুলুন":"Open Marketplace","আমার Selling Listings":"My Selling Listings","নতুন Listing তৈরি করুন":"Create New Listing",
+"গুরুত্বপূর্ণ: ব্যক্তিগত Marketplace প্রোফাইলের পরিচয় বা পোস্ট করার অনুমতি Hatbazar-এ OAuth দিয়ে সংরক্ষিত হচ্ছে না। এই বাটনগুলো Facebook খুলে দেয়; চূড়ান্ত Seller Profile নির্বাচন ও Publish Facebook-এর ভেতরেই হবে।":"Important: Hatbazar does not store your personal Marketplace identity or posting permission through OAuth. These buttons open Facebook. Choose the final Seller Profile and publish within Facebook.",
+"নতুন Product যোগ করুন":"Add New Product",
+"Product-এর নাম, বিবরণ ও Link একসঙ্গে কপি করে দিলেও হবে। Hatbazar লেখার ভেতর থেকে আসল Product Link নিজে খুঁজে নেবে।":"You can paste the product name, description, and link together. Hatbazar will detect the product link from the pasted text.",
+"iPhone: Supplier page থেকে Share → Copy Link করুন, তারপর এখানে Paste & Fetch চাপুন। চাইলে পুরো copied details-ও পেস্ট করতে পারবেন।":"iPhone: On the supplier page, tap Share → Copy Link, then tap Paste & Fetch here. You can also paste the complete copied details.",
+"Product Name (বাংলা)":"Product Name (Bangla)","AI Category নির্বাচন করছে...":"AI is selecting a category...","Product Name লিখে একটু থামুন, AI নিজে Category নির্বাচন করবে।":"Enter a product name and pause. AI will select the category automatically.",
+"Product Images (সর্বোচ্চ ১০টি ছবি)":"Product Images (up to 10 images)","কোনো নতুন ছবি নির্বাচন করা হয়নি।":"No new images selected.",
+"এই AI সুবিধাটি Admin Panel-এ লগইন করা অনুমোদিত Admin-এর জন্য।":"This AI feature is available only to authorized admins logged into the Admin Panel.",
+"পণ্যের নাম লিখে অথবা ছবি দিয়ে বাংলা-ইংরেজি বিবরণ, খাবারের পুষ্টিগুণ, সম্ভাব্য উপকারিতা ও সতর্কতা তৈরি করুন।":"Enter a product name or upload an image to generate Bengali and English descriptions, food nutrition, potential benefits, and cautions.",
+"✨ শুধু নাম লিখে Details + Food Benefits তৈরি করুন":"✨ Generate Details + Food Benefits from Name",
+"🖼️ ছবি থেকে Product Details তৈরি করুন":"🖼️ Generate Product Details from Image","✨ ৫টি আলাদা AI ছবির Prompt তৈরি করুন":"✨ Generate 5 Different AI Image Prompts",
+"বর্তমান Product Gallery:":"Current Product Gallery:","প্রতিটি ছবি সর্বোচ্চ ৫ MB। নতুন ছবি নির্বাচন করলে আগের Gallery পরিবর্তিত হবে। নতুন ছবি না দিলে আগের ছবি থাকবে।":"Each image can be up to 5 MB. Selecting new images will replace the existing gallery. If no new image is selected, the existing gallery will remain.",
+"Save করার পর Facebook Page-এ পোস্ট করুন (শুধু নতুন Product)":"Post to Facebook Page after saving (new products only)","Save করার পর Facebook Marketplace Listing প্রস্তুত করুন":"Prepare a Facebook Marketplace listing after saving",
+"Excel ফাইল Import করুন অথবা নিচে একাধিক সারিতে পণ্যের তথ্য লিখুন।":"Import an Excel file or enter product details in multiple rows below.",
+"Excel-এর প্রথম Sheet-এ এই ৭টি কলাম রাখুন: Product Name (English), Product Name (Bangla), Selling Price, Base Price, Stock Quantity, Description, Category।":"Keep these 7 columns in the first Excel sheet: Product Name (English), Product Name (Bangla), Selling Price, Base Price, Stock Quantity, Description, Category.",
+"Excel Template ডাউনলোড করে শুধু Serial ও Product URL দিন। এক ফাইলে সর্বোচ্চ ৩০টি লিংক। Hatbazar পণ্যের তথ্য ও সর্বোচ্চ ১০টি ছবি সংগ্রহ করে Preview-তে দেখাবে।":"Download the Excel template and enter only Serial and Product URL. Up to 30 links per file. Hatbazar will collect product details and up to 10 images and show them in Preview.",
+"একসঙ্গে অনেকগুলো Product Link পেস্ট করুন":"Paste Multiple Product Links",
+"Excel ব্যবহার করতে চাইলে নিচের Link Template-ও ব্যবহার করতে পারবেন। সর্বোচ্চ ৩০টি লিংক একসঙ্গে প্রসেস হবে।":"You can also use the Link Template below. Up to 30 links can be processed at once.",
+"অথবা Product Link Excel (.xlsx, .xls, .csv)":"Or Product Link Excel (.xlsx, .xls, .csv)",
+"একসঙ্গে সব Product-এর জন্য ছবি নির্বাচন করুন":"Select Images for All Products at Once",
+"প্রথম ছবি প্রথম Product Row-তে, দ্বিতীয় ছবি দ্বিতীয় Row-তে যাবে। প্রতি Row-তে একাধিক ছবি দিতে Choose Images ব্যবহার করুন। প্রতিটি ছবি সর্বোচ্চ ৫ MB।":"The first image goes to the first product row, the second to the second row, and so on. Use Choose Images to add multiple images to each row. Each image can be up to 5 MB.",
+"✨ নির্বাচিত সব ছবি থেকে একসঙ্গে Product Details তৈরি করুন":"✨ Generate Product Details from All Selected Images",
+"একবারে সর্বোচ্চ ২০টি ছবি নির্বাচন করুন। AI প্রতিটি ছবি আলাদাভাবে বিশ্লেষণ করে একই সিরিয়ালে ২০টি editable Product Row তৈরি করবে। সব তথ্য যাচাই ও Price/Stock পূরণ করে তারপর Save করবেন।":"Select up to 20 images at once. AI will analyze each image separately and create up to 20 editable product rows in the same order. Review all details and enter Price/Stock before saving.",
+"পণ্যের সারি":"Product Rows","বাংলা নাম":"Bangla Name",
+"Save করার পর নতুন Product-গুলো Facebook Page-এ পোস্ট করুন":"Post new products to Facebook Page after saving",
+"Save করার পর প্রতিটি Product-এর Facebook Marketplace Listing প্রস্তুত করুন":"Prepare a Facebook Marketplace listing for each product after saving",
+"প্রতিটি Row-তে Choose Images দিয়ে সর্বোচ্চ ১০টি ছবি নির্বাচন করা যাবে। ছবি ছাড়াও Product Save করা যাবে।":"Use Choose Images in each row to select up to 10 images. Products can also be saved without images.",
+"📊 Stock Inventory / স্টক লিস্ট":"📊 Stock Inventory","সব পণ্যের বর্তমান Stock Quantity এখানে দেখা যাবে।":"View the current stock quantity of all products here.",
+"Stock লোড হচ্ছে...":"Loading stock...","Products লোড হচ্ছে...":"Loading products...",
+"গ্রাহকের অর্ডার, পেমেন্ট ও ডেলিভারি স্ট্যাটাস দেখুন এবং আপডেট করুন।":"View and update customer orders, payments, and delivery status.",
+"অর্ডার লোড হচ্ছে...":"Loading orders...","লোড হচ্ছে...":"Loading...",
+"Seller আবেদন, যোগাযোগ ও অনুমোদনের অবস্থা পরিচালনা করুন।":"Manage seller applications, contact details, and approval status.",
+"Seller লোড হচ্ছে...":"Loading sellers...","Reseller প্রোফাইল, বিক্রয় ও পেআউট অনুরোধ দেখুন।":"View reseller profiles, sales, and payout requests.",
+"Reseller লোড হচ্ছে...":"Loading resellers...","পেআউট অনুরোধ":"Payout Requests",
+"বর্তমান ডেটাবেসের পণ্য, অর্ডার ও বিক্রয় সারাংশ।":"Summary of products, orders, and sales in the current database.",
+"ডেলিভারি চার্জ ও সম্ভাব্য ডেলিভারি সময় পরিবর্তন করুন।":"Change delivery charges and estimated delivery times.",
+"সেটিংস লোড হচ্ছে...":"Loading settings...","ঢাকার ভিতরে ডেলিভারি চার্জ (৳)":"Delivery Charge Within Dhaka (৳)",
+"ঢাকার বাইরে ডেলিভারি চার্জ (৳)":"Delivery Charge Outside Dhaka (৳)",
+"ঢাকার ভিতরে ডেলিভারি সময়":"Delivery Time Within Dhaka","ঢাকার বাইরে ডেলিভারি সময়":"Delivery Time Outside Dhaka",
+"সেটিংস সংরক্ষণের আগে মানগুলো ভালোভাবে যাচাই করুন।":"Review all values carefully before saving settings.",
+"ছবির Preview":"Image Preview","বন্ধ করুন ✕":"Close ✕","⬇ ছবি Save / Download":"⬇ Save / Download Image",
+"নতুন Tab-এ খুলুন":"Open in New Tab","iPhone-এ Save কাজ না করলে ছবির ওপর কিছুক্ষণ চেপে ধরে “Save to Photos” নির্বাচন করুন。":"If Save does not work on iPhone, press and hold the image, then select “Save to Photos”."
+};
+const ADMIN_I18N_BN = Object.fromEntries(Object.entries(ADMIN_I18N).map(([bn,en])=>[en,bn]));
+let adminLanguage = localStorage.getItem('hatbazar_admin_language') || 'bn';
+function translateAdminValue(value, target){
+ const dict=target==='en'?ADMIN_I18N:ADMIN_I18N_BN;
+ const raw=String(value??'');
+ if(dict[raw])return dict[raw];
+ // Translate text fragments while preserving product names and user-entered values.
+ let out=raw;
+ for(const [from,to] of Object.entries(dict)){
+  if(out.includes(from))out=out.split(from).join(to);
+ }
+ return out;
+}
+function applyAdminLanguage(){
+ const target=adminLanguage;
+ const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+ const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+ nodes.forEach(node=>{
+  if(!node.parentElement||['SCRIPT','STYLE','TEXTAREA'].includes(node.parentElement.tagName))return;
+  const next=translateAdminValue(node.nodeValue,target);
+  if(next!==node.nodeValue)node.nodeValue=next;
+ });
+ document.querySelectorAll('input[placeholder],textarea[placeholder],button[title],button[aria-label],input[aria-label]').forEach(el=>{
+  ['placeholder','title','aria-label'].forEach(attr=>{
+   if(el.hasAttribute(attr)){const next=translateAdminValue(el.getAttribute(attr),target);if(next!==el.getAttribute(attr))el.setAttribute(attr,next);}
+  });
+ });
+ document.documentElement.lang=target;
+ const label=target==='bn'?'🌐 English':'🌐 বাংলা';
+ ['languageToggle','loginLanguageToggle'].forEach(id=>{const b=document.getElementById(id);if(b)b.textContent=label;});
+}
+function toggleAdminLanguage(){
+ adminLanguage=adminLanguage==='bn'?'en':'bn';
+ localStorage.setItem('hatbazar_admin_language',adminLanguage);
+ applyAdminLanguage();
+}
+const adminLanguageObserver=new MutationObserver(records=>{
+ if(!document.body)return;
+ for(const record of records){
+  if(record.type==='childList'&&record.addedNodes.length){
+   record.addedNodes.forEach(node=>{
+    if(node.nodeType===Node.TEXT_NODE){
+     const next=translateAdminValue(node.nodeValue,adminLanguage);if(next!==node.nodeValue)node.nodeValue=next;
+    }else if(node.nodeType===Node.ELEMENT_NODE){
+     const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT),list=[];
+     while(walker.nextNode())list.push(walker.currentNode);
+     list.forEach(n=>{if(!['SCRIPT','STYLE','TEXTAREA'].includes(n.parentElement?.tagName)){const next=translateAdminValue(n.nodeValue,adminLanguage);if(next!==n.nodeValue)n.nodeValue=next;}});
+     if(node.matches?.('input[placeholder],textarea[placeholder],button[title],button[aria-label]'))applyAdminLanguage();
+    }
+   });
+  }
+ }
+});
+adminLanguageObserver.observe(document.body,{childList:true,subtree:true});
+document.addEventListener('DOMContentLoaded',applyAdminLanguage);
+setTimeout(applyAdminLanguage,0);
 
 </script>
 </body>
