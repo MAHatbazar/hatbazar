@@ -1716,8 +1716,8 @@ async function importSingleProductLink(){
  const pastedText=input.value.trim();
  if(!pastedText){status.textContent='Product-এর Link বা Link-সহ পুরো লেখা এখানে পেস্ট করুন।';input.focus();return;}
  // Accept a complete product URL or a copied product description containing a URL.
- const matches=pastedText.match(/https?:\\/\\/[^\\s<>"'`]+/gi)||[];
- let url=(matches[0]||'').replace(/[.,;:!?)}\\]]+$/g,'').replace(/&amp;/gi,'&');
+ const matches=pastedText.match(/https?:\/\/[^\s<>"'\`]+/gi)||[];
+ let url=(matches[0]||'').replace(/[.,;:!?)}\]]+$/g,'').replace(/&amp;/gi,'&');
  if(!url){
   status.textContent='আপনার লেখার মধ্যে কোনো Product Link পাওয়া যায়নি। Product পেজের Share/Copy Link-সহ পুরো লেখাটি পেস্ট করুন।';
   input.focus();return;
