@@ -1476,12 +1476,16 @@ async function importLocalSamsungProducts(){
    const payload={
     id:productId,category_id:category.id,seller_id:null,name,name_bn:nameBn,
     description:String(item.desc||item.description||''),
-    price,base_price:Number(item.basePrice)>0?Number(item.basePrice):null,
+    price,
     stock:Number.isFinite(Number(item.stock))?Math.max(0,Math.floor(Number(item.stock))):0,
     image_url:imageUrls[0]||null,is_active:true
    };
    const {error}=await db.from('products').upsert(payload,{onConflict:'id'});
    if(error)throw error;
+   if(currentAdminRole==='admin'){
+    const {error:baseError}=await db.rpc('hatbazar_admin_set_product_base_price',{p_product_id:productId,p_base_price:Number(item.basePrice)>0?Number(item.basePrice):null});
+    if(baseError)throw baseError;
+   }
    const {error:deleteError}=await db.from('product_images').delete().eq('product_id',productId);
    if(deleteError)throw deleteError;
    if(imageUrls.length){
