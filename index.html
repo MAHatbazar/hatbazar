@@ -5572,6 +5572,9 @@
         loginAt: Date.now(),
         expiresAt: Date.now() + ADMIN_SESSION_TTL_MS
       };
+      // Admin may have device-local category covers; now that the admin session is active,
+      // migrate those existing photo URLs into the shared categories table for every device.
+      await pullCategoryCoversFromSupabase();
       await pullProductsFromSupabase();
       await pullCentralOrdersFromSupabase();
       if (userEl) userEl.value = '';
