@@ -3053,7 +3053,7 @@
             isAdminSession() &&
             cat.customCover &&
             typeof cat.image === 'string' &&
-            /^https?:\\/\\//i.test(cat.image)
+            /^https?:\/\//i.test(cat.image)
           ) {
             // Migrate an existing phone/browser-only cover to the shared database once.
             const { error: migrateError } = await supabaseClient
