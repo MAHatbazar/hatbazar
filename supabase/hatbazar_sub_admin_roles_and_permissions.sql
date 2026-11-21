@@ -1,7 +1,7 @@
 -- Hatbazar Super Admin / Sub Admin permissions
 alter table public.profiles drop constraint if exists profiles_role_check;
 alter table public.profiles add constraint profiles_role_check
-  check (role = any (array['admin','sub_admin','seller','reseller','customer']::text[]));
+  check (role = any (array['admin','sub_admin','sub_admin_disabled','seller','reseller','customer']::text[]));
 
 create or replace function public.is_staff()
 returns boolean language sql stable security definer set search_path = ''
