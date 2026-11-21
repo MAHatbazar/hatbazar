@@ -181,7 +181,7 @@ button:disabled{opacity:.5}
 <div class="formgrid">
 <div><label>Product Name (English) *</label><input id="name" required maxlength="200"></div>
 <div><label>Product Name (বাংলা)</label><input id="name_bn" maxlength="200"></div>
-<div><label>Category</label><select id="category_id"><option value="">Category ছাড়া</option></select></div>
+<div><label>Category</label><select id="category_id"><option value="">AI Category নির্বাচন করছে...</option></select><small id="autoCategoryStatus" class="hint">Product Name লিখে একটু থামুন, AI নিজে Category নির্বাচন করবে।</small></div>
 <div><label>Selling Price (৳) *</label><input id="price" type="number" min="0" step="0.01" required></div>
 <div><label>Base Price (৳)</label><input id="base_price" type="number" min="0" step="0.01"></div>
 <div><label>Stock Quantity *</label><input id="stock" type="number" min="0" step="1" value="100" required></div>
@@ -568,12 +568,21 @@ async function applyAIJob(job){
  const result=job.result||{};
  if(job.payload?.purpose==='category_only'){
   // The same AI pass also returns a Bengali product title from the imported English title.
-  if(result.name_bn&&String(result.name_bn).trim())$('name_bn').value=String(result.name_bn).trim();
-  $('category_id').value=result.category_id||'';
-  const titleStatus=result.name_bn?'বাংলা নাম স্বয়ংক্রিয়ভাবে তৈরি হয়েছে। ':'বাংলা নাম AI থেকে পাওয়া যায়নি, হাতে যাচাই করুন। ';
-  $('singleProductImportStatus').textContent=titleStatus+(result.category_id
-   ?'AI নিজে Category নির্বাচন করেছে: '+(result.category_name||$('category_id').selectedOptions[0]?.textContent||'')
-   :'AI নির্দিষ্ট Category নিশ্চিত করতে পারেনি। Save করার আগে Category যাচাই করুন।');
+  const expectedName=String(job.payload?.source_name||'').trim();
+  const currentName=String($('name').value||'').trim();
+  if(expectedName&&normalizeCategory(expectedName)!==normalizeCategory(currentName)){
+   $('autoCategoryStatus').textContent='নাম পরিবর্তন হয়েছে, নতুন নামের Category বিশ্লেষণ হবে।';
+   return;
+  }
+  if(result.name_bn&&String(result.name_bn).trim()&&!$('name_bn').value.trim())$('name_bn').value=String(result.name_bn).trim();
+  if(result.category_id){
+   $('category_id').value=result.category_id;
+   $('autoCategoryStatus').textContent='AI নির্বাচন করেছে: '+(result.category_name||$('category_id').selectedOptions[0]?.textContent||'')+'। চাইলে Dropdown থেকে পরিবর্তন করতে পারবেন।';
+   $('singleProductImportStatus').textContent='AI Category নির্বাচন করেছে: '+(result.category_name||$('category_id').selectedOptions[0]?.textContent||'');
+  }else{
+   $('autoCategoryStatus').textContent='নাম দেখে নির্ভরযোগ্য Category নিশ্চিত হয়নি। দয়া করে Dropdown থেকে নির্বাচন করুন।';
+   $('singleProductImportStatus').textContent='AI Category নিশ্চিত করতে পারেনি। Save করার আগে Category নিজে নির্বাচন করুন।';
+  }
   return;
  }
  $('productForm').dataset.aiJobId=job.id;
@@ -663,6 +672,50 @@ async function enqueueAIJob(type,payload){
  await loadAIJobs();
  return id;
 }
+let autoCategoryTimer=null;
+let autoCategoryLastQueuedName='';
+let autoCategoryJobBusy=false;
+async function queueAutomaticCategory(){
+ const productName=String($('name').value||'').trim()||String($('name_bn').value||'').trim();
+ if(productName.length<3||!categories.length)return;
+ if(productName===autoCategoryLastQueuedName||autoCategoryJobBusy)return;
+ autoCategoryJobBusy=true;
+ autoCategoryLastQueuedName=productName;
+ $('autoCategoryStatus').textContent='AI নাম, ব্র্যান্ড ও পণ্যের ধরন বিশ্লেষণ করছে...';
+ try{
+  const {data,error}=await db.auth.getSession();
+  const user=data?.session?.user;
+  if(error||!user)throw new Error('Admin login session পাওয়া যায়নি।');
+  const jobId=crypto.randomUUID();
+  const payload={product_name:productName,source_name:productName,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn})),purpose:'category_only'};
+  const {error:insertError}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:'name',payload});
+  if(insertError)throw insertError;
+  aiActiveJobId=jobId;
+  $('autoCategoryStatus').textContent='AI বিশ্লেষণ চলছে। ফলাফল নিজে থেকেই Category Dropdown-এ বসবে...';
+  await loadAIJobs();
+ }catch(err){
+  $('autoCategoryStatus').textContent='স্বয়ংক্রিয় Category নির্বাচন ব্যর্থ: '+(err.message||'আবার চেষ্টা করুন।');
+  autoCategoryLastQueuedName='';
+ }finally{
+  autoCategoryJobBusy=false;
+  const latest=String($('name').value||'').trim()||String($('name_bn').value||'').trim();
+  if(latest.length>=3&&latest!==autoCategoryLastQueuedName){
+   clearTimeout(autoCategoryTimer);
+   autoCategoryTimer=setTimeout(queueAutomaticCategory,500);
+  }
+ }
+}
+$('name').addEventListener('input',()=>{
+ const current=String($('name').value||'').trim();
+ $('autoCategoryStatus').textContent='নাম সম্পূর্ণ হলে AI নিজে Category নির্বাচন করবে...';
+ clearTimeout(autoCategoryTimer);
+ autoCategoryTimer=setTimeout(()=>{
+  if(String($('name').value||'').trim()===current)queueAutomaticCategory();
+ },1300);
+});
+$('name_bn').addEventListener('blur',()=>{
+ if(!$('name').value.trim())queueAutomaticCategory();
+});
 async function generateAIProductDetails(mode='image'){
  const button=mode==='name'?$('aiNameGenerateBtn'):$('aiGenerateBtn');
  const file=(singleProductImages&&singleProductImages[0])||($('imageFiles').files&&$('imageFiles').files[0]);
