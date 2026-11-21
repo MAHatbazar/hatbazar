@@ -2634,8 +2634,8 @@
             <div class="flex items-baseline gap-3">
               <span class="text-2xl sm:text-3xl font-black text-violet-800">৳${formatNum(foundProduct.finalPrice)}</span>
               ${
-                Number(foundProduct.discountAmount) > 0
-                  ? `<span class="text-sm line-through text-slate-400 font-bold">৳${formatNum(foundProduct.price)}</span>
+                Number(foundProduct.originalPrice ?? foundProduct.original_price ?? foundProduct.price) > Number(foundProduct.finalPrice) && Number(foundProduct.finalPrice)>0
+                  ? `<span class="text-sm line-through text-slate-400 font-bold">৳${formatNum(foundProduct.originalPrice ?? foundProduct.original_price ?? foundProduct.price)}</span>
                      <span class="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-extrabold border border-emerald-200">-${formatNum(foundProduct.discountPercent || 0)}%</span>`
                   : ''
               }
@@ -3035,10 +3035,11 @@
           titleEn: String(row.name || productTitle).trim(),
           price: Number(row.price) || 0,
           finalPrice: Number(row.price) || 0,
+          originalPrice: Number(row.original_price) || 0,
           basePrice: Number(row.base_price) || 0,
           sellerId: row.seller_id || null,
-          discountPercent: 0,
-          discountAmount: 0,
+          discountPercent: Number(row.original_price)>Number(row.price)&&Number(row.original_price)>0?Math.round((Number(row.original_price)-Number(row.price))/Number(row.original_price)*100):0,
+          discountAmount: Number(row.original_price)>Number(row.price)?Number(row.original_price)-Number(row.price):0,
           stock: Number.isFinite(Number(row.stock)) ? Math.max(0, Number(row.stock)) : 0,
           desc: String(row.description || ''),
           image: row.image_url && String(row.image_url).trim() ? String(row.image_url).trim() : fallbackImg,
@@ -3073,7 +3074,7 @@
       try {
         const { data, error } = await supabaseClient
           .from(SUPABASE_CONFIG.tables.products)
-          .select('id,category_id,seller_id,name,name_bn,description,price,stock,image_url,is_active,created_at')
+          .select('id,category_id,seller_id,name,name_bn,description,price,original_price,stock,image_url,is_active,created_at')
           .eq('is_active', true)
           .order('created_at', { ascending: false });
         if (error || !Array.isArray(data)) {
@@ -3135,6 +3136,7 @@
           name_bn: String(itemObj.title || '').trim(),
           description: String(itemObj.desc || ''),
           price: Number(itemObj.finalPrice ?? itemObj.price) || 0,
+          original_price: Number(itemObj.originalPrice ?? itemObj.original_price) > 0 ? Number(itemObj.originalPrice ?? itemObj.original_price) : null,
           base_price: Number(itemObj.basePrice) > 0 ? Number(itemObj.basePrice) : null,
           stock: Number.isFinite(Number(itemObj.stock)) ? Math.max(0, Math.floor(Number(itemObj.stock))) : 0,
           image_url: itemObj.image && !String(itemObj.image).startsWith('data:')
@@ -5845,7 +5847,7 @@
       grid.innerHTML = items
         .map((item) => {
           const price = Number(item.finalPrice ?? item.price) || 0;
-          const origPrice = Number(item.price) || price;
+          const origPrice = Number(item.originalPrice ?? item.original_price ?? item.price) || price;
           const stock = Number.isFinite(Number(item.stock)) ? Math.max(0, Number(item.stock)) : 25;
           const outOfStock = stock <= 0;
           const hasDisc = Number(item.discountAmount) > 0 || (origPrice > price && price > 0);
