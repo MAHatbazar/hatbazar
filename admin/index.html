@@ -2189,12 +2189,13 @@ async function importBulkPastedLinks(){
     const description=formatImportedDescription([p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n'));
     const currency=String(p.currency||'').toUpperCase();
     const localCurrency=!currency||['BDT','TKA','TK','৳'].includes(currency);
-    const base='';
+    const importedBasePrice=p.supplier_price??p.price??p.selling_price;
+    const base=localCurrency&&Number(importedBasePrice)>0?Number(importedBasePrice):'';
     const attributes={};
     if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
     if(p.source_url)attributes['Source URL']=p.source_url;
     if(p.variants?.length)attributes['Variant Options']=p.variants;
-    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:localCurrency?(Number(p.selling_price??p.price??p.supplier_price)||''):'',original_price:localCurrency?(Number(p.original_price)||''):'',base_price:'',stock:100,description,image_urls:p.image_urls||[],_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:localCurrency?(Number(p.selling_price??p.price??p.supplier_price)||''):'',original_price:localCurrency?(Number(p.original_price)||''):'',base_price:base,stock:100,description,image_urls:p.image_urls||[],_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0),savedImages=Number(p.image_count||0);
     status.textContent='Serial '+item.serial+' সফল: '+(p.name||'Product')+' | '+savedImages+'/'+foundImages+'টি ছবি | '+imported+'/'+entries.length+' সম্পন্ন।';
@@ -2244,8 +2245,10 @@ async function importSingleProductLink(){
   const sellingPrice=importedSellingPrice!==''&&localCurrency?Number(importedSellingPrice):NaN;
   const importedOriginalPrice=p.original_price!==''&&localCurrency?Number(p.original_price):NaN;
   $('price').value=Number.isFinite(sellingPrice)?sellingPrice:'';
-  $('original_price').value=Number.isFinite(importedOriginalPrice)&&importedOriginalPrice>sellingPrice?importedOriginalPrice:'';
-  $('base_price').value='';
+  $('original_price').value=Number.isFinite(importedOriginalPrice)&&importedOriginalPrice>0?importedOriginalPrice:'';
+  const importedBasePrice=p.supplier_price??p.price??p.selling_price;
+  const basePrice=importedBasePrice!==''&&localCurrency?Number(importedBasePrice):NaN;
+  $('base_price').value=Number.isFinite(basePrice)&&basePrice>0?basePrice:'';
   $('stock').value='100';
   aiProductMeta={attributes:{...(p.brand?{Brand:p.brand}:{}),...(p.sku?{SKU:p.sku}:{}),...(p.source_url?{'Source URL':p.source_url}:{}),...(p.variants?.length?{'Variant Options':p.variants}:{})},sizes:[],description_en:'',description_bn:''};
   $('aiGeneratedDetails').textContent='লিংক থেকে Product তথ্য এসেছে। AI স্বয়ংক্রিয়ভাবে বাংলা নাম তৈরি ও Category নির্বাচন করবে।';
