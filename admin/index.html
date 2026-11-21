@@ -339,7 +339,7 @@ Save করার পর প্রতিটি Product-এর Facebook Marketpla
 
 <div id="section-orders" class="card section admin-section hidden">
   <div class="top"><div><h2>🛒 Orders Management</h2><p>গ্রাহকের অর্ডার, পেমেন্ট ও ডেলিভারি স্ট্যাটাস দেখুন এবং আপডেট করুন।</p></div><button type="button" class="secondary" onclick="loadOrders()">Refresh</button></div>
-  <div id="ordersSummary" class="category-count">অর্ডার লোড হচ্ছে...</div><div id="ordersList">লোড হচ্ছে...</div>
+  <div class="actions" style="margin:12px 0"><button type="button" onclick="toggleArchivedOrders(false)">চলমান অর্ডার</button><button type="button" class="secondary" onclick="toggleArchivedOrders(true)">বাতিল / রিটার্ন অর্ডার</button></div><div id="ordersSummary" class="category-count">অর্ডার লোড হচ্ছে...</div><div id="ordersList">লোড হচ্ছে...</div>
 </div>
 <div id="section-sellers" class="card section admin-section hidden">
   <div class="top"><div><h2>👥 Sellers Management</h2><p>Seller আবেদন, যোগাযোগ ও অনুমোদনের অবস্থা পরিচালনা করুন।</p></div><button type="button" class="secondary" onclick="loadSellers()">Refresh</button></div>
@@ -1089,11 +1089,13 @@ function setAdminSection(name){
 function isBBazarSupplierUrl(raw){try{const u=new URL(raw);return u.protocol==='https:'&&(u.hostname==='bbazar.com.bd'||u.hostname.endsWith('.bbazar.com.bd'));}catch{return false;}}
 function renderRows(target,rows,emptyText){$(target).innerHTML=rows.length?rows.join(''):'<p class="hint">'+escapeHTML(emptyText)+'</p>';}
 
+let showArchivedOrders=false;
+function toggleArchivedOrders(show){showArchivedOrders=!!show;loadOrders();}
 async function loadOrders(){
  $('ordersList').textContent='অর্ডার লোড হচ্ছে...';
  const {data,error}=await db.from('orders').select('id,order_code,customer_name,phone,address,total_amount,payment_method,payment_status,payment_verified,order_status,created_at').order('created_at',{ascending:false}).limit(200);
  if(error){$('ordersList').textContent='অর্ডার লোড হয়নি: '+error.message;return;}
- const rows=data||[];
+ const rows=(data||[]).filter(o=>showArchivedOrders?['cancelled','returned'].includes(o.order_status):!['cancelled','returned'].includes(o.order_status));
  const itemResult=rows.length?await db.from('order_items').select('order_id,product_id,product_name,quantity,unit_price').in('order_id',rows.map(x=>x.id)): {data:[],error:null};
  if(itemResult.error){$('ordersList').textContent='অর্ডারের পণ্যতালিকা লোড হয়নি: '+itemResult.error.message;return;}
  const items=itemResult.data||[],productIds=[...new Set(items.map(x=>x.product_id).filter(Boolean))];
@@ -1104,7 +1106,7 @@ async function loadOrders(){
  const sourceMap=Object.fromEntries((sourceResult.data||[]).map(x=>[x.product_id,x.source_url]));
  const itemMap={};items.forEach(it=>{(itemMap[it.order_id]||(itemMap[it.order_id]=[])).push(it);});
  $('ordersSummary').textContent='মোট '+rows.length+'টি অর্ডার পাওয়া গেছে'+(rows.length===200?' (সর্বশেষ ২০০টি দেখানো হচ্ছে)':'')+'.';
- renderRows('ordersList',rows.map(o=>{const orderItems=itemMap[o.id]||[];const itemText=orderItems.map(it=>{const url=sourceMap[it.product_id];return escapeHTML(it.product_name)+' × '+it.quantity+' · ৳'+Number(it.unit_price||0).toLocaleString('en-US')+(url?' · <a href="'+escapeHTML(url)+'" target="_blank" rel="noopener">BBazar Link</a>':' · <span style="color:#b42318">BBazar Link নেই</span>');}).join('<br>');const ready=orderItems.length>0&&orderItems.every(it=>!!sourceMap[it.product_id]);return `<div class="product"><div class="product-info"><strong>${escapeHTML(o.order_code||o.id)} · ${escapeHTML(o.customer_name||'নাম নেই')}</strong><small>ফোন: ${escapeHTML(o.phone||'—')}<br>ঠিকানা: ${escapeHTML(o.address||'—')}<br>পণ্য: ${itemText||'পণ্যতথ্য নেই'}<br>মোট/COD সংগ্রহ: ৳${Number(o.total_amount||0).toLocaleString('en-US')} · পেমেন্ট: ${escapeHTML(o.payment_method||'—')} / ${escapeHTML(o.payment_status||'pending')} · ${o.payment_verified?'যাচাইকৃত':'যাচাই বাকি'}<br>${o.created_at?new Date(o.created_at).toLocaleString('bn-BD'):''}</small><label>Order Status</label><select onchange="updateOrderStatus('${o.id}',this.value)">${['pending','confirmed','processing','shipped','delivered','cancelled'].map(v=>'<option value="'+v+'" '+(o.order_status===v?'selected':'')+'>'+v+'</option>').join('')}</select><div class="actions" style="margin-top:10px"><button type="button" ${ready?'':'disabled'} onclick="prepareBBazarOrder('${o.id}')">📋 BBazar-এর জন্য অর্ডার কপি করুন</button>${ready?'':'<small class="hint">প্রথমে প্রতিটি পণ্যের BBazar Link যোগ করুন।</small>'}</div></div></div>`;}),'এখনো কোনো অর্ডার পাওয়া যায়নি।');
+ renderRows('ordersList',rows.map(o=>{const orderItems=itemMap[o.id]||[];const itemText=orderItems.map(it=>{const url=sourceMap[it.product_id];return escapeHTML(it.product_name)+' × '+it.quantity+' · ৳'+Number(it.unit_price||0).toLocaleString('en-US')+(url?' · <a href="'+escapeHTML(url)+'" target="_blank" rel="noopener">BBazar Link</a>':' · <span style="color:#b42318">BBazar Link নেই</span>');}).join('<br>');const ready=orderItems.length>0&&orderItems.every(it=>!!sourceMap[it.product_id]);return `<div class="product"><div class="product-info"><strong>${escapeHTML(o.order_code||o.id)} · ${escapeHTML(o.customer_name||'নাম নেই')}</strong><small>ফোন: ${escapeHTML(o.phone||'—')}<br>ঠিকানা: ${escapeHTML(o.address||'—')}<br>পণ্য: ${itemText||'পণ্যতথ্য নেই'}<br>মোট/COD সংগ্রহ: ৳${Number(o.total_amount||0).toLocaleString('en-US')} · পেমেন্ট: ${escapeHTML(o.payment_method||'—')} / ${escapeHTML(o.payment_status||'pending')} · ${o.payment_verified?'যাচাইকৃত':'যাচাই বাকি'}<br>${o.created_at?new Date(o.created_at).toLocaleString('bn-BD'):''}</small><label>Order Status</label><select onchange="updateOrderStatus('${o.id}',this.value)">${['pending','confirmed','processing','shipped','delivered','cancelled','returned'].map(v=>'<option value="'+v+'" '+(o.order_status===v?'selected':'')+'>'+v+'</option>').join('')}</select><div class="actions" style="margin-top:10px"><button type="button" ${ready?'':'disabled'} onclick="prepareBBazarOrder('${o.id}')">📋 BBazar-এর জন্য অর্ডার কপি করুন</button>${ready?'':'<small class="hint">প্রথমে প্রতিটি পণ্যের BBazar Link যোগ করুন।</small>'}</div></div></div>`;}),'এখনো কোনো অর্ডার পাওয়া যায়নি।');
 }
 async function prepareBBazarOrder(orderId){
  try{
@@ -1134,9 +1136,10 @@ async function prepareBBazarOrder(orderId){
  }catch(err){alert('BBazar অর্ডার প্রস্তুত হয়নি: '+(err.message||err));}
 }
 async function updateOrderStatus(id,value){
- if(!['pending','confirmed','processing','shipped','delivered','cancelled'].includes(value))return;
+ if(!['pending','confirmed','processing','shipped','delivered','cancelled','returned'].includes(value))return;
+ if(['cancelled','returned'].includes(value)&&!confirm(value==='cancelled'?'অর্ডারটি বাতিল করবেন? এটি চলমান অর্ডার থেকে সরিয়ে বাতিল/রিটার্ন তালিকায় যাবে।':'অর্ডারটি রিটার্ন হিসেবে চিহ্নিত করবেন? এটি চলমান অর্ডার থেকে সরিয়ে বাতিল/রিটার্ন তালিকায় যাবে।')){loadOrders();return;}
  const {error}=await db.from('orders').update({order_status:value}).eq('id',id);
- if(error){alert('স্ট্যাটাস আপডেট হয়নি: '+error.message);return;}alert('অর্ডার স্ট্যাটাস আপডেট হয়েছে।');
+ if(error){alert('স্ট্যাটাস আপডেট হয়নি: '+error.message);return;}alert('অর্ডার স্ট্যাটাস আপডেট হয়েছে।');await loadOrders();
 }
 async function loadSellers(){
  $('sellersList').textContent='Seller লোড হচ্ছে...';
