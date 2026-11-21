@@ -1812,6 +1812,7 @@ function addBulkRow(v={}){
  d.dataset.aiRowToken=crypto.randomUUID();
  d._imageFiles=[];
  d._imageUrls=Array.isArray(v.image_urls)?v.image_urls.slice(0,10):[];
+ d.dataset.sourceUrl=String(v._sourceUrl||v.source_url||'');
  d._aiMeta=v._aiMeta||{attributes:{},sizes:[],description_en:"",description_bn:""};
 
  d.innerHTML=`
@@ -2239,7 +2240,7 @@ async function importBulkPastedLinks(){
     if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
     if(p.source_url)attributes['Source URL']=p.source_url;
     if(p.variants?.length)attributes['Variant Options']=p.variants;
-    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:localCurrency?(Number(p.selling_price??p.price??p.supplier_price)||''):'',original_price:localCurrency?(Number(p.original_price)||''):'',base_price:base,stock:100,description,image_urls:p.image_urls||[],_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:localCurrency?(Number(p.selling_price??p.price??p.supplier_price)||''):'',original_price:localCurrency?(Number(p.original_price)||''):'',base_price:base,stock:100,description,image_urls:p.image_urls||[],_sourceUrl:item.url,_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0),savedImages=Number(p.image_count||0);
     status.textContent='Serial '+item.serial+' সফল: '+(p.name||'Product')+' | '+savedImages+'/'+foundImages+'টি ছবি | '+imported+'/'+entries.length+' সম্পন্ন।';
@@ -2423,7 +2424,7 @@ async function importProductLinksExcel(){
     if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
     if(p.source_url)attributes['Source URL']=p.source_url;
     if(p.variants?.length)attributes['Variant Options']=p.variants;
-    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',base_price:Number.isFinite(base)?base:'',stock:100,description,image_urls:p.image_urls||[],_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',base_price:Number.isFinite(base)?base:'',stock:100,description,image_urls:p.image_urls||[],_sourceUrl:item.url,_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0);
     const savedImages=Number(p.image_count||0);
@@ -2504,6 +2505,7 @@ async function saveBulkProducts(){
     description:get('description')||null,
     category_id:category_id||null,
     _imageFiles:imageFiles,
+    _sourceUrl:row.dataset.sourceUrl||'',
     _aiMeta:row._aiMeta||{attributes:{},sizes:[],description_en:'',description_bn:''}
    });
   }
@@ -2578,6 +2580,10 @@ async function saveBulkProducts(){
 
    if(imageUrls.length){
     await saveProductGallery(data.id,imageUrls);
+   }
+   if(product._sourceUrl){
+    const {error:sourceError}=await db.from('product_supplier_sources').upsert({product_id:data.id,supplier_key:'bbazar',source_url:product._sourceUrl,updated_at:new Date().toISOString()},{onConflict:'product_id,supplier_key'});
+    if(sourceError)throw new Error('Product '+(i+1)+' এর BBazar Link সংরক্ষণ হয়নি: '+sourceError.message);
    }
    if(prepareBulkMarketplace)marketplaceProductIds.push(data.id);
 
