@@ -1964,6 +1964,7 @@ async function importSingleProductLink(){
    purpose:'category_only'
   });
   aiActiveJobId=categoryJobId;
+  $('productForm').dataset.aiJobId=categoryJobId;
   await loadAIJobs();
   showStatus('Product Import Preview প্রস্তুত। AI Category নির্বাচন করছে।');
   $('productForm').scrollIntoView({behavior:'smooth',block:'start'});
@@ -1973,7 +1974,7 @@ async function importSingleProductLink(){
 
 async function clearSingleProductImport(){
  if(!confirm('এই লিংক থেকে আনা Product তথ্য, ছবি এবং এর সঙ্গে যুক্ত Background AI কাজও মুছে ফেলা হবে। আপনি কি নিশ্চিত?'))return;
- const linkedJobId=aiActiveJobId||$('productForm').dataset.aiJobId||'';
+ const linkedJobId=$('productForm').dataset.aiJobId||aiActiveJobId||'';
  if(linkedJobId){
   try{
    const {data:job}=await db.from('hatbazar_ai_jobs').select('id,payload,result').eq('id',linkedJobId).maybeSingle();
