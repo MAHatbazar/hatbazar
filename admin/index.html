@@ -1821,6 +1821,11 @@ function addBulkRow(v={}){
   clearTimeout(rowCategoryTimer);
   rowCategoryTimer=setTimeout(()=>queueBulkRowCategory(d),1400);
  });
+ const rowDescription=d.querySelector('[data-field="description"]');
+ rowDescription?.addEventListener('input',()=>{
+  clearTimeout(rowCategoryTimer);
+  rowCategoryTimer=setTimeout(()=>queueBulkRowCategory(d),1600);
+ });
  if(rowName.value.trim())rowCategoryTimer=setTimeout(()=>queueBulkRowCategory(d),1500);
  if(d._imageUrls.length){
   d.querySelector('[data-image-name]').textContent=d._imageUrls.length+'টি ছবি লিংক থেকে আনা হয়েছে';
