@@ -149,6 +149,7 @@ button:disabled{opacity:.5}
  <input id="singleProductUrl" type="url" inputmode="url" placeholder="https://example.com/product/..." autocomplete="url">
  <div class="actions">
   <button type="button" class="secondary" id="singleProductFetchBtn" onclick="importSingleProductLink()">Fetch Product</button>
+  <button type="button" class="danger" id="clearSingleImportBtn" onclick="clearSingleProductImport()">🗑️ Delete Imported</button>
  </div>
  <div id="singleProductImportStatus" class="hint" aria-live="polite"></div>
 </div>
@@ -1748,6 +1749,36 @@ async function importSingleProductLink(){
   $('productForm').scrollIntoView({behavior:'smooth',block:'start'});
  }catch(err){status.textContent='Import ব্যর্থ: '+(err.message||'অজানা সমস্যা');}
  finally{button.disabled=false;}
+}
+
+function clearSingleProductImport(){
+ if(!confirm('এই লিংক থেকে আনা সব Product তথ্য ও ছবি মুছে ফেলা হবে। আপনি কি নিশ্চিত?'))return;
+
+ $('productForm').reset();
+ $('productForm').dataset.aiJobId='';
+ $('singleProductUrl').value='';
+ $('singleProductImportStatus').textContent='লিংক থেকে আনা তথ্য ও ছবি মুছে ফেলা হয়েছে।';
+ $('name').value='';
+ $('name_bn').value='';
+ $('description').value='';
+ $('price').value='';
+ $('base_price').value='';
+ $('stock').value='0';
+ $('category_id').value='';
+ $('postToFacebook').checked=false;
+ $('is_active').checked=true;
+
+ aiProductMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
+ $('aiStatus').textContent='';
+ $('aiGeneratedDetails').textContent='';
+ $('aiResultPreview').textContent='';
+ $('aiResultPreview').classList.add('hidden');
+ $('aiSizesPanel').innerHTML='';
+ $('freeImageStylesStatus').textContent='';
+ $('freeImagePrompts').innerHTML='';
+ $('freeImagePrompts').classList.add('hidden');
+ resetSingleImages();
+ showStatus('Single Product Import Preview পরিষ্কার করা হয়েছে।');
 }
 
 /* IMPORT PRODUCT LINKS FROM EXCEL */
