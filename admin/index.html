@@ -553,10 +553,13 @@ async function applyAIJob(job){
  }
  const result=job.result||{};
  if(job.payload?.purpose==='category_only'){
+  // The same AI pass also returns a Bengali product title from the imported English title.
+  if(result.name_bn&&String(result.name_bn).trim())$('name_bn').value=String(result.name_bn).trim();
   $('category_id').value=result.category_id||'';
-  $('singleProductImportStatus').textContent=result.category_id
+  const titleStatus=result.name_bn?'বাংলা নাম স্বয়ংক্রিয়ভাবে তৈরি হয়েছে। ':'বাংলা নাম AI থেকে পাওয়া যায়নি, হাতে যাচাই করুন। ';
+  $('singleProductImportStatus').textContent=titleStatus+(result.category_id
    ?'AI নিজে Category নির্বাচন করেছে: '+(result.category_name||$('category_id').selectedOptions[0]?.textContent||'')
-   :'AI নির্দিষ্ট Category নিশ্চিত করতে পারেনি। Save করার আগে Category যাচাই করুন।';
+   :'AI নির্দিষ্ট Category নিশ্চিত করতে পারেনি। Save করার আগে Category যাচাই করুন।');
   return;
  }
  $('productForm').dataset.aiJobId=job.id;
@@ -1933,7 +1936,7 @@ async function importSingleProductLink(){
   $('price').value='';
   $('stock').value='0';
   aiProductMeta={attributes:{...(p.brand?{Brand:p.brand}:{}),...(p.sku?{SKU:p.sku}:{}),...(p.source_url?{'Source URL':p.source_url}:{}),...(p.variants?.length?{'Variant Options':p.variants}:{})},sizes:[],description_en:'',description_bn:''};
-  $('aiGeneratedDetails').textContent='লিংক থেকে Product তথ্য এসেছে। প্রয়োজনে বাংলা নাম ও Category পূরণ করুন।';
+  $('aiGeneratedDetails').textContent='লিংক থেকে Product তথ্য এসেছে। AI স্বয়ংক্রিয়ভাবে বাংলা নাম তৈরি ও Category নির্বাচন করবে।';
   const imageFiles=[];
   for(let i=0;i<(p.image_urls||[]).length;i++){
    const response=await fetch(p.image_urls[i]);
