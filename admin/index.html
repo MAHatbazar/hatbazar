@@ -724,6 +724,7 @@ async function queueAutomaticCategory(){
 }
 $('name').addEventListener('input',()=>{
  const current=String($('name').value||'').trim();
+ if(current.length<3)autoCategoryLastQueuedName='';
  $('autoCategoryStatus').textContent='নাম সম্পূর্ণ হলে AI নিজে Category নির্বাচন করবে...';
  clearTimeout(autoCategoryTimer);
  autoCategoryTimer=setTimeout(()=>{
@@ -1818,6 +1819,7 @@ function addBulkRow(v={}){
  const rowName=d.querySelector('[data-field="name"]');
  let rowCategoryTimer=null;
  rowName.addEventListener('input',()=>{
+  if(String(rowName.value||'').trim().length<3)d.dataset.aiCategoryName='';
   clearTimeout(rowCategoryTimer);
   rowCategoryTimer=setTimeout(()=>queueBulkRowCategory(d),1400);
  });
