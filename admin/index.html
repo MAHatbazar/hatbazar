@@ -16,6 +16,10 @@ body{margin:0;background:#f3f6f5;color:#183b32;font-family:Arial,sans-serif}
 .card,.tile{background:white;border-radius:16px;padding:20px;box-shadow:0 4px 18px #173f3510}
 .login{max-width:430px;margin:65px auto}
 h1{font-size:24px;margin:0 0 8px}
+.dashboard-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dashboard-title h1{margin:0}
+.website-link{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:9px;background:#e9f0ed;color:#173f35;text-decoration:none;font-size:14px;font-weight:bold;white-space:nowrap}
+.website-link:hover{background:#dce9e2}
 h2{font-size:20px}
 p{color:#687871;line-height:1.5}
 input,select,textarea{width:100%;padding:12px;margin:7px 0 14px;border:1px solid #d8e2dd;border-radius:9px;font-size:15px;background:white}
@@ -102,7 +106,7 @@ button:disabled{opacity:.5}
 
 <div class="top">
 <div>
-<h1>Hatbazar Admin Dashboard</h1>
+<div class="dashboard-title"><h1>Hatbazar Admin Dashboard</h1><a class="website-link" href="https://mahatbazar.github.io/hatbazar/" target="_blank" rel="noopener noreferrer">🌐 Visit Website</a></div>
 <p id="adminEmail"></p>
 </div>
 <button id="logoutBtn">Logout</button>
