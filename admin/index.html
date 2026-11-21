@@ -1274,7 +1274,7 @@ async function loadSubAdmins(){
   renderRows('subAdminsList',rows.map(user=>{
    const disabled=user.role==='sub_admin_disabled'||(!!user.banned_until&&new Date(user.banned_until)>new Date());
    const safeEmail=encodeURIComponent(String(user.email||''));
-   return '<div class="product"><div class="product-info"><strong>'+escapeHTML(user.full_name||user.email||'নাম নেই')+'</strong><small>'+escapeHTML(user.email||'')+'<br>অবস্থা: '+(disabled?'বন্ধ':'সক্রিয়')+'<br>তৈরি: '+(user.created_at?new Date(user.created_at).toLocaleString('bn-BD'):'—')+'</small></div><div class="actions">'+(disabled?'<button type="button" onclick="setSubAdminAccess(decodeURIComponent(\\''+safeEmail+'\\'),true)">চালু করুন</button>':'<button type="button" class="danger" onclick="setSubAdminAccess(decodeURIComponent(\\''+safeEmail+'\\'),false)">সাময়িক বন্ধ করুন</button>')+'</div></div>';
+   return '<div class="product"><div class="product-info"><strong>'+escapeHTML(user.full_name||user.email||'নাম নেই')+'</strong><small>'+escapeHTML(user.email||'')+'<br>অবস্থা: '+(disabled?'বন্ধ':'সক্রিয়')+'<br>তৈরি: '+(user.created_at?new Date(user.created_at).toLocaleString('bn-BD'):'—')+'</small></div><div class="actions">'+(disabled?'<button type="button" data-email="'+safeEmail+'" onclick="setSubAdminAccess(decodeURIComponent(this.dataset.email),true)">চালু করুন</button>':'<button type="button" class="danger" data-email="'+safeEmail+'" onclick="setSubAdminAccess(decodeURIComponent(this.dataset.email),false)">সাময়িক বন্ধ করুন</button>')+'</div></div>';
   }),'এখনো কোনো সাব-অ্যাডমিন নেই।');
  }catch(error){$('subAdminsList').textContent='তালিকা লোড হয়নি: '+error.message;}
 }
