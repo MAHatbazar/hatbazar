@@ -1138,6 +1138,14 @@
               <label for="customerAddress" class="block text-xs font-bold text-slate-700 mb-1">বিস্তারিত ঠিকানা (বাড়ি/রোড/এলাকা) *</label>
               <textarea id="customerAddress" rows="2" required placeholder="বাড়ি নম্বর, রোড, সেক্টর বা ল্যান্ডমার্ক লিখুন..." class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-violet-600 focus:bg-white px-3.5 py-2 text-sm outline-none"></textarea>
             </div>
+            <div class="rounded-xl border border-violet-200 bg-violet-50/70 p-3">
+              <label for="saveCheckoutAddress" class="flex items-start gap-2 text-xs font-bold text-violet-950">
+                <input id="saveCheckoutAddress" type="checkbox" class="mt-0.5 h-4 w-4 accent-violet-700" />
+                <span>এই ডিভাইসে আমার ঠিকানা সেভ রাখুন</span>
+              </label>
+              <p class="mt-1 pl-6 text-[11px] text-slate-600">পরেরবার একই মোবাইল নম্বর দিলে নাম ও ঠিকানা নিজে থেকেই বসে যাবে।</p>
+              <p id="savedCheckoutAddressHint" class="hidden mt-2 pl-6 text-[11px] font-bold text-emerald-700"></p>
+            </div>
 
             <div>
               <label for="paymentMethod" class="block text-xs font-bold text-slate-700 mb-1">পেমেন্ট মাধ্যম *</label>
@@ -5525,6 +5533,71 @@
       updateCartSummary();
     }
 
+    const SAVED_CHECKOUT_ADDRESS_PREFIX = 'hatbazar_saved_checkout_address_v1:';
+    let lastSavedCheckoutPhoneLoaded = '';
+    function loadSavedCheckoutAddressForPhone(rawPhone) {
+      const phone = normalizeBdPhone(rawPhone);
+      const hint = document.getElementById('savedCheckoutAddressHint');
+      if (!phone) {
+        lastSavedCheckoutPhoneLoaded = '';
+        if (hint) { hint.textContent = ''; hint.classList.add('hidden'); }
+        return;
+      }
+      if (lastSavedCheckoutPhoneLoaded === phone) return;
+      let saved = null;
+      try {
+        const raw = safeStorageGet(SAVED_CHECKOUT_ADDRESS_PREFIX + phone);
+        saved = raw ? JSON.parse(raw) : null;
+      } catch (_err) { saved = null; }
+      if (!saved || typeof saved !== 'object' || !saved.address || !saved.district || !saved.upazila) return;
+
+      lastSavedCheckoutPhoneLoaded = phone;
+      const nameEl = document.getElementById('customerName');
+      const districtEl = document.getElementById('customerDistrict');
+      const upazilaEl = document.getElementById('customerUpazila');
+      const addressEl = document.getElementById('customerAddress');
+      if (nameEl && saved.name) nameEl.value = String(saved.name).slice(0, 120);
+      if (districtEl && BD_DISTRICTS_UPAZILAS[saved.district]) {
+        districtEl.value = saved.district;
+        populateUpazilas();
+        if (upazilaEl && Array.from(upazilaEl.options).some((option) => option.value === saved.upazila)) {
+          upazilaEl.value = saved.upazila;
+          syncDeliveryZone();
+        }
+      }
+      if (addressEl) addressEl.value = String(saved.address).slice(0, 500);
+      const saveToggle = document.getElementById('saveCheckoutAddress');
+      if (saveToggle) saveToggle.checked = true;
+      if (hint) {
+        hint.textContent = 'আপনার এই নম্বরের আগের সংরক্ষিত ঠিকানা বসানো হয়েছে। অর্ডারের আগে ঠিকানাটি দেখে নিন।';
+        hint.classList.remove('hidden');
+      }
+    }
+
+    function saveCheckoutAddressOnThisDevice(orderRecord) {
+      const saveToggle = document.getElementById('saveCheckoutAddress');
+      if (!saveToggle?.checked || !orderRecord?.customerPhone) return;
+      const phone = normalizeBdPhone(orderRecord.customerPhone);
+      if (!phone) return;
+      const saved = {
+        name: String(orderRecord.customerName || '').slice(0, 120),
+        district: String(orderRecord.district || ''),
+        upazila: String(orderRecord.upazila || ''),
+        address: String(orderRecord.address || '').slice(0, 500),
+        savedAt: new Date().toISOString()
+      };
+      try {
+        safeStorageSet(SAVED_CHECKOUT_ADDRESS_PREFIX + phone, JSON.stringify(saved));
+        const hint = document.getElementById('savedCheckoutAddressHint');
+        if (hint) {
+          hint.textContent = 'আপনার ঠিকানা এই ডিভাইসে সেভ হয়েছে।';
+          hint.classList.remove('hidden');
+        }
+      } catch (_err) {
+        showToast('এই ব্রাউজারে ঠিকানা সেভ করা যায়নি।');
+      }
+    }
+
     function renderHomeSections() {
       const sidebar = document.getElementById('sidebarQuickCategories');
       if (sidebar) {
@@ -7893,6 +7966,18 @@
 
       const checkoutForm = document.getElementById('checkoutOrderForm');
       if (checkoutForm) {
+        const checkoutPhoneInput = document.getElementById('customerPhone');
+        checkoutPhoneInput?.addEventListener('input', () => {
+          const normalized = normalizeBdPhone(checkoutPhoneInput.value);
+          if (!normalized) {
+            lastSavedCheckoutPhoneLoaded = '';
+            const hint = document.getElementById('savedCheckoutAddressHint');
+            if (hint) { hint.textContent = ''; hint.classList.add('hidden'); }
+            return;
+          }
+          loadSavedCheckoutAddressForPhone(normalized);
+        });
+        checkoutPhoneInput?.addEventListener('change', () => loadSavedCheckoutAddressForPhone(checkoutPhoneInput.value));
         checkoutForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           if (checkoutSubmitting) return;
@@ -7995,6 +8080,7 @@
             return;
           }
           orderId = orderRecord.id;
+          saveCheckoutAddressOnThisDevice(orderRecord);
           if (Array.isArray(saveResult.data?.items)) {
             orderRecord.items = saveResult.data.items.map((item) => ({
               id: item.product_id,
