@@ -143,7 +143,7 @@ body.sub-admin #basePriceField,body.sub-admin .base-price-column,body.sub-admin 
  <p class="hint">যে কম্পিউটার/ব্রাউজারে Samsung পণ্যটি আগে দেখা যেত, সেই একই ব্রাউজার থেকে Admin খুলে Scan করুন। পাওয়া গেলে পণ্যটি বর্তমান Supabase-এ Sync হবে, ফলে সব ডিভাইসে দেখা যাবে। শুধু Samsung নামে থাকা Local পণ্যই নেওয়া হবে।</p>
  <div id="localSamsungRecoveryResult" class="hint" aria-live="polite">এখনো Scan করা হয়নি।</div>
 </div>
-<div class="upload-box">
+<div class="upload-box" data-super-admin-only>
  <div class="top"><strong>📘 Facebook Page সংযোগ</strong><button id="facebookConnectBtn" type="button" class="secondary">Facebook Page Connect</button></div>
  <p id="facebookConnectionStatus" class="hint">Facebook Page সংযোগের অবস্থা যাচাই হচ্ছে...</p>
  <p class="hint">এটি শুধু Facebook Page-এ পোস্ট করার সংযোগ। Marketplace প্রোফাইলের সংযোগ আলাদা।</p>
@@ -356,7 +356,7 @@ Save করার পর প্রতিটি Product-এর Facebook Marketpla
   <div class="top"><div><h2>📊 Reports</h2><p>বর্তমান ডেটাবেসের পণ্য, অর্ডার ও বিক্রয় সারাংশ।</p></div><button type="button" class="secondary" onclick="loadReports()">Refresh</button></div>
   <div id="reportsSummary" class="grid"></div><div id="reportsDetails" class="hint"></div>
 </div>
-<div id="section-settings" class="card section admin-section hidden">
+<div id="section-settings" class="card section admin-section hidden" data-super-admin-only>
   <div class="top"><div><h2>⚙️ Website Settings</h2><p>ডেলিভারি চার্জ ও সম্ভাব্য ডেলিভারি সময় পরিবর্তন করুন।</p></div><button type="button" class="secondary" onclick="loadSettings()">Refresh</button></div>
   <div id="settingsStatus" class="category-count">সেটিংস লোড হচ্ছে...</div>
   <form id="settingsForm"><div class="formgrid">
@@ -368,7 +368,7 @@ Save করার পর প্রতিটি Product-এর Facebook Marketpla
   <p class="hint">সেটিংস সংরক্ষণের আগে মানগুলো ভালোভাবে যাচাই করুন।</p>
 </div>
 
-<div id="section-staff" class="card section admin-section hidden">
+<div id="section-staff" class="card section admin-section hidden" data-super-admin-only>
  <div class="top"><div><h2>🛡️ Sub Admin Management</h2><p>শুধু মূল অ্যাডমিন সাব-অ্যাডমিন আমন্ত্রণ, বন্ধ বা পুনরায় চালু করতে পারবেন।</p></div><button type="button" class="secondary" onclick="loadSubAdmins()">Refresh</button></div>
  <div class="upload-box">
   <form id="subAdminInviteForm">
