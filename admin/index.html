@@ -216,6 +216,18 @@ Save করার পর Facebook Page-এ পোস্ট করুন (শু�
 </div>
 
 <div class="upload-box">
+ <strong>🔗 Dropshipping Product Link Import</strong>
+ <p class="hint">Excel Template ডাউনলোড করে শুধু Serial ও Product URL দিন। এক ফাইলে সর্বোচ্চ ৩০টি লিংক। Hatbazar পণ্যের তথ্য ও সর্বোচ্চ ১০টি ছবি সংগ্রহ করে Preview-তে দেখাবে।</p>
+ <label>Product Link Excel (.xlsx, .xls, .csv)</label>
+ <input id="productLinksExcel" type="file" accept=".xlsx,.xls,.csv">
+ <div class="actions">
+  <button type="button" class="secondary" onclick="downloadProductLinkTemplate()">Download Link Template</button>
+  <button type="button" class="secondary" id="importProductLinksBtn" onclick="importProductLinksExcel()">Import Product Links</button>
+ </div>
+ <div id="productLinksStatus" class="hint" aria-live="polite"></div>
+</div>
+
+<div class="upload-box">
 <label>একসঙ্গে সব Product-এর জন্য ছবি নির্বাচন করুন</label>
 <input id="bulkImageFiles" type="file" accept="image/*" multiple>
 <p class="hint">প্রথম ছবি প্রথম Product Row-তে, দ্বিতীয় ছবি দ্বিতীয় Row-তে যাবে। প্রতি Row-তে একাধিক ছবি দিতে Choose Images ব্যবহার করুন। প্রতিটি ছবি সর্বোচ্চ ৫ MB।</p>
@@ -1320,6 +1332,7 @@ function setRowImages(row,files){
  }
 
  row._imageFiles=selected;
+ row._imageUrls=[];
 
  row.querySelector('[data-image-name]').textContent=selected.length
   ?selected.map((f,i)=>(i+1)+'. '+f.name).join(' | ')
@@ -1345,7 +1358,8 @@ function addBulkRow(v={}){
  const d=document.createElement('div');
  d.className='bulk-row';
  d._imageFiles=[];
- d._aiMeta={attributes:{},sizes:[],description_en:"",description_bn:""};
+ d._imageUrls=Array.isArray(v.image_urls)?v.image_urls.slice(0,10):[];
+ d._aiMeta=v._aiMeta||{attributes:{},sizes:[],description_en:"",description_bn:""};
 
  d.innerHTML=`
   <span class="row-number">${bulkCount}</span>
@@ -1394,6 +1408,17 @@ function addBulkRow(v={}){
  });
 
  $('bulkRows').appendChild(d);
+ if(d._imageUrls.length){
+  d.querySelector('[data-image-name]').textContent=d._imageUrls.length+'টি ছবি লিংক থেকে আনা হয়েছে';
+  const preview=d.querySelector('[data-row-preview]');
+  d._imageUrls.forEach((url,index)=>{
+   const img=document.createElement('img');
+   img.src=url;img.alt='Imported product image '+(index+1);
+   img.classList.add('image-preview-thumb');
+   img.addEventListener('click',()=>openImagePreview(url,'Imported Product Image '+(index+1)));
+   preview.appendChild(img);
+  });
+ }
 }
 
 function renumberBulkRows(){
@@ -1482,6 +1507,17 @@ async function analyzeBulkImagesWithAI(){
 
 /* EXCEL TEMPLATE */
 
+function downloadProductLinkTemplate(){
+ const rows=[['Serial','Product URL']];
+ for(let i=1;i<=30;i++)rows.push([i,'']);
+ const ws=XLSX.utils.aoa_to_sheet(rows);
+ ws['!cols']=[{wch:12},{wch:72}];
+ const wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,ws,'Product Links');
+ XLSX.writeFile(wb,'hatbazar_product_link_import.xlsx');
+}
+
+/* Original manual product details template */
 function downloadTemplate(){
  const headers=[
   'Product Name (English)',
@@ -1662,6 +1698,60 @@ function importExcel(){
  reader.readAsArrayBuffer(f);
 }
 
+/* IMPORT PRODUCT LINKS FROM EXCEL */
+async function importProductLinksExcel(){
+ const file=$('productLinksExcel').files[0],status=$('productLinksStatus'),button=$('importProductLinksBtn');
+ if(!file){status.textContent='আগে Product Link Excel নির্বাচন করুন।';return;}
+ if(typeof XLSX==='undefined'){status.textContent='Excel reader লোড হয়নি। Reload করে আবার চেষ্টা করুন।';return;}
+ button.disabled=true;status.textContent='Excel ফাইল পড়া হচ্ছে...';
+ try{
+  const wb=XLSX.read(new Uint8Array(await file.arrayBuffer()),{type:'array'});
+  if(!wb.SheetNames.length)throw new Error('Excel Sheet পাওয়া যায়নি।');
+  const data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:true});
+  if(data.length<2)throw new Error('Excel-এ Product URL পাওয়া যায়নি।');
+  const norm=v=>String(v??'').toLowerCase().replace(/[()（）]/g,' ').replace(/[_-]+/g,' ').replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim();
+  const headers=data[0].map(norm);
+  const si=headers.findIndex(x=>['serial','sl','no','ক্রমিক','সিরিয়াল'].includes(x));
+  const ui=headers.findIndex(x=>['product url','product link','url','link','পণ্যের লিংক','প্রোডাক্ট লিংক'].includes(x));
+  if(ui<0)throw new Error('Product URL কলাম পাওয়া যায়নি। Link Template ব্যবহার করুন।');
+  const entries=data.slice(1).map((r,i)=>({serial:si>=0?String(r[si]||i+1).trim():String(i+1),url:String(r[ui]||'').trim(),row:i+2})).filter(x=>x.url);
+  if(!entries.length)throw new Error('Excel-এ কোনো Product URL নেই।');
+  if(entries.length>30)throw new Error('একবারে সর্বোচ্চ ৩০টি Product Link Import করা যাবে।');
+  entries.sort((a,b)=>{const x=Number(a.serial),y=Number(b.serial);return Number.isFinite(x)&&Number.isFinite(y)?x-y:a.row-b.row;});
+  if(!confirm(entries.length+'টি Product Link সিরিয়াল অনুযায়ী Import করে Preview-তে আনবেন?'))return;
+  $('bulkRows').innerHTML='';bulkCount=0;showProductMode('bulk');
+  const failures=[];let imported=0;
+  for(let i=0;i<entries.length;i++){
+   const item=entries[i];status.textContent='সিরিয়াল '+item.serial+' Import হচ্ছে ('+(i+1)+'/'+entries.length+')...';
+   try{
+    const {data:result,error}=await db.functions.invoke('hatbazar-product-import',{body:{url:item.url}});
+    if(error)throw new Error(error.message||'Server request ব্যর্থ হয়েছে।');
+    if(!result?.ok||!result.product)throw new Error(result?.error||'পণ্যের তথ্য পাওয়া যায়নি।');
+    const p=result.product;
+    const description=[p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n');
+    const currency=String(p.currency||'').toUpperCase();
+    const localCurrency=!currency||['BDT','TKA','TK','৳'].includes(currency);
+    const base=p.supplier_price!==''&&localCurrency?Number(p.supplier_price):'';
+    const attributes={};
+    if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
+    if(p.source_url)attributes['Source URL']=p.source_url;
+    if(p.variants?.length)attributes['Variant Options']=p.variants;
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',base_price:Number.isFinite(base)?base:'',stock:0,description,image_urls:p.image_urls||[],_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    imported++;
+    status.textContent='Serial '+item.serial+' সফল: '+(p.name||'Product')+' | '+(p.image_count||0)+'টি ছবি | '+imported+'/'+entries.length+' সম্পন্ন।';
+   }catch(err){failures.push('Serial '+item.serial+': '+(err.message||'Import ব্যর্থ'));status.textContent='Serial '+item.serial+' ব্যর্থ, পরের লিংক চেষ্টা হচ্ছে...';}
+  }
+  const first=$('bulkRows').querySelector('.bulk-row');
+  if(first&&!first.querySelector('[data-field="name"]').value&&!first.querySelector('[data-field="name_bn"]').value)first.remove();
+  renumberBulkRows();
+  $('bulkPostToFacebook').checked=true;
+  status.textContent='Import শেষ: '+imported+'টি Product Preview-তে এসেছে। Selling Price ও Stock ঠিক করে Save All Products চাপুন.'+(failures.length?'\nব্যর্থ লিংক:\n'+failures.join('\n'):'');
+  showStatus(imported+'টি Product Preview-তে প্রস্তুত। প্রতিটি Row যাচাই করে Selling Price ও Stock দিন।');
+  if(!imported)status.textContent='কোনো Product Import হয়নি।\n'+failures.join('\n');
+ }catch(err){status.textContent='Import ব্যর্থ: '+(err.message||'অজানা সমস্যা');}
+ finally{button.disabled=false;}
+}
+
 /* SAVE BULK PRODUCTS */
 
 async function saveBulkProducts(){
@@ -1730,7 +1820,7 @@ async function saveBulkProducts(){
   return;
  }
 
- const imageCount=products.reduce((sum,p)=>sum+p._imageFiles.length,0);
+ const imageCount=products.reduce((sum,p)=>sum+p._imageFiles.length+(p._imageUrls?.length||0),0);
 
  if(!confirm(products.length+'টি Product এবং '+imageCount+'টি Image Save করবেন?'))return;
 
@@ -1746,7 +1836,7 @@ async function saveBulkProducts(){
  try{
   for(let i=0;i<products.length;i++){
    const product=products[i];
-   const imageUrls=[];
+   const imageUrls=Array.isArray(product._imageUrls)?product._imageUrls.slice(0,10):[];
 
    for(let j=0;j<product._imageFiles.length;j++){
     btn.textContent='ছবি আপলোড হচ্ছে: Product '+(i+1)+'/'+products.length;
