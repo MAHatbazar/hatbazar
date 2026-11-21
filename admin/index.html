@@ -186,6 +186,7 @@ button:disabled{opacity:.5}
 <div><label>Product Name (English) *</label><input id="name" required maxlength="200"></div>
 <div><label>Product Name (বাংলা)</label><input id="name_bn" maxlength="200"></div>
 <div><label>Category</label><select id="category_id"><option value="">AI Category নির্বাচন করছে...</option></select><small id="autoCategoryStatus" class="hint">Product Name লিখে একটু থামুন, AI নিজে Category নির্বাচন করবে।</small></div>
+<div><label>BBazar Product Link (Supplier URL)</label><input id="bbazarSourceUrl" type="url" placeholder="https://bbazar.com.bd/product/..."><small class="hint">এই লিংকটি সংরক্ষণ হবে, যাতে অর্ডার এলে আবার খুঁজতে না হয়।</small></div>
 <div><label>Selling Price (৳) *</label><input id="price" type="number" min="0" step="0.01" required></div>
 <div><label>Original Price / কাটা দাম (৳)</label><input id="original_price" type="number" min="0" step="0.01" placeholder="ঐচ্ছিক"></div>
 <div><label>Base Price (৳) · Reseller ক্রয়মূল্য</label><input id="base_price" type="number" min="0" step="0.01"></div>
@@ -1085,6 +1086,7 @@ function setAdminSection(name){
  document.querySelectorAll('.admin-nav [data-section]').forEach(btn=>btn.classList.toggle('active',btn.dataset.section===name));
  if(name==='orders')loadOrders();if(name==='sellers')loadSellers();if(name==='resellers')loadResellers();if(name==='reports')loadReports();if(name==='settings')loadSettings();
 }
+function isBBazarSupplierUrl(raw){try{const u=new URL(raw);return u.protocol==='https:'&&(u.hostname==='bbazar.com.bd'||u.hostname.endsWith('.bbazar.com.bd'));}catch{return false;}}
 function renderRows(target,rows,emptyText){$(target).innerHTML=rows.length?rows.join(''):'<p class="hint">'+escapeHTML(emptyText)+'</p>';}
 
 async function loadOrders(){
@@ -1092,11 +1094,44 @@ async function loadOrders(){
  const {data,error}=await db.from('orders').select('id,order_code,customer_name,phone,address,total_amount,payment_method,payment_status,payment_verified,order_status,created_at').order('created_at',{ascending:false}).limit(200);
  if(error){$('ordersList').textContent='অর্ডার লোড হয়নি: '+error.message;return;}
  const rows=data||[];
- const itemResult=rows.length?await db.from('order_items').select('order_id,product_name,quantity,unit_price').in('order_id',rows.map(x=>x.id)): {data:[],error:null};
+ const itemResult=rows.length?await db.from('order_items').select('order_id,product_id,product_name,quantity,unit_price').in('order_id',rows.map(x=>x.id)): {data:[],error:null};
  if(itemResult.error){$('ordersList').textContent='অর্ডারের পণ্যতালিকা লোড হয়নি: '+itemResult.error.message;return;}
- const itemMap={};(itemResult.data||[]).forEach(it=>{(itemMap[it.order_id]||(itemMap[it.order_id]=[])).push(it);});
+ const items=itemResult.data||[],productIds=[...new Set(items.map(x=>x.product_id).filter(Boolean))];
+ const productResult=productIds.length?await db.from('products').select('id,name,base_price').in('id',productIds):{data:[],error:null};
+ if(productResult.error){$('ordersList').textContent='পণ্যের তথ্য লোড হয়নি: '+productResult.error.message;return;}
+ const sourceResult=productIds.length?await db.from('product_supplier_sources').select('product_id,source_url').eq('supplier_key','bbazar').in('product_id',productIds):{data:[],error:null};
+ if(sourceResult.error){$('ordersList').textContent='BBazar লিংক লোড হয়নি: '+sourceResult.error.message;return;}
+ const sourceMap=Object.fromEntries((sourceResult.data||[]).map(x=>[x.product_id,x.source_url]));
+ const itemMap={};items.forEach(it=>{(itemMap[it.order_id]||(itemMap[it.order_id]=[])).push(it);});
  $('ordersSummary').textContent='মোট '+rows.length+'টি অর্ডার পাওয়া গেছে'+(rows.length===200?' (সর্বশেষ ২০০টি দেখানো হচ্ছে)':'')+'.';
- renderRows('ordersList',rows.map(o=>{const items=itemMap[o.id]||[];const itemText=items.map(it=>escapeHTML(it.product_name)+' × '+it.quantity+' · ৳'+Number(it.unit_price||0).toLocaleString('en-US')).join('<br>');return `<div class="product"><div class="product-info"><strong>${escapeHTML(o.order_code||o.id)} · ${escapeHTML(o.customer_name||'নাম নেই')}</strong><small>ফোন: ${escapeHTML(o.phone||'—')}<br>ঠিকানা: ${escapeHTML(o.address||'—')}<br>পণ্য: ${itemText||'পণ্যতথ্য নেই'}<br>মোট: ৳${Number(o.total_amount||0).toLocaleString('en-US')} · পেমেন্ট: ${escapeHTML(o.payment_method||'—')} / ${escapeHTML(o.payment_status||'pending')} · ${o.payment_verified?'যাচাইকৃত':'যাচাই বাকি'}<br>${o.created_at?new Date(o.created_at).toLocaleString('bn-BD'):''}</small><label>Order Status</label><select onchange="updateOrderStatus('${o.id}',this.value)">${['pending','confirmed','processing','shipped','delivered','cancelled'].map(v=>'<option value="'+v+'" '+(o.order_status===v?'selected':'')+'>'+v+'</option>').join('')}</select></div></div>`;}),'এখনো কোনো অর্ডার পাওয়া যায়নি।');
+ renderRows('ordersList',rows.map(o=>{const orderItems=itemMap[o.id]||[];const itemText=orderItems.map(it=>{const url=sourceMap[it.product_id];return escapeHTML(it.product_name)+' × '+it.quantity+' · ৳'+Number(it.unit_price||0).toLocaleString('en-US')+(url?' · <a href="'+escapeHTML(url)+'" target="_blank" rel="noopener">BBazar Link</a>':' · <span style="color:#b42318">BBazar Link নেই</span>');}).join('<br>');const ready=orderItems.length>0&&orderItems.every(it=>!!sourceMap[it.product_id]);return `<div class="product"><div class="product-info"><strong>${escapeHTML(o.order_code||o.id)} · ${escapeHTML(o.customer_name||'নাম নেই')}</strong><small>ফোন: ${escapeHTML(o.phone||'—')}<br>ঠিকানা: ${escapeHTML(o.address||'—')}<br>পণ্য: ${itemText||'পণ্যতথ্য নেই'}<br>মোট/COD সংগ্রহ: ৳${Number(o.total_amount||0).toLocaleString('en-US')} · পেমেন্ট: ${escapeHTML(o.payment_method||'—')} / ${escapeHTML(o.payment_status||'pending')} · ${o.payment_verified?'যাচাইকৃত':'যাচাই বাকি'}<br>${o.created_at?new Date(o.created_at).toLocaleString('bn-BD'):''}</small><label>Order Status</label><select onchange="updateOrderStatus('${o.id}',this.value)">${['pending','confirmed','processing','shipped','delivered','cancelled'].map(v=>'<option value="'+v+'" '+(o.order_status===v?'selected':'')+'>'+v+'</option>').join('')}</select><div class="actions" style="margin-top:10px"><button type="button" ${ready?'':'disabled'} onclick="prepareBBazarOrder('${o.id}')">📋 BBazar-এর জন্য অর্ডার কপি করুন</button>${ready?'':'<small class="hint">প্রথমে প্রতিটি পণ্যের BBazar Link যোগ করুন।</small>'}</div></div></div>`;}),'এখনো কোনো অর্ডার পাওয়া যায়নি।');
+}
+async function prepareBBazarOrder(orderId){
+ try{
+  const [{data:order,error:orderError},{data:items,error:itemError}]=await Promise.all([
+   db.from('orders').select('id,order_code,customer_name,phone,address,total_amount').eq('id',orderId).single(),
+   db.from('order_items').select('product_id,product_name,quantity,unit_price').eq('order_id',orderId)
+  ]);
+  if(orderError)throw orderError;if(itemError)throw itemError;if(!items?.length)throw new Error('এই অর্ডারে পণ্য পাওয়া যায়নি।');
+  const ids=[...new Set(items.map(x=>x.product_id).filter(Boolean))];
+  if(ids.length!==new Set(items.map(x=>x.product_id)).size)throw new Error('কিছু অর্ডার পণ্যের Product ID নেই।');
+  const [{data:products,error:productError},{data:sources,error:sourceError}]=await Promise.all([
+   db.from('products').select('id,base_price').in('id',ids),
+   db.from('product_supplier_sources').select('product_id,source_url').eq('supplier_key','bbazar').in('product_id',ids)
+  ]);
+  if(productError)throw productError;if(sourceError)throw sourceError;
+  const pm=Object.fromEntries((products||[]).map(x=>[x.id,x]));const sm=Object.fromEntries((sources||[]).map(x=>[x.product_id,x]));
+  if(items.some(x=>!sm[x.product_id]?.source_url))throw new Error('এক বা একাধিক পণ্যের BBazar Link নেই। Product Edit করে Supplier URL সংরক্ষণ করুন।');
+  const user=await db.auth.getUser();
+  const {error:saveError}=await db.from('supplier_order_submissions').upsert({order_id:order.id,supplier_key:'bbazar',status:'ready_to_submit',customer_collection_amount:Number(order.total_amount||0),approved_by:user.data.user?.id||null,approved_at:new Date().toISOString(),updated_at:new Date().toISOString(),admin_note:'অর্ডারের তথ্য কপি করা হয়েছে। BBazar Reseller App-এ ম্যানুয়ালি অর্ডার সাবমিট করতে হবে।'},{onConflict:'order_id,supplier_key'});
+  if(saveError)throw saveError;
+  const lines=['BBazar Reseller Order','Hatbazar Order: '+(order.order_code||order.id),'Customer: '+(order.customer_name||''),'Phone: '+(order.phone||''),'Full Address: '+(order.address||''),'COD Amount to Collect: BDT '+Number(order.total_amount||0).toFixed(2),'','Products:'];
+  items.forEach((x,i)=>{lines.push((i+1)+'. '+x.product_name+' | Qty: '+x.quantity+' | Supplier Link: '+sm[x.product_id].source_url);});
+  const payload=lines.join('\n');
+  if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(payload);else{const ta=document.createElement('textarea');ta.value=payload;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}
+  alert('অর্ডারের তথ্য কপি হয়েছে। এখন BBazar Reseller App-এ পণ্য ও কাস্টমারের তথ্য ব্যবহার করে অর্ডারটি সম্পন্ন করুন।');
+  await loadOrders();
+ }catch(err){alert('BBazar অর্ডার প্রস্তুত হয়নি: '+(err.message||err));}
 }
 async function updateOrderStatus(id,value){
  if(!['pending','confirmed','processing','shipped','delivered','cancelled'].includes(value))return;
@@ -1535,7 +1570,7 @@ async function editProduct(id){
   return;
  }
 
- editingProduct=data; $('productForm').dataset.aiJobId=''; aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''}; $('aiGeneratedDetails').textContent='সংরক্ষিত AI তথ্য লোড হয়েছে।';
+ editingProduct=data; const sourceLookup=await db.from('product_supplier_sources').select('source_url').eq('product_id',id).eq('supplier_key','bbazar').maybeSingle(); $('bbazarSourceUrl').value=sourceLookup.data?.source_url||''; $('productForm').dataset.aiJobId=''; aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''}; $('aiGeneratedDetails').textContent='সংরক্ষিত AI তথ্য লোড হয়েছে।';
  $('aiSizesPanel').innerHTML=aiProductMeta.sizes.length?'<strong>Size অপশন (প্রয়োজনমতো পরিবর্তন করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>':'এই পণ্যে Size অপশন সংরক্ষিত নেই।'; $('name').value=data.name||'';
  $('name_bn').value=data.name_bn||'';
  $('description').value=data.description||'';
@@ -1684,6 +1719,13 @@ $('productForm').addEventListener('submit',async e=>{
    if(files.length)await saveProductGallery(productId,imageUrls);
   }
 
+  const supplierUrl=$('bbazarSourceUrl').value.trim();
+  if(supplierUrl){
+   if(!isBBazarSupplierUrl(supplierUrl))throw new Error('শুধু BBazar-এর https://bbazar.com.bd Product Link দিন।');
+   const {error:sourceError}=await db.from('product_supplier_sources').upsert({product_id:productId,supplier_key:'bbazar',source_url:supplierUrl,updated_at:new Date().toISOString()},{onConflict:'product_id,supplier_key'});
+   if(sourceError)throw new Error('BBazar লিংক সংরক্ষণ হয়নি: '+sourceError.message);
+  }
+
   if(!wasEditing && $('postToFacebook').checked && p.is_active){
    const fb=await publishProductToFacebook(productId);
    if(fb.ok)showStatus('নতুন Product যোগ হয়েছে এবং Facebook Page-এ পোস্ট হয়েছে।');
@@ -1698,6 +1740,7 @@ $('productForm').addEventListener('submit',async e=>{
   $('productFormPanel').classList.add('hidden');
   editingProduct=null;
   $('productForm').reset();
+  $('bbazarSourceUrl').value='';
   $('productForm').dataset.aiJobId='';
   aiProductMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
   $('aiStatus').textContent='';$('aiGeneratedDetails').textContent='';$('aiSizesPanel').innerHTML='';
@@ -1768,6 +1811,7 @@ function addBulkRow(v={}){
  d.dataset.aiRowToken=crypto.randomUUID();
  d._imageFiles=[];
  d._imageUrls=Array.isArray(v.image_urls)?v.image_urls.slice(0,10):[];
+ d.dataset.sourceUrl=String(v._sourceUrl||v.source_url||'');
  d._aiMeta=v._aiMeta||{attributes:{},sizes:[],description_en:"",description_bn:""};
 
  d.innerHTML=`
@@ -2195,7 +2239,7 @@ async function importBulkPastedLinks(){
     if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
     if(p.source_url)attributes['Source URL']=p.source_url;
     if(p.variants?.length)attributes['Variant Options']=p.variants;
-    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:localCurrency?(Number(p.selling_price??p.price??p.supplier_price)||''):'',original_price:localCurrency?(Number(p.original_price)||''):'',base_price:base,stock:100,description,image_urls:p.image_urls||[],_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:localCurrency?(Number(p.selling_price??p.price??p.supplier_price)||''):'',original_price:localCurrency?(Number(p.original_price)||''):'',base_price:base,stock:100,description,image_urls:p.image_urls||[],_sourceUrl:isBBazarSupplierUrl(item.url)?item.url:'',_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0),savedImages=Number(p.image_count||0);
     status.textContent='Serial '+item.serial+' সফল: '+(p.name||'Product')+' | '+savedImages+'/'+foundImages+'টি ছবি | '+imported+'/'+entries.length+' সম্পন্ন।';
@@ -2229,6 +2273,7 @@ async function importSingleProductLink(){
   if(!['http:','https:'].includes(parsed.protocol)||!parsed.hostname)throw new Error('সঠিক Product Link পাওয়া যায়নি।');
   url=parsed.href;
   input.value=url;
+  $('bbazarSourceUrl').value=url;
  }catch(err){status.textContent='লেখার মধ্যে পাওয়া Link-টি সঠিক নয়। Product-এর Share/Copy Link-সহ আবার পেস্ট করুন।';return;}
  button.disabled=true;status.textContent='Product-এর তথ্য ও ছবি আনা হচ্ছে...';
  try{
@@ -2378,7 +2423,7 @@ async function importProductLinksExcel(){
     if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
     if(p.source_url)attributes['Source URL']=p.source_url;
     if(p.variants?.length)attributes['Variant Options']=p.variants;
-    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',base_price:Number.isFinite(base)?base:'',stock:100,description,image_urls:p.image_urls||[],_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',base_price:Number.isFinite(base)?base:'',stock:100,description,image_urls:p.image_urls||[],_sourceUrl:isBBazarSupplierUrl(item.url)?item.url:'',_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0);
     const savedImages=Number(p.image_count||0);
@@ -2459,6 +2504,7 @@ async function saveBulkProducts(){
     description:get('description')||null,
     category_id:category_id||null,
     _imageFiles:imageFiles,
+    _sourceUrl:row.dataset.sourceUrl||'',
     _aiMeta:row._aiMeta||{attributes:{},sizes:[],description_en:'',description_bn:''}
    });
   }
@@ -2533,6 +2579,10 @@ async function saveBulkProducts(){
 
    if(imageUrls.length){
     await saveProductGallery(data.id,imageUrls);
+   }
+   if(product._sourceUrl && isBBazarSupplierUrl(product._sourceUrl)){
+    const {error:sourceError}=await db.from('product_supplier_sources').upsert({product_id:data.id,supplier_key:'bbazar',source_url:product._sourceUrl,updated_at:new Date().toISOString()},{onConflict:'product_id,supplier_key'});
+    if(sourceError)throw new Error('Product '+(i+1)+' এর BBazar Link সংরক্ষণ হয়নি: '+sourceError.message);
    }
    if(prepareBulkMarketplace)marketplaceProductIds.push(data.id);
 
