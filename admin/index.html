@@ -1160,32 +1160,24 @@ function closeOrderReasonModal(){
 }
 async function saveOrderReason(){
  if(!pendingOrderReasonUpdate)return;
- const select=$('orderReasonSelect');
- const labels={
-  stock_out:'পণ্য স্টক আউট',
-  supplier_unavailable:'সরবরাহকারীর কাছে পণ্য নেই',
-  temporarily_unavailable:'এই মুহূর্তে পণ্য স্টকে নেই',
-  damaged:'পণ্য নষ্ট বা ত্রুটিপূর্ণ',
-  customer_request:'গ্রাহকের অনুরোধে',
-  delivery_issue:'ডেলিভারি সমস্যা',
-  other:'অন্যান্য'
- };
- const selected=select?.value||'';
+ const labels={stock_out:'পণ্য স্টক আউট',supplier_unavailable:'সরবরাহকারীর কাছে পণ্য নেই',temporarily_unavailable:'এই মুহূর্তে পণ্য স্টকে নেই',damaged:'পণ্য নষ্ট বা ত্রুটিপূর্ণ',customer_request:'গ্রাহকের অনুরোধে',delivery_issue:'ডেলিভারি সমস্যা',other:'অন্যান্য'};
+ const selected=$('orderReasonSelect')?.value||'';
  const note=($('orderReasonNote')?.value||'').trim();
  if(!labels[selected]){alert('একটি কারণ নির্বাচন করুন।');return;}
  if(selected==='other'&&!note){alert('অন্যান্য নির্বাচন করলে কারণটি লিখুন।');return;}
  const reason=labels[selected]+(note?' — '+note:'');
  const {id,status}=pendingOrderReasonUpdate;
- const {error}=await db.from('orders').update({order_status:status,cancellation_reason:reason}).eq('id',id);
- if(error){alert('স্ট্যাটাস আপডেট হয়নি: '+error.message);return;}
+ const {data,error}=await db.rpc('hatbazar_admin_update_order',{p_order_id:id,p_order_status:status,p_payment_verified:null,p_cancellation_reason:reason});
+ if(error||!data?.success){alert('স্ট্যাটাস আপডেট হয়নি: '+(error?.message||'অনুরোধটি গ্রহণ করা হয়নি।'));return;}
  pendingOrderReasonUpdate=null;$('orderReasonModal')?.classList.add('hidden');
  alert('স্ট্যাটাস ও কারণ সংরক্ষণ হয়েছে।');await loadOrders();
 }
 async function updateOrderStatus(id,value){
  if(!['pending','confirmed','processing','shipped','delivered','cancelled','returned'].includes(value))return;
  if(['cancelled','returned'].includes(value)){openOrderReasonModal(id,value);return;}
- const {error}=await db.from('orders').update({order_status:value}).eq('id',id);
- if(error){alert('স্ট্যাটাস আপডেট হয়নি: '+error.message);return;}alert('অর্ডার স্ট্যাটাস আপডেট হয়েছে।');await loadOrders();
+ const {data,error}=await db.rpc('hatbazar_admin_update_order',{p_order_id:id,p_order_status:value,p_payment_verified:null,p_cancellation_reason:null});
+ if(error||!data?.success){alert('স্ট্যাটাস আপডেট হয়নি: '+(error?.message||'অনুরোধটি গ্রহণ করা হয়নি।'));return;}
+ alert('অর্ডার স্ট্যাটাস আপডেট হয়েছে।');await loadOrders();
 }
 async function loadSellers(){
  $('sellersList').textContent='Seller লোড হচ্ছে...';
