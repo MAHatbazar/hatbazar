@@ -2876,6 +2876,7 @@
         updateAuthButtonLabel();
         syncDiscountAdminPermission();
         await pullDeliveryZoneSettingsFromSupabase();
+        await pullCategoryCoversFromSupabase();
         await pullProductsFromSupabase();
         await pullCentralOrdersFromSupabase();
         renderSupabaseStatusBadge();
@@ -3024,6 +3025,64 @@
     function getFrontendCategoryBySupabaseId(categoryId) {
       const entry = Object.entries(SUPABASE_CATEGORY_IDS_BY_FRONTEND_ID).find(([, id]) => id === categoryId);
       return entry ? categoriesData.find((c) => c.id === entry[0]) : null;
+    }
+
+    async function pullCategoryCoversFromSupabase() {
+      if (!cloudSyncEnabled || !supabaseClient) return false;
+      try {
+        const { data: rows, error } = await supabaseClient
+          .from('categories')
+          .select('id,name,name_bn,image_url')
+          .eq('is_active', true);
+        if (error) throw error;
+        if (!Array.isArray(rows)) return false;
+
+        let changed = false;
+        for (const cat of categoriesData) {
+          const mappedId = getSupabaseCategoryId(cat);
+          const row = rows.find((item) => item.id === mappedId);
+          if (!row) continue;
+          cat.supabaseCategoryId = row.id;
+
+          if (row.image_url && cat.image !== row.image_url) {
+            cat.image = row.image_url;
+            cat.customCover = true;
+            changed = true;
+          } else if (
+            !row.image_url &&
+            isAdminSession() &&
+            cat.customCover &&
+            typeof cat.image === 'string' &&
+            /^https?:\/\//i.test(cat.image)
+          ) {
+            // Migrate an existing phone/browser-only cover to the shared database once.
+            const { error: migrateError } = await supabaseClient
+              .from('categories')
+              .update({ image_url: cat.image })
+              .eq('id', row.id);
+            if (migrateError) {
+              console.warn('Hatbazar category cover migration failed:', migrateError.message);
+            } else {
+              changed = true;
+            }
+          }
+        }
+
+        if (changed) {
+          renderCategoriesGrid();
+          renderHomeSections();
+          if (activeFolderId) {
+            const activeCat = categoriesData.find((cat) => cat.id === activeFolderId);
+            const folderCover = document.getElementById('activeFolderCoverImg');
+            if (activeCat && folderCover) folderCover.src = getRealisticFolderImage(activeCat);
+          }
+          persistAppState();
+        }
+        return true;
+      } catch (categoryError) {
+        console.warn('Hatbazar category cover sync failed:', categoryError?.message || categoryError);
+        return false;
+      }
     }
 
     function applyCloudProductsToCategories(rows) {
@@ -5909,6 +5968,17 @@
         const compressed = await compressImageFile(file, 900, 0.75);
         cat.image = await uploadProductImageToSupabase(file, compressed);
         cat.customCover = true;
+        const cloudCategoryId = getSupabaseCategoryId(cat);
+        if (cloudSyncEnabled && supabaseClient && cloudCategoryId) {
+          const { data: savedCategory, error: categoryImageError } = await supabaseClient
+            .from('categories')
+            .update({ image_url: cat.image })
+            .eq('id', cloudCategoryId)
+            .select('id')
+            .maybeSingle();
+          if (categoryImageError) throw categoryImageError;
+          if (!savedCategory?.id) throw new Error('Category image could not be saved to the shared catalog');
+        }
         if (activeFolderId === cat.id) {
           const coverImg = document.getElementById('activeFolderCoverImg');
           if (coverImg) coverImg.src = cat.image;
