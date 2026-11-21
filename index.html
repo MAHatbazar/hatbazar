@@ -5546,7 +5546,7 @@
       if (lastSavedCheckoutPhoneLoaded === phone) return;
       let saved = null;
       try {
-        const raw = safeStorageGet(SAVED_CHECKOUT_ADDRESS_PREFIX + phone);
+        const raw = localStorage.getItem(SAVED_CHECKOUT_ADDRESS_PREFIX + phone);
         saved = raw ? JSON.parse(raw) : null;
       } catch (_err) { saved = null; }
       if (!saved || typeof saved !== 'object' || !saved.address || !saved.district || !saved.upazila) return;
@@ -5587,7 +5587,7 @@
         savedAt: new Date().toISOString()
       };
       try {
-        safeStorageSet(SAVED_CHECKOUT_ADDRESS_PREFIX + phone, JSON.stringify(saved));
+        localStorage.setItem(SAVED_CHECKOUT_ADDRESS_PREFIX + phone, JSON.stringify(saved));
         const hint = document.getElementById('savedCheckoutAddressHint');
         if (hint) {
           hint.textContent = 'আপনার ঠিকানা এই ডিভাইসে সেভ হয়েছে।';
