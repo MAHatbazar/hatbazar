@@ -1857,9 +1857,11 @@ async function importSingleProductLink(){
   const foundCount=Number(p.images_found||imageFiles.length);
   const partialImageNote=foundCount>imageFiles.length
    ?' খুঁজে পাওয়া '+foundCount+'টির মধ্যে '+imageFiles.length+'টি ছবি সংরক্ষিত হয়েছে।'
-   :imageFiles.length===1
-    ?' আপাতত ১টি ছবি পাওয়া গেছে; Preview দেখে নিন, প্রয়োজনে আরও ছবি যোগ করুন।'
-    :' সব পাওয়া ছবি Preview-তে দেখুন।';
+   :foundCount===0
+    ?' এই পেজ থেকে Product Image পাওয়া যায়নি। Product Images অংশে নিজে ছবি যোগ করুন।'
+    :imageFiles.length===1
+     ?' আপাতত ১টি ছবি পাওয়া গেছে; Preview দেখে নিন, প্রয়োজনে আরও ছবি যোগ করুন।'
+     :' সব পাওয়া ছবি Preview-তে দেখুন।';
   const imageWarning=(p.image_warnings||[]).length?' ছবি সংরক্ষণের সতর্কতা: '+p.image_warnings.join(' | '):'';
   status.textContent='Product-এর তথ্য ও '+imageFiles.length+'টি ছবি এসেছে।'+partialImageNote+imageWarning+' AI এখন নিজে সঠিক Category নির্বাচন করছে...';
   const categoryContext=[p.name,p.description||'',(p.variants||[]).join(', ')].filter(Boolean).join(' | ').slice(0,200);
@@ -1948,9 +1950,11 @@ async function importProductLinksExcel(){
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0);
     const savedImages=Number(p.image_count||0);
-    const imageStatus=savedImages<foundImages
-     ?' | '+savedImages+'/'+foundImages+'টি ছবি সংরক্ষিত'
-     : ' | '+savedImages+'টি ছবি';
+    const imageStatus=foundImages===0
+     ?' | Product Image পাওয়া যায়নি, হাতে যোগ করুন'
+     :savedImages<foundImages
+      ?' | '+savedImages+'/'+foundImages+'টি ছবি সংরক্ষিত'
+      : ' | '+savedImages+'টি ছবি';
     status.textContent='Serial '+item.serial+' সফল: '+(p.name||'Product')+imageStatus+' | '+imported+'/'+entries.length+' সম্পন্ন।';
    }catch(err){failures.push('Serial '+item.serial+': '+(err.message||'Import ব্যর্থ'));status.textContent='Serial '+item.serial+' ব্যর্থ, পরের লিংক চেষ্টা হচ্ছে...';}
   }
