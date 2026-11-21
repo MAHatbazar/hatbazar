@@ -368,6 +368,14 @@ function escapeHTML(v){
  }[c]));
 }
 
+function formatImportedDescription(value){
+ let text=String(value??'').replace(/\\r\\n?/g,'\\n').replace(/\\u00a0/g,' ');
+ // Keep supplier-provided paragraphs and put emoji-led feature points on separate lines.
+ text=text.replace(/(?<!^)(?<!\\n)(?=[\\p{Extended_Pictographic}])/gu,'\\n');
+ return text.split('\\n').map(line=>line.trim()).join('\\n')
+  .replace(/\\n{3,}/g,'\\n\\n').trim();
+}
+
 function normalizeCategory(value){
  return String(value??'')
   .normalize('NFKC')
