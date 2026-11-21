@@ -6683,8 +6683,20 @@
     }
 
     function getRealisticFolderImage(cat) {
-      // Keep an admin-uploaded category cover first; otherwise use its matching photo.
-      return (cat?.customCover && cat?.image) || cat?.image_url || REALISTIC_PHOTO_MAP[cat?.id] || buildRichVisualCard(
+      // Prefer a shared Supabase cover, then a real uploaded cover.
+      // Ignore locally generated SVG/emoji cards so every device gets the
+      // same photographic default when no shared/custom photo is available.
+      const sharedCover = typeof cat?.image_url === 'string' ? cat.image_url.trim() : '';
+      if (sharedCover && !/^data:image\\/svg\\+xml/i.test(sharedCover)) return sharedCover;
+
+      const uploadedCover = cat?.customCover && typeof cat?.image === 'string' ? cat.image.trim() : '';
+      if (
+        uploadedCover &&
+        !/^data:image\\/svg\\+xml/i.test(uploadedCover) &&
+        (/^https?:\\/\\//i.test(uploadedCover) || /^data:image\\/(?:png|jpe?g|webp|gif);/i.test(uploadedCover))
+      ) return uploadedCover;
+
+      return REALISTIC_PHOTO_MAP[cat?.id] || buildRichVisualCard(
         cat?.name || 'Hatbazar',
         cat?.emoji || '🛍️',
         cat?.c1 || '#4c1d95',
