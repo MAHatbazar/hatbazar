@@ -1971,9 +1971,30 @@ async function importSingleProductLink(){
  finally{button.disabled=false;}
 }
 
-function clearSingleProductImport(){
- if(!confirm('এই লিংক থেকে আনা সব Product তথ্য ও ছবি মুছে ফেলা হবে। আপনি কি নিশ্চিত?'))return;
-
+async function clearSingleProductImport(){
+ if(!confirm('এই লিংক থেকে আনা Product তথ্য, ছবি এবং এর সঙ্গে যুক্ত Background AI কাজও মুছে ফেলা হবে। আপনি কি নিশ্চিত?'))return;
+ const linkedJobId=aiActiveJobId||$('productForm').dataset.aiJobId||'';
+ if(linkedJobId){
+  try{
+   const {data:job}=await db.from('hatbazar_ai_jobs').select('id,payload,result').eq('id',linkedJobId).maybeSingle();
+   if(job){
+    const paths=[job.payload?.storage_path,job.result?.storage_path,...(job.payload?.items||[]).map(item=>item.storage_path),...(job.result?.results||[]).map(item=>item.storage_path)].filter(Boolean);
+    if(paths.length){
+     const {error:storageError}=await db.storage.from(BUCKET).remove([...new Set(paths)]);
+     if(storageError)throw new Error('Background AI ছবিগুলো মুছতে সমস্যা: '+storageError.message);
+    }
+    const {error:deleteError}=await db.from('hatbazar_ai_jobs').delete().eq('id',linkedJobId);
+    if(deleteError)throw deleteError;
+   }
+   if(aiActiveJobId===linkedJobId)aiActiveJobId=null;
+   aiAppliedJobIds.delete(linkedJobId);
+   $('productForm').dataset.aiJobId='';
+   await loadAIJobs();
+  }catch(e){
+   alert('Background AI কাজটি মুছতে সমস্যা হয়েছে: '+(e.message||'অজানা সমস্যা')+'। Product Preview আপাতত পরিষ্কার করা হয়নি।');
+   return;
+  }
+ }
  $('productForm').reset();
  $('productForm').dataset.aiJobId='';
  $('singleProductUrl').value='';
