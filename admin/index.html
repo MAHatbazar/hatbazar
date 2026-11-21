@@ -1086,6 +1086,7 @@ function setAdminSection(name){
  document.querySelectorAll('.admin-nav [data-section]').forEach(btn=>btn.classList.toggle('active',btn.dataset.section===name));
  if(name==='orders')loadOrders();if(name==='sellers')loadSellers();if(name==='resellers')loadResellers();if(name==='reports')loadReports();if(name==='settings')loadSettings();
 }
+function isBBazarSupplierUrl(raw){try{const u=new URL(raw);return u.protocol==='https:'&&(u.hostname==='bbazar.com.bd'||u.hostname.endsWith('.bbazar.com.bd'));}catch{return false;}}
 function renderRows(target,rows,emptyText){$(target).innerHTML=rows.length?rows.join(''):'<p class="hint">'+escapeHTML(emptyText)+'</p>';}
 
 async function loadOrders(){
@@ -1722,7 +1723,7 @@ $('productForm').addEventListener('submit',async e=>{
 
   const supplierUrl=$('bbazarSourceUrl').value.trim();
   if(supplierUrl){
-   if(!/^https?:\/\//i.test(supplierUrl))throw new Error('BBazar Product Link সঠিক URL হতে হবে।');
+   if(!isBBazarSupplierUrl(supplierUrl))throw new Error('শুধু BBazar-এর https://bbazar.com.bd Product Link দিন।');
    const {error:sourceError}=await db.from('product_supplier_sources').upsert({product_id:productId,supplier_key:'bbazar',source_url:supplierUrl,updated_at:new Date().toISOString()},{onConflict:'product_id,supplier_key'});
    if(sourceError)throw new Error('BBazar লিংক সংরক্ষণ হয়নি: '+sourceError.message);
   }
@@ -2240,7 +2241,7 @@ async function importBulkPastedLinks(){
     if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
     if(p.source_url)attributes['Source URL']=p.source_url;
     if(p.variants?.length)attributes['Variant Options']=p.variants;
-    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:localCurrency?(Number(p.selling_price??p.price??p.supplier_price)||''):'',original_price:localCurrency?(Number(p.original_price)||''):'',base_price:base,stock:100,description,image_urls:p.image_urls||[],_sourceUrl:item.url,_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:localCurrency?(Number(p.selling_price??p.price??p.supplier_price)||''):'',original_price:localCurrency?(Number(p.original_price)||''):'',base_price:base,stock:100,description,image_urls:p.image_urls||[],_sourceUrl:isBBazarSupplierUrl(item.url)?item.url:'',_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0),savedImages=Number(p.image_count||0);
     status.textContent='Serial '+item.serial+' সফল: '+(p.name||'Product')+' | '+savedImages+'/'+foundImages+'টি ছবি | '+imported+'/'+entries.length+' সম্পন্ন।';
@@ -2424,7 +2425,7 @@ async function importProductLinksExcel(){
     if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
     if(p.source_url)attributes['Source URL']=p.source_url;
     if(p.variants?.length)attributes['Variant Options']=p.variants;
-    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',base_price:Number.isFinite(base)?base:'',stock:100,description,image_urls:p.image_urls||[],_sourceUrl:item.url,_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',base_price:Number.isFinite(base)?base:'',stock:100,description,image_urls:p.image_urls||[],_sourceUrl:isBBazarSupplierUrl(item.url)?item.url:'',_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0);
     const savedImages=Number(p.image_count||0);
@@ -2581,7 +2582,7 @@ async function saveBulkProducts(){
    if(imageUrls.length){
     await saveProductGallery(data.id,imageUrls);
    }
-   if(product._sourceUrl){
+   if(product._sourceUrl && isBBazarSupplierUrl(product._sourceUrl)){
     const {error:sourceError}=await db.from('product_supplier_sources').upsert({product_id:data.id,supplier_key:'bbazar',source_url:product._sourceUrl,updated_at:new Date().toISOString()},{onConflict:'product_id,supplier_key'});
     if(sourceError)throw new Error('Product '+(i+1)+' এর BBazar Link সংরক্ষণ হয়নি: '+sourceError.message);
    }
