@@ -2464,6 +2464,7 @@
     let resellerCatalogCache = [];
     let resellerCloudLoadedAt = 0;
     let marketplaceProfileLoadedAt = 0;
+    let cloudStoreProducts = [];
 
     let deliveryZoneConfig = {
       insideFee: 80,
@@ -3048,6 +3049,11 @@
         else cat.items.unshift(mappedItem);
         applied = true;
       }
+      cloudStoreProducts = rows.map((row) => {
+        const cat = getFrontendCategoryBySupabaseId(row?.category_id);
+        const item = cat?.items?.find((entry) => String(entry.id) === String(row?.id));
+        return cat && item ? { item, cat } : null;
+      }).filter(Boolean);
       if (applied) {
         persistAppState();
         renderCategoriesGrid();
@@ -5539,15 +5545,7 @@
       const newArrivalsGrid = document.getElementById('homeNewArrivalsGrid');
       const newArrivalsEmpty = document.getElementById('homeNewArrivalsEmpty');
       if (newArrivalsGrid) {
-        const latestProducts = [];
-        const seenProductIds = new Set();
-        for (const cat of categoriesData) {
-          for (const item of (Array.isArray(cat.items) ? cat.items : [])) {
-            if (!item?.id || seenProductIds.has(String(item.id))) continue;
-            seenProductIds.add(String(item.id));
-            latestProducts.push({ item, cat });
-          }
-        }
+        const latestProducts = [...cloudStoreProducts];
         latestProducts.sort((a, b) => {
           const aTime = Date.parse(a.item.createdAt || a.item.created_at || '') || 0;
           const bTime = Date.parse(b.item.createdAt || b.item.created_at || '') || 0;
