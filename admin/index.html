@@ -1756,8 +1756,8 @@ async function importBulkPastedLinks(){
  const input=$('bulkProductLinksText'),status=$('productLinksStatus'),button=$('importBulkPastedLinksBtn');
  const raw=input.value.trim();
  if(!raw){status.textContent='আগে এক বা একাধিক Product Link পেস্ট করুন।';input.focus();return;}
- const urls=[...raw.matchAll(/https?:\\/\\/[^\\s<>"']+/gi)]
-  .map(m=>m[0].replace(/[.,;:!?)}\\]]+$/g,'').replace(/&amp;/gi,'&'))
+ const urls=[...raw.matchAll(/https?:\/\/[^\s<>"']+/gi)]
+  .map(m=>m[0].replace(/[.,;:!?)}\]]+$/g,'').replace(/&amp;/gi,'&'))
   .filter(Boolean);
  const unique=[...new Set(urls)];
  if(!unique.length){status.textContent='কোনো HTTP/HTTPS Product Link পাওয়া যায়নি।';return;}
