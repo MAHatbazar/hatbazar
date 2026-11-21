@@ -130,7 +130,8 @@ button:disabled{opacity:.5}
 <div id="categoryCount" class="category-count">Category লোড হচ্ছে...</div>
 <div class="upload-box">
  <div class="top"><strong>Facebook Page সংযোগ</strong><button id="facebookConnectBtn" type="button" class="secondary">Facebook Connect</button></div>
- <p id="facebookConnectionStatus" class="hint">Facebook সংযোগের অবস্থা যাচাই হচ্ছে...</p>
+ <p id="facebookConnectionStatus" class="hint">Facebook Page সংযোগের অবস্থা যাচাই হচ্ছে...</p>
+<p class="hint">Marketplace Listing আলাদাভাবে প্রস্তুত হবে। ব্যক্তিগত Marketplace-এ চূড়ান্ত Publish আপনাকে Facebook-এ গিয়ে করতে হবে।</p>
 </div>
 
 <div class="tabs">
@@ -204,6 +205,10 @@ Product Active
 <label>
 <input id="postToFacebook" type="checkbox" style="width:auto;margin-right:7px">
 Save করার পর Facebook Page-এ পোস্ট করুন (শুধু নতুন Product)
+</label>
+<label>
+<input id="postToMarketplace" type="checkbox" style="width:auto;margin-right:7px">
+Save করার পর Facebook Marketplace Listing প্রস্তুত করুন
 </label>
 
 <div class="actions">
@@ -284,6 +289,10 @@ Save করার পর Facebook Page-এ পোস্ট করুন (শু�
 <input id="bulkPostToFacebook" type="checkbox" style="width:auto;margin-right:7px">
 Save করার পর নতুন Product-গুলো Facebook Page-এ পোস্ট করুন
 </label>
+<label>
+<input id="bulkPostToMarketplace" type="checkbox" style="width:auto;margin-right:7px">
+Save করার পর প্রতিটি Product-এর Facebook Marketplace Listing প্রস্তুত করুন
+</label>
 <div class="actions" style="margin-top:14px">
 <button id="saveBulkBtn" type="button" onclick="saveBulkProducts()">Save All Products</button>
 <button type="button" class="secondary" onclick="clearBulkRows()">Clear Rows</button>
@@ -293,6 +302,7 @@ Save করার পর নতুন Product-গুলো Facebook Page-এ প
 </div>
 
 <div id="status"></div>
+<div id="marketplaceAssistPanel" class="upload-box hidden" style="margin:14px 0"></div>
 <div id="productList">Products লোড হচ্ছে...</div>
 
 </div>
@@ -712,6 +722,54 @@ async function publishProductToFacebook(productId){
   await facebookRequest('publish','POST',{product_id:productId});
   return {ok:true};
  }catch(err){return {ok:false,error:err.message};}
+}
+function marketplaceEscape(value){
+ return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+async function renderMarketplaceAssist(productIds){
+ const panel=$('marketplaceAssistPanel');
+ if(!productIds?.length)return;
+ panel.classList.remove('hidden');
+ panel.innerHTML='<strong>Facebook Marketplace Listing প্রস্তুত হচ্ছে...</strong>';
+ try{
+  const {data:products,error}=await db.from('products')
+   .select('id,name,name_bn,description,price,image_url')
+   .in('id',productIds);
+  if(error)throw error;
+  const {data:galleries}=await db.from('product_images')
+   .select('product_id,image_url,sort_order')
+   .in('product_id',productIds)
+   .order('sort_order',{ascending:true});
+  const galleryMap={};
+  (galleries||[]).forEach(item=>(galleryMap[item.product_id]??=[]).push(item.image_url));
+  panel.innerHTML='<strong>🛍️ Facebook Marketplace Listing প্রস্তুত</strong><p class="hint">নিচের বাটনে চাপলে পণ্যের নাম, বিবরণ ও দাম Copy হবে এবং Marketplace খুলবে। Facebook-এ গিয়ে তথ্য Paste করে ফোনের Photos থেকে ছবিগুলো নির্বাচন করে Publish করুন।</p>'+
+   (products||[]).map(p=>{
+    const images=[...new Set([...(galleryMap[p.id]||[]),p.image_url].filter(Boolean))].slice(0,10);
+    const text=[p.name_bn||p.name,p.name!==p.name_bn?p.name:'',p.description||'', 'দাম: ৳'+Number(p.price||0)].filter(Boolean).join('\n\n');
+    return '<div class="upload-box" style="margin:10px 0"><strong>'+marketplaceEscape(p.name_bn||p.name)+'</strong>'+
+     '<p class="hint">বিক্রয়মূল্য: ৳'+Number(p.price||0)+' · '+images.length+'টি ছবি</p>'+
+     '<textarea readonly rows="5" style="width:100%" id="marketText_'+p.id+'">'+marketplaceEscape(text)+'</textarea>'+
+     '<div class="actions"><button type="button" onclick="prepareMarketplaceListing(\''+p.id+'\')">Copy Details ও Marketplace খুলুন</button></div>'+
+     (images.length?'<div class="multi-preview">'+images.map((url,i)=>'<a href="'+marketplaceEscape(url)+'" target="_blank" rel="noopener" class="hint">ছবি '+(i+1)+' খুলুন</a>').join(' · ')+'</div>':'<p class="hint">Product-এর ছবি নেই। আগে Admin-এ ছবি যোগ করুন।</p>')+
+     '</div>';
+   }).join('');
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(err){
+  panel.innerHTML='<strong>Marketplace Listing প্রস্তুত করা যায়নি</strong><p class="hint">'+marketplaceEscape(err.message||String(err))+'</p>';
+ }
+}
+async function prepareMarketplaceListing(productId){
+ const textArea=$('marketText_'+productId);
+ if(!textArea)return;
+ const popup=window.open('https://www.facebook.com/marketplace/create/item/','_blank');
+ try{
+  textArea.focus();textArea.select();
+  await navigator.clipboard.writeText(textArea.value);
+  showStatus('পণ্যের নাম, বিবরণ ও দাম Copy হয়েছে। Marketplace-এ Paste করুন।');
+ }catch(err){
+  showStatus('Marketplace খোলা হয়েছে। নিচের Details লেখা Select করে Copy করুন, তারপর Facebook-এ Paste করুন।',true);
+ }
+ if(!popup)showStatus('Popup বন্ধ থাকলে Facebook Marketplace লিংকে চাপুন: https://www.facebook.com/marketplace/create/item/',true);
 }
 $('facebookConnectBtn').addEventListener('click',connectFacebook);
 
@@ -1324,6 +1382,9 @@ $('productForm').addEventListener('submit',async e=>{
    else showStatus('Product যোগ হয়েছে, কিন্তু Facebook পোস্ট হয়নি: '+fb.error,true);
   }else{
    showStatus(wasEditing?'Product Update হয়েছে।':'নতুন Product যোগ হয়েছে।');
+  }
+  if(!wasEditing && $('postToMarketplace').checked && p.is_active){
+   await renderMarketplaceAssist([productId]);
   }
 
   $('productFormPanel').classList.add('hidden');
@@ -2048,6 +2109,8 @@ async function saveBulkProducts(){
  let savedCount=0;
  let facebookPosted=0;
  const postBulkToFacebook=$('bulkPostToFacebook').checked;
+ const prepareBulkMarketplace=$('bulkPostToMarketplace').checked;
+ const marketplaceProductIds=[];
  const facebookErrors=[];
 
  try{
@@ -2094,6 +2157,7 @@ async function saveBulkProducts(){
    if(imageUrls.length){
     await saveProductGallery(data.id,imageUrls);
    }
+   if(prepareBulkMarketplace)marketplaceProductIds.push(data.id);
 
    if(postBulkToFacebook && imageUrls.length){
     const fb=await publishProductToFacebook(data.id);
@@ -2114,6 +2178,9 @@ async function saveBulkProducts(){
   );
 
   clearBulkRows();
+  if(prepareBulkMarketplace && marketplaceProductIds.length){
+   await renderMarketplaceAssist(marketplaceProductIds);
+  }
 
   $('excelFile').value='';
   $('excelStatus').textContent='';
