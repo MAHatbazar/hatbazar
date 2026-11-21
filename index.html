@@ -5808,7 +5808,7 @@
           >
             <img
               src="${escapeHtml(getRealisticFolderImage(cat))}"
-              onerror="this.onerror=null;this.src=getCategoryPhotoFallback('${escapeHtml(cat.name)}','${escapeHtml(cat.id)}');"
+              onerror="handleCategoryCoverImageError(this,'${escapeHtml(cat.name)}','${escapeHtml(cat.id)}')"
               alt="${escapeHtml(getCategoryName(cat))}"
               loading="eager"
               class="w-full h-36 sm:h-40 rounded-xl object-cover object-center mb-2.5 group-hover:scale-[1.03] transition"
@@ -5930,7 +5930,7 @@
                 </div>
                 <img
                   src="${escapeHtml(getRealisticFolderImage(cat))}"
-                  onerror="this.onerror=null;this.src=getCategoryPhotoFallback('${escapeHtml(cat.name)}','${escapeHtml(cat.id)}');"
+                  onerror="handleCategoryCoverImageError(this,'${escapeHtml(cat.name)}','${escapeHtml(cat.id)}')"
                   alt="${escapeHtml(getCategoryName(cat))}"
                   loading="eager"
                   class="w-full h-40 sm:h-44 rounded-xl object-cover object-center mb-2.5"
@@ -6729,6 +6729,22 @@
       const cat = categoriesData.find((c) => c.id === catId || c.name === label || c.nameEn === label || c.itemName === label);
       if (cat) return buildRichVisualCard(getCategoryName(cat), cat.emoji, cat.c1, cat.c2, cat.accent, cat.id);
       return buildRichVisualCard(label || 'Hatbazar', '🛍️', '#4c1d95', '#831843', '#fde047', 'cat-24');
+    }
+
+    // If a browser has an outdated/broken locally saved cover URL, retry the
+    // canonical category photo before showing the designed SVG placeholder.
+    function handleCategoryCoverImageError(img, label, catId = '') {
+      if (!img) return;
+      const cat = categoriesData.find((c) => c.id === catId || c.name === label || c.nameEn === label || c.itemName === label);
+      const mappedId = REALISTIC_PHOTO_MAP[catId] ? catId : (cat?.id || '');
+      const canonicalPhoto = REALISTIC_PHOTO_MAP[mappedId];
+      const currentSource = img.getAttribute('src') || '';
+      if (canonicalPhoto && currentSource !== canonicalPhoto) {
+        img.src = canonicalPhoto;
+        return;
+      }
+      img.onerror = null;
+      img.src = getCategoryPhotoFallback(label, catId);
     }
 
     const FLASH_DEALS_DATA = [
