@@ -250,6 +250,11 @@ END;
 $function$
 
 
+ALTER TABLE public.reseller_profiles
+  ADD COLUMN IF NOT EXISTS public_share_token uuid NOT NULL DEFAULT gen_random_uuid();
+CREATE UNIQUE INDEX IF NOT EXISTS reseller_profiles_public_share_token_uidx
+  ON public.reseller_profiles(public_share_token);
+
 -- Persistent per-reseller price list used by customer share links.
 CREATE TABLE IF NOT EXISTS public.reseller_product_prices (
   reseller_id uuid NOT NULL REFERENCES public.reseller_profiles(id) ON DELETE CASCADE,
@@ -298,8 +303,9 @@ BEGIN
 END;
 $;
 
-CREATE OR REPLACE FUNCTION public.hatbazar_reseller_public_catalog(p_reseller_id uuid)
+CREATE OR REPLACE FUNCTION public.hatbazar_reseller_public_catalog(p_share_token uuid)
 RETURNS TABLE (
+  reseller_id uuid,
   product_id uuid,
   product_name text,
   product_name_bn text,
@@ -309,22 +315,41 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
-AS $
+AS $$ 
+DECLARE
+  v_reseller_id uuid;
 BEGIN
-  IF p_reseller_id IS NULL OR NOT EXISTS (
-    SELECT 1 FROM public.reseller_profiles rp
-    WHERE rp.id=p_reseller_id AND lower(rp.status::text)='approved'
-  ) THEN
+  SELECT rp.id INTO v_reseller_id
+  FROM public.reseller_profiles rp
+  WHERE rp.public_share_token=p_share_token
+    AND lower(rp.status::text)='approved';
+  IF v_reseller_id IS NULL THEN
     RAISE EXCEPTION 'Reseller share link is invalid or inactive';
   END IF;
   RETURN QUERY
-  SELECT p.id,p.name,p.name_bn,rpp.selling_price,p.stock
+  SELECT v_reseller_id,p.id,p.name,p.name_bn,rpp.selling_price,p.stock
   FROM public.reseller_product_prices rpp
   JOIN public.products p ON p.id=rpp.product_id
-  WHERE rpp.reseller_id=p_reseller_id AND p.is_active IS TRUE AND p.stock>0
+  WHERE rpp.reseller_id=v_reseller_id AND p.is_active IS TRUE AND p.stock>0
   ORDER BY p.name;
 END;
-$;
+$$;
+
+CREATE OR REPLACE FUNCTION public.hatbazar_reseller_get_share_token()
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$ 
+DECLARE v_token uuid;
+BEGIN
+  SELECT rp.public_share_token INTO v_token
+  FROM public.reseller_profiles rp
+  WHERE rp.id=auth.uid() AND lower(rp.status::text)='approved';
+  IF v_token IS NULL THEN RAISE EXCEPTION 'Only approved resellers can create share links'; END IF;
+  RETURN v_token;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION public.hatbazar_admin_product_pricing()
 RETURNS TABLE (
@@ -535,8 +560,10 @@ $;
 
 REVOKE ALL ON FUNCTION public.hatbazar_reseller_set_product_price(uuid,numeric) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.hatbazar_reseller_public_catalog(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.hatbazar_reseller_get_share_token() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_set_product_price(uuid,numeric) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_public_catalog(uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_get_share_token() TO authenticated;
 
 REVOKE ALL ON FUNCTION public.hatbazar_admin_product_pricing() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.hatbazar_admin_set_product_pricing(uuid,numeric,numeric,numeric) FROM PUBLIC, anon, authenticated;
