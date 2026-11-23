@@ -3121,7 +3121,6 @@
           price: Number(row.price) || 0,
           finalPrice: Number(row.price) || 0,
           originalPrice: Number(row.original_price) || 0,
-          basePrice: Number(row.base_price) || 0,
           sellerId: row.seller_id || null,
           discountPercent: Number(row.original_price)>Number(row.price)&&Number(row.original_price)>0?Math.round((Number(row.original_price)-Number(row.price))/Number(row.original_price)*100):0,
           discountAmount: Number(row.original_price)>Number(row.price)?Number(row.original_price)-Number(row.price):0,
