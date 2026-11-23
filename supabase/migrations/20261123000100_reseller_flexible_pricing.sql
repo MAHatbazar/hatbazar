@@ -564,6 +564,9 @@ GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_set_product_price(uuid,numeri
 GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_public_catalog(uuid) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_get_share_token() TO authenticated;
 
+-- The Facebook Edge Function uses the service role to read the dedicated post price.
+GRANT SELECT (facebook_selling_price) ON public.products TO service_role;
+
 REVOKE ALL ON FUNCTION public.hatbazar_admin_product_pricing() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.hatbazar_admin_set_product_pricing(uuid,numeric,numeric,numeric) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.hatbazar_reseller_pricing_catalog() FROM PUBLIC, anon, authenticated;
