@@ -1537,8 +1537,10 @@ async function importLocalSamsungProducts(){
    const {error}=await db.from('products').upsert(payload,{onConflict:'id'});
    if(error)throw error;
    if(currentAdminRole==='admin'){
-    const {error:baseError}=await db.rpc('hatbazar_admin_set_product_base_price',{p_product_id:productId,p_base_price:Number(item.basePrice)>0?Number(item.basePrice):null});
-    if(baseError)throw baseError;
+    const {error:pricingError}=await db.rpc('hatbazar_admin_set_product_pricing',{
+     p_product_id:productId,p_original_cost:null,p_selling_price:Number(item.price)||0,p_facebook_selling_price:null
+    });
+    if(pricingError)throw pricingError;
    }
    const {error:deleteError}=await db.from('product_images').delete().eq('product_id',productId);
    if(deleteError)throw deleteError;
@@ -2492,8 +2494,6 @@ async function importSingleProductLink(){
   const importedOriginalPrice=p.original_price!==''&&localCurrency?Number(p.original_price):NaN;
   $('price').value=Number.isFinite(sellingPrice)?sellingPrice:'';
   $('original_price').value=Number.isFinite(importedOriginalPrice)&&importedOriginalPrice>0?importedOriginalPrice:'';
-  const importedBasePrice=p.supplier_price??p.price??p.selling_price;
-  const basePrice=importedBasePrice!==''&&localCurrency?Number(importedBasePrice):NaN;
   $('original_cost').value='';
   $('facebook_selling_price').value='';
   $('stock').value='100';
@@ -2621,12 +2621,12 @@ async function importProductLinksExcel(){
     const description=[p.description||'',p.variants?.length?'Available Options / Variants:\n'+p.variants.join('\n'):''].filter(Boolean).join('\n\n');
     const currency=String(p.currency||'').toUpperCase();
     const localCurrency=!currency||['BDT','TKA','TK','৳'].includes(currency);
-    const base=p.supplier_price!==''&&localCurrency?Number(p.supplier_price):'';
+    const originalCost='';
     const attributes={};
     if(p.brand)attributes.Brand=p.brand;if(p.sku)attributes.SKU=p.sku;
     if(p.source_url)attributes['Source URL']=p.source_url;
     if(p.variants?.length)attributes['Variant Options']=p.variants;
-    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',base_price:Number.isFinite(base)?base:'',stock:100,description,image_urls:p.image_urls||[],_sourceUrl:isBBazarSupplierUrl(item.url)?item.url:'',_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
+    addBulkRow({name:p.name||'',name_bn:p.name_bn||'',price:'',original_cost:originalCost,facebook_selling_price:'',stock:100,description,image_urls:p.image_urls||[],_sourceUrl:isBBazarSupplierUrl(item.url)?item.url:'',_aiMeta:{attributes,sizes:[],description_en:'',description_bn:''}});
     imported++;
     const foundImages=Number(p.images_found||p.image_count||0);
     const savedImages=Number(p.image_count||0);
