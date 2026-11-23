@@ -2591,6 +2591,9 @@
         return;
       }
 
+      if (activeReferralResellerId && referralPriceMap[foundProduct.id]) {
+        foundProduct.finalPrice = Number(referralPriceMap[foundProduct.id]);
+      }
       if (crumbTitle) crumbTitle.textContent = currentLang === 'en' ? (foundProduct.titleEn || CATEGORY_PRODUCT_ENGLISH[ownerCategory?.id] || foundProduct.title) : foundProduct.title;
       const isOutOfStock = (Number(foundProduct.stock) || 0) <= 0;
       const t = LANG_TEXT_MAP[currentLang];
@@ -2878,6 +2881,7 @@
         await pullDeliveryZoneSettingsFromSupabase();
         await pullCategoryCoversFromSupabase();
         await pullProductsFromSupabase();
+        await applyResellerReferralFromUrl();
         await pullCentralOrdersFromSupabase();
         renderSupabaseStatusBadge();
       } catch (_err) {
@@ -3329,7 +3333,7 @@
           p_delivery_zone: orderRecord.deliveryZone,
           p_delivery_fee: Number(orderRecord.deliveryFee) || 0,
           p_payment_trx_id: orderRecord.paymentTrxId || null,
-          p_reseller_id: supabaseProfile?.role === 'reseller' ? (supabaseUser?.id || null) : null
+          p_reseller_id: activeReferralResellerId || (supabaseProfile?.role === 'reseller' ? (supabaseUser?.id || null) : null)
         });
         if (error || !data?.success) {
           console.error('Hatbazar checkout failed:', error?.message || data?.message || 'Unknown error');
@@ -6947,6 +6951,9 @@
 
     let categoriesData = buildDefaultCategories();
     let cartItems = [];
+    let activeReferralResellerId = '';
+    let activeReferralProductId = '';
+    let referralPriceMap = {};
     let checkoutSubmitting = false;
     let currentSessionUser = null;
     let currentLang = 'bn';
@@ -7330,7 +7337,7 @@
           return {
             id: item.id,
             title: item.title,
-            price: Number(item.finalPrice ?? item.price) || 0,
+            price: activeReferralResellerId && referralPriceMap[item.id] ? Number(referralPriceMap[item.id]) : (Number(item.finalPrice ?? item.price) || 0),
             stock: Number.isFinite(Number(item.stock)) ? Number(item.stock) : 25,
             image: item.image
           };
@@ -7347,6 +7354,10 @@
         return;
       }
 
+      if (cartItems.some((i) => (i.resellerId || null) !== (activeReferralResellerId || null))) {
+        cartItems = [];
+        showToast('নতুন রিসেলার লিংকের অর্ডারের জন্য আগের কার্ট খালি করা হয়েছে।');
+      }
       const existing = cartItems.find((i) => i.id === prod.id);
       if (existing) {
         existing.qty += 1;
@@ -7356,7 +7367,8 @@
           title: prod.title,
           price: prod.price,
           qty: 1,
-          image: prod.image
+          image: prod.image,
+          resellerId: activeReferralResellerId || null
         });
       }
 
