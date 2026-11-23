@@ -1326,11 +1326,11 @@
           <span data-bn="💼 Reseller Dashboard & Earnings" data-en="💼 Reseller Dashboard & Earnings" class="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200 mb-1">
             💼 Reseller Dashboard & Earnings
           </span>
-          <h2 data-bn="রিসেলার ড্যাশবোর্ড ও কমিশন আয় ম্যানেজমেন্ট" data-en="Reseller Dashboard & Commission Earnings Management" class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-fuchsia-900 via-violet-800 to-amber-600 bg-clip-text text-transparent">
-            রিসেলার ড্যাশবোর্ড ও কমিশন আয় ম্যানেজমেন্ট
+          <h2 data-bn="রিসেলার ড্যাশবোর্ড ও লাভের হিসাব" data-en="Reseller Dashboard & Commission Earnings Management" class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-fuchsia-900 via-violet-800 to-amber-600 bg-clip-text text-transparent">
+            রিসেলার ড্যাশবোর্ড ও লাভের হিসাব
           </h2>
-          <p data-bn="রিসেল অর্ডার ট্র্যাক করুন, কমিশন হিসাব দেখুন এবং উইথড্র বা পে-আউট রিকোয়েস্ট পাঠান।" data-en="Track reseller sales, calculate commissions, and submit payout or withdrawal requests." class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
-            রিসেল অর্ডার ট্র্যাক করুন, কমিশন হিসাব দেখুন এবং উইথড্র বা পে-আউট রিকোয়েস্ট পাঠান।
+          <p data-bn="নিজের বিক্রয়মূল্য নির্ধারণ করুন, বিক্রয় ও লাভের হিসাব রাখুন এবং পেআউট রিকোয়েস্ট পাঠান।" data-en="Track reseller sales, calculate commissions, and submit payout or withdrawal requests." class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
+            নিজের বিক্রয়মূল্য নির্ধারণ করুন, বিক্রয় ও লাভের হিসাব রাখুন এবং পেআউট রিকোয়েস্ট পাঠান।
           </p>
         </div>
         <button
@@ -1346,7 +1346,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
-          <div data-bn="মোট রিসেল কমিশন আয়" data-en="Total Profit Earned" class="text-xs font-bold text-slate-500">মোট রিসেল কমিশন আয়</div>
+          <div data-bn="মোট রিসেলার লাভ" data-en="Total Profit Earned" class="text-xs font-bold text-slate-500">মোট রিসেলার লাভ</div>
           <div id="resellerTotalCommission" class="text-2xl font-black text-fuchsia-700 mt-1">৳০</div>
         </div>
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
@@ -1358,8 +1358,8 @@
           <div id="resellerWithdrawnTotal" class="text-2xl font-black text-amber-600 mt-1">৳০</div>
         </div>
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
-          <div data-bn="কমিশন রেট" data-en="Commission Rate" class="text-xs font-bold text-slate-500">কমিশন রেট</div>
-          <div class="text-2xl font-black text-violet-800 mt-1">১২%</div>
+          <div data-bn="লাভের হিসাব" data-en="Commission Rate" class="text-xs font-bold text-slate-500">লাভের হিসাব</div>
+          <div class="text-sm font-black text-violet-800 mt-1">আপনার বিক্রয়মূল্য থেকে বেশি দামের পার্থক্য</div>
         </div>
       </div>
 
@@ -3966,24 +3966,24 @@
       const preview = document.getElementById('resellerMarginPreview');
       if (!preview) return;
       if (!product) { preview.textContent = 'পণ্য নির্বাচন করলে আপনার সম্ভাব্য লাভ দেখাবে।'; return; }
-      const margin = price - Number(product.base_price || 0);
+      const margin = price - Number(product.selling_price || 0);
       const totalProfit = margin * quantity;
       preview.textContent = margin < 0
-        ? 'বিক্রয় মূল্য বেস মূল্যের চেয়ে কম হতে পারবে না।'
-        : 'গোপন বেস মূল্য: ৳' + formatNum(product.base_price) + ' · প্রতি পিস লাভ: ৳' + formatNum(margin) + ' · মোট লাভ: ৳' + formatNum(totalProfit);
+        ? 'আপনার বিক্রয়মূল্য Hatbazar-এর নির্ধারিত মূল্যের চেয়ে কম হতে পারবে না।'
+        : 'Hatbazar Selling Price: ৳' + formatNum(product.selling_price) + ' · প্রতি পিস লাভ: ৳' + formatNum(margin) + ' · মোট লাভ: ৳' + formatNum(totalProfit);
     }
 
     async function refreshResellerCloudData() {
       if (!cloudSyncEnabled || !supabaseClient || Date.now() - resellerCloudLoadedAt < 60000) return;
       try {
-        const { data: catalog, error: catalogError } = await supabaseClient.rpc('hatbazar_reseller_catalog');
+        const { data: catalog, error: catalogError } = await supabaseClient.rpc('hatbazar_reseller_pricing_catalog');
         if (catalogError) throw catalogError;
         resellerCatalogCache = Array.isArray(catalog) ? catalog : [];
         const select = document.getElementById('resellerSaleProduct');
         if (select) {
           select.innerHTML = '<option value="">পণ্য নির্বাচন করুন</option>' + resellerCatalogCache.map((item) =>
             '<option value="' + escapeHtml(item.product_id) + '">' +
-            escapeHtml(item.product_name_bn || item.product_name) + ' · বেস ৳' + formatNum(item.base_price) +
+            escapeHtml(item.product_name_bn || item.product_name) + ' · আপনার ন্যূনতম ৳' + formatNum(item.selling_price) + ' · Facebook ৳' + formatNum(item.facebook_selling_price) +
             '</option>'
           ).join('');
         }
@@ -4053,7 +4053,7 @@
         return;
       }
       try {
-        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_record_sale', {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_record_sale_v2', {
           p_product_id: productId,
           p_order_reference: ref,
           p_selling_price: saleAmount,
@@ -5061,12 +5061,12 @@
       'পণ্যের ছবি': 'Product Image',
       '+ যোগ': '+ Add',
       '📋 সেলার আবেদন তালিকা ও স্ট্যাটাস': '📋 Seller Applications & Status',
-      'রিসেলার ড্যাশবোর্ড ও কমিশন আয় ম্যানেজমেন্ট': 'Reseller Dashboard & Earnings Management',
-      'রিসেল অর্ডার ট্র্যাক করুন, কমিশন হিসাব দেখুন এবং উইথড্র বা পে-আউট রিকোয়েস্ট পাঠান।': 'Track reseller orders, review earnings and submit withdrawal or payout requests.',
-      'মোট রিসেল কমিশন আয়': 'Total Reseller Earnings',
+      'রিসেলার ড্যাশবোর্ড ও লাভের হিসাব': 'Reseller Dashboard & Earnings Management',
+      'নিজের বিক্রয়মূল্য নির্ধারণ করুন, বিক্রয় ও লাভের হিসাব রাখুন এবং পেআউট রিকোয়েস্ট পাঠান।': 'Track reseller orders, review earnings and submit withdrawal or payout requests.',
+      'মোট রিসেলার লাভ': 'Total Reseller Earnings',
       'উইথড্রযোগ্য ব্যালেন্স': 'Available Balance',
       'উইথড্রকৃত / পেন্ডিং পে-আউট': 'Withdrawn / Pending Payout',
-      'কমিশন রেট': 'Commission Rate',
+      'লাভের হিসাব': 'Commission Rate',
       '➕ নতুন রিসেল সেলস লগ ও কমিশন যুক্ত করুন': '➕ Record Reseller Sale & Earnings',
       'পণ্য নির্বাচন করুন *': 'Select Product *',
       'অনুমোদিত পণ্যের তালিকা লোড হচ্ছে...': 'Loading approved product list...',
