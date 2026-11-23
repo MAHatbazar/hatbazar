@@ -7978,14 +7978,15 @@
             const priceRaw = getValue(row, ['selling price','price']);
             const stockRaw = getValue(row, ['stock quantity','stock']);
             const price = Number(priceRaw);
-            const basePrice = Number(getValue(row, ['base price','wholesale price']) || 0);
+            const originalCost = Number(getValue(row, ['original cost','purchase cost','cost price']) || 0);
+            const facebookSellingPrice = Number(getValue(row, ['facebook selling price','facebook price','fb price']) || 0);
             const stock = Number(stockRaw);
             return {
               rowNumber:index+2, categoryId:category?.id || '', categoryName:category?.name || String(categoryText),
-              titleEn,titleBn,price,basePrice,stock,desc:String(getValue(row,['description'])).trim(),
+              titleEn,titleBn,price,originalCost,facebookSellingPrice,stock,desc:String(getValue(row,['description'])).trim(),
               imageUrl:String(getValue(row,['image url','image'])).trim(),
               galleryUrls:String(getValue(row,['gallery urls','gallery images'])).split(/[\n,;]/).map((url)=>url.trim()).filter(Boolean),
-              valid:Boolean(category && (titleEn || titleBn) && String(priceRaw).trim() !== '' && Number.isFinite(price) && price>0 && String(stockRaw).trim() !== '' && Number.isInteger(stock) && stock>=0 && Number.isFinite(basePrice) && basePrice>=0 && basePrice<=price)
+              valid:Boolean(category && (titleEn || titleBn) && String(priceRaw).trim() !== '' && Number.isFinite(price) && price>0 && String(stockRaw).trim() !== '' && Number.isInteger(stock) && stock>=0 && Number.isFinite(originalCost) && originalCost>=0 && Number.isFinite(facebookSellingPrice) && facebookSellingPrice>=0)
             };
           }).filter((row)=>row.titleEn || row.titleBn || row.categoryName);
           if (!pendingBulkProductRows.length) throw new Error('ফাইলে কোনো পণ্যের সারি পাওয়া যায়নি।');
@@ -8062,7 +8063,7 @@
             if(!category) throw new Error('Category পাওয়া যায়নি।');
             const product={
               id:createUuid(),title:row.titleBn||row.titleEn,titleEn:row.titleEn||row.titleBn,
-              price:row.price,finalPrice:row.price,basePrice:row.basePrice,discountPercent:0,
+              price:row.price,finalPrice:row.price,originalCost:row.originalCost>0?row.originalCost:null,facebookSellingPrice:row.facebookSellingPrice>0?row.facebookSellingPrice:null,discountPercent:0,
               discountAmount:0,stock:row.stock,desc:row.desc,image:uniqueImages[0]||'',
               gallery:uniqueImages,sellerId:null
             };
