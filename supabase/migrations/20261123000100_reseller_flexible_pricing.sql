@@ -47,6 +47,7 @@ DECLARE
   v_stock INTEGER;
   v_base_price NUMERIC;
   v_admin_price NUMERIC;
+  v_reseller_id UUID;
   v_is_active BOOLEAN;
   v_subtotal NUMERIC(12,2) := 0;
   v_delivery_fee NUMERIC(12,2);
@@ -121,11 +122,15 @@ BEGIN
   END IF;
 
   IF p_reseller_id IS NOT NULL THEN
-    IF NOT EXISTS (
-      SELECT 1 FROM public.reseller_profiles AS rp
-      WHERE rp.id = p_reseller_id AND pg_catalog.lower(rp.status::TEXT) = 'approved'
-    ) THEN
-      RAISE EXCEPTION 'Reseller account is not approved';
+    SELECT rp.id INTO v_reseller_id
+    FROM public.reseller_profiles AS rp
+    WHERE pg_catalog.lower(rp.status::TEXT) = 'approved'
+      AND (
+        rp.public_share_token = p_reseller_id
+        OR (rp.id = p_reseller_id AND auth.uid() = rp.id)
+      );
+    IF v_reseller_id IS NULL THEN
+      RAISE EXCEPTION 'Reseller share link is invalid or reseller account is not approved';
     END IF;
   END IF;
 
@@ -161,12 +166,12 @@ BEGIN
     ORDER BY x.product_id
   LOOP
     SELECT p.name, p.price,
-           CASE WHEN p_reseller_id IS NULL THEN p.price ELSE rpp.selling_price END,
+           CASE WHEN v_reseller_id IS NULL THEN p.price ELSE rpp.selling_price END,
            p.stock, p.is_active
       INTO v_product_name, v_admin_price, v_price, v_stock, v_is_active
     FROM public.products AS p
     LEFT JOIN public.reseller_product_prices AS rpp
-      ON rpp.product_id = p.id AND rpp.reseller_id = p_reseller_id
+      ON rpp.product_id = p.id AND rpp.reseller_id = v_reseller_id
     WHERE p.id = v_item.product_id
     FOR UPDATE OF p;
 
@@ -179,7 +184,7 @@ BEGIN
     IF v_price IS NULL OR v_price <= 0 THEN
       RAISE EXCEPTION 'Reseller has not set a valid price for: %', v_product_name;
     END IF;
-    IF p_reseller_id IS NOT NULL AND v_price < v_admin_price THEN
+    IF v_reseller_id IS NOT NULL AND v_price < v_admin_price THEN
       RAISE EXCEPTION 'Reseller price is below Hatbazar Selling Price for: %', v_product_name;
     END IF;
     v_subtotal := v_subtotal + (v_price * v_item.quantity);
@@ -197,8 +202,8 @@ BEGIN
     subtotal, delivery_fee, payment_trx_id, payment_verified
   )
   VALUES (
-    CASE WHEN p_reseller_id IS NULL THEN auth.uid() ELSE NULL END,
-    p_reseller_id, pg_catalog.btrim(p_customer_name), v_phone, pg_catalog.btrim(p_address),
+    CASE WHEN v_reseller_id IS NULL THEN auth.uid() ELSE NULL END,
+    v_reseller_id, pg_catalog.btrim(p_customer_name), v_phone, pg_catalog.btrim(p_address),
     v_total, v_payment_method, 'pending', 'pending',
     v_order_code, pg_catalog.btrim(p_district), pg_catalog.btrim(p_upazila), p_delivery_zone,
     v_subtotal, v_delivery_fee, v_trx, FALSE
@@ -212,19 +217,19 @@ BEGIN
     ORDER BY x.product_id
   LOOP
     SELECT p.name, p.price,
-           CASE WHEN p_reseller_id IS NULL THEN p.price ELSE rpp.selling_price END
+           CASE WHEN v_reseller_id IS NULL THEN p.price ELSE rpp.selling_price END
       INTO v_product_name, v_base_price, v_price
     FROM public.products AS p
     LEFT JOIN public.reseller_product_prices AS rpp
-      ON rpp.product_id = p.id AND rpp.reseller_id = p_reseller_id
+      ON rpp.product_id = p.id AND rpp.reseller_id = v_reseller_id
     WHERE p.id = v_item.product_id;
 
-    IF p_reseller_id IS NOT NULL THEN
+    IF v_reseller_id IS NOT NULL THEN
       IF v_price IS NULL OR v_base_price IS NULL OR v_price < v_base_price THEN
         RAISE EXCEPTION 'Reseller price is missing or below Hatbazar Selling Price: %', v_product_name;
       END IF;
       INSERT INTO public.reseller_ledger (reseller_id, order_id, product_id, base_price, selling_price, quantity)
-      VALUES (p_reseller_id, v_order_id, v_item.product_id, v_base_price, v_price, v_item.quantity);
+      VALUES (v_reseller_id, v_order_id, v_item.product_id, v_base_price, v_price, v_item.quantity);
     END IF;
 
     INSERT INTO public.order_items (order_id, product_id, product_name, quantity, unit_price)
