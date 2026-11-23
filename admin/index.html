@@ -665,12 +665,32 @@ async function applyAIJob(job){
  applyAIProductResult(result,job.payload?.product_name||'');
  if(job.job_type==='image'&&result.storage_path)await restoreAIImage(result.storage_path,null,job.id);
 }
+async function cleanupFailedAIJob(job){
+ const paths=[
+  job.payload?.storage_path,job.result?.storage_path,
+  ...(job.payload?.items||[]).map(item=>item.storage_path),
+  ...(job.result?.results||[]).map(item=>item.storage_path)
+ ].filter(Boolean);
+ if(paths.length){
+  const {error}=await db.storage.from(BUCKET).remove([...new Set(paths)]);
+  if(error)throw new Error('ব্যর্থ AI কাজের অস্থায়ী ছবি মুছতে সমস্যা: '+error.message);
+ }
+ const {error}=await db.from('hatbazar_ai_jobs').delete().eq('id',job.id);
+ if(error)throw new Error('ব্যর্থ AI রেকর্ড মুছতে সমস্যা: '+error.message);
+ aiAppliedJobIds.delete(job.id);
+ if(aiActiveJobId===job.id)aiActiveJobId=null;
+}
 async function loadAIJobs(){
  const {data:sessionData}=await db.auth.getSession();
  const user=sessionData?.session?.user;if(!user)return;
  const {data,error}=await db.from('hatbazar_ai_jobs').select('id,job_type,status,progress,payload,result,error,created_at').eq('created_by',user.id).order('created_at',{ascending:false}).limit(12);
  if(error){console.warn('AI jobs:',error.message);return;}
- const activeJob=data?.find(j=>j.id===aiActiveJobId);
+ let jobs=data||[];
+ for(const failedJob of jobs.filter(j=>j.status==='failed')){
+  try{await cleanupFailedAIJob(failedJob);jobs=jobs.filter(j=>j.id!==failedJob.id);}
+  catch(cleanupError){console.warn('Failed AI job cleanup:',cleanupError.message);}
+ }
+ const activeJob=jobs.find(j=>j.id===aiActiveJobId);
  if(activeJob?.status==='completed'&&!aiAppliedJobIds.has(activeJob.id)){
   try{
    await applyAIJob(activeJob);
@@ -679,7 +699,7 @@ async function loadAIJobs(){
    else if(activeJob.payload?.purpose!=='category_only')$('aiStatus').textContent='AI কাজ সম্পন্ন। নাম, Category, Description ও Food Details স্বয়ংক্রিয়ভাবে Form-এ বসানো হয়েছে।';
   }catch(e){console.warn('AI result apply:',e.message);}
  }
- for(const completedJob of (data||[])){
+ for(const completedJob of jobs){
   if(completedJob.status==='completed'&&['category_only','bulk_category_only'].includes(completedJob.payload?.purpose)&&!aiAppliedJobIds.has(completedJob.id)){
    try{await applyAIJob(completedJob);aiAppliedJobIds.add(completedJob.id);}catch(e){console.warn('AI category apply:',e.message);}
   }
@@ -690,9 +710,9 @@ async function loadAIJobs(){
  const panels=[$('aiJobsPanel'),$('aiJobsPanelBulk')].filter(Boolean);
  panels.forEach(panel=>{
   panel.innerHTML='';
-  if(!data?.length){panel.textContent='এখনো কোনো Background AI কাজ নেই।';return;}
+  if(!jobs.length){panel.textContent='এখনো কোনো Background AI কাজ নেই।';return;}
   const heading=document.createElement('strong');heading.textContent='Background AI কাজ';panel.appendChild(heading);
-  data.forEach(job=>{
+  jobs.forEach(job=>{
    const card=document.createElement('div');card.style.cssText='padding:10px;margin:8px 0;border:1px solid #d8e2dd;border-radius:10px';
    const titleRow=document.createElement('div');titleRow.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px';
    const title=document.createElement('div');title.textContent=aiJobLabel(job);title.style.cssText='font-weight:700;flex:1;min-width:0';titleRow.appendChild(title);
@@ -727,7 +747,7 @@ async function loadAIJobs(){
    panel.appendChild(card);
   });
  });
- if(data.some(j=>j.status==='queued'||j.status==='processing'))startAIJobsPolling();
+ if(jobs.some(j=>j.status==='queued'||j.status==='processing'))startAIJobsPolling();
  else if(aiJobsTimer){clearTimeout(aiJobsTimer);aiJobsTimer=null;}
 }
 function startAIJobsPolling(){
