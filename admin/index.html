@@ -190,8 +190,9 @@ body.sub-admin #basePriceField,body.sub-admin .base-price-column,body.sub-admin 
 <div><label>Category</label><select id="category_id"><option value="">AI Category নির্বাচন করছে...</option></select><small id="autoCategoryStatus" class="hint">Product Name লিখে একটু থামুন, AI নিজে Category নির্বাচন করবে।</small></div>
 <div><label>BBazar Product Link (Supplier URL)</label><input id="bbazarSourceUrl" type="url" placeholder="https://bbazar.com.bd/product/..."><small class="hint">এই লিংকটি সংরক্ষণ হবে, যাতে অর্ডার এলে আবার খুঁজতে না হয়।</small></div>
 <div><label>Selling Price (৳) *</label><input id="price" type="number" min="0" step="0.01" required></div>
-<div><label>Original Price / কাটা দাম (৳)</label><input id="original_price" type="number" min="0" step="0.01" placeholder="ঐচ্ছিক"></div>
-<div id="basePriceField" data-super-admin-only><label>Base Price (৳) · Reseller ক্রয়মূল্য</label><input id="base_price" type="number" min="0" step="0.01"></div>
+<div><label>List Price / কাটা দাম (৳)</label><input id="original_price" type="number" min="0" step="0.01" placeholder="ঐচ্ছিক"></div>
+<div data-super-admin-only><label>Original Cost (৳) · শুধু Admin</label><input id="original_cost" type="number" min="0" step="0.01" placeholder="আপনার প্রকৃত ক্রয়মূল্য"></div>
+<div data-super-admin-only><label>Facebook Selling Price (৳)</label><input id="facebook_selling_price" type="number" min="0" step="0.01" placeholder="Facebook পোস্টের মূল্য"></div>
 <div><label>Stock Quantity *</label><input id="stock" type="number" min="0" step="1" value="100" required></div>
 </div>
 
@@ -1705,6 +1706,8 @@ $('newProductBtn').addEventListener('click',()=>{
  aiProductMeta={attributes:{},sizes:[],description_en:'',description_bn:''};
  $('aiStatus').textContent='';$('aiGeneratedDetails').textContent='';$('aiResultPreview').textContent='';$('aiResultPreview').classList.add('hidden');$('aiSizesPanel').innerHTML='';
  $('category_id').value='';
+ $('original_cost').value='';
+ $('facebook_selling_price').value='';
  $('is_active').checked=true;
  $('stock').value=100;
 
@@ -1738,9 +1741,11 @@ async function editProduct(id){
  }
 
  if(currentAdminRole==='admin'){
-  const {data:baseRows,error:baseError}=await db.rpc('hatbazar_admin_product_base_prices');
-  if(baseError)throw new Error('Base Price লোড হয়নি: '+baseError.message);
-  data.base_price=(baseRows||[]).find(x=>x.product_id===id)?.base_price??null;
+  const {data:pricingRows,error:pricingError}=await db.rpc('hatbazar_admin_product_pricing');
+  if(pricingError)throw new Error('Private product pricing লোড হয়নি: '+pricingError.message);
+  const pricing=(pricingRows||[]).find(x=>x.product_id===id)||{};
+  data.original_cost=pricing.original_cost??null;
+  data.facebook_selling_price=pricing.facebook_selling_price??null;
  }
  editingProduct=data; const sourceLookup=await db.from('product_supplier_sources').select('source_url').eq('product_id',id).eq('supplier_key','bbazar').maybeSingle(); $('bbazarSourceUrl').value=sourceLookup.data?.source_url||''; $('productForm').dataset.aiJobId=''; aiProductMeta={attributes:data.attributes||{},sizes:data.sizes||[],description_en:data.description_en||'',description_bn:data.description_bn||''}; $('aiGeneratedDetails').textContent='সংরক্ষিত AI তথ্য লোড হয়েছে।';
  $('aiSizesPanel').innerHTML=aiProductMeta.sizes.length?'<strong>Size অপশন (প্রয়োজনমতো পরিবর্তন করুন)</strong><div>'+aiProductMeta.sizes.map(size=>'<label class="ai-size-option"><input type="checkbox" data-ai-size value="'+escapeHTML(size)+'" checked> '+escapeHTML(size)+'</label>').join('')+'</div>':'এই পণ্যে Size অপশন সংরক্ষিত নেই।'; $('name').value=data.name||'';
@@ -1748,7 +1753,8 @@ async function editProduct(id){
  $('description').value=data.description||'';
 
  $('price').value=data.price??0;
- $('base_price').value=data.base_price??'';
+ $('original_cost').value=data.original_cost??'';
+ $('facebook_selling_price').value=data.facebook_selling_price??'';
  $('original_price').value=data.original_price??'';
  $('stock').value=data.stock??100;
  $('category_id').value=data.category_id||'';
@@ -1891,8 +1897,13 @@ $('productForm').addEventListener('submit',async e=>{
   }
 
   if(currentAdminRole==='admin'){
-   const {error:baseError}=await db.rpc('hatbazar_admin_set_product_base_price',{p_product_id:productId,p_base_price:$('base_price').value===''?null:Number($('base_price').value)});
-   if(baseError)throw new Error('Base Price সংরক্ষণ হয়নি: '+baseError.message);
+   const {error:pricingError}=await db.rpc('hatbazar_admin_set_product_pricing',{
+    p_product_id:productId,
+    p_original_cost:$('original_cost').value===''?null:Number($('original_cost').value),
+    p_selling_price:Number($('price').value),
+    p_facebook_selling_price:$('facebook_selling_price').value===''?null:Number($('facebook_selling_price').value)
+   });
+   if(pricingError)throw new Error('Product pricing সংরক্ষণ হয়নি: '+pricingError.message);
   }
 
   const supplierUrl=$('bbazarSourceUrl').value.trim();
