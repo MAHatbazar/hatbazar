@@ -1375,6 +1375,21 @@
                 <option value="">অনুমোদিত পণ্যের তালিকা লোড হচ্ছে...</option>
               </select>
             </div>
+            <div class="rounded-2xl border border-fuchsia-200 bg-fuchsia-50/60 p-3 space-y-2">
+              <div class="text-xs font-extrabold text-fuchsia-950">নিজের পণ্যের বিক্রয়মূল্য ও শেয়ার লিংক</div>
+              <label for="resellerPriceProduct" class="block text-xs font-bold text-slate-700">পণ্য নির্বাচন করুন</label>
+              <select id="resellerPriceProduct" class="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-sm">
+                <option value="">পণ্যের তালিকা লোড হচ্ছে...</option>
+              </select>
+              <label for="resellerPriceAmount" class="block text-xs font-bold text-slate-700">আপনার বিক্রয়মূল্য (৳)</label>
+              <input id="resellerPriceAmount" type="number" min="0.01" step="0.01" placeholder="যেমন ৯০০" class="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-sm">
+              <button type="button" onclick="handleSaveResellerProductPrice()" class="w-full rounded-xl bg-fuchsia-700 hover:bg-fuchsia-800 text-white py-2 text-xs font-extrabold">দাম সংরক্ষণ করে শেয়ার লিংক তৈরি করুন</button>
+              <div id="resellerShareLinkWrap" class="hidden space-y-2">
+                <div class="text-xs font-bold text-emerald-800">আপনার কাস্টমারের জন্য লিংক</div>
+                <input id="resellerShareLink" readonly class="w-full rounded-lg border border-emerald-200 bg-white px-2 py-2 text-xs">
+                <button type="button" onclick="copyResellerShareLink()" class="rounded-lg bg-emerald-700 text-white px-3 py-2 text-xs font-bold">লিংক কপি করুন</button>
+              </div>
+            </div>
             <div>
               <label for="resellerOrderRef" class="block text-xs font-bold text-slate-700 mb-1">আপনার অর্ডার/বিক্রয় রেফারেন্স *</label>
               <input id="resellerOrderRef" type="text" required maxlength="120" placeholder="যেমন: Customer Order #102" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600" />
@@ -2826,6 +2841,39 @@
       }
     }
 
+    async function applyResellerReferralFromUrl() {
+      if (!cloudSyncEnabled || !supabaseClient) return false;
+      const params = new URLSearchParams(window.location.search || '');
+      const resellerId = params.get('reseller') || '';
+      const productId = params.get('product') || '';
+      if (!isUuid(resellerId) || !isUuid(productId)) return false;
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_public_catalog', { p_reseller_id: resellerId });
+        if (error) throw error;
+        const rows = Array.isArray(data) ? data : [];
+        const prices = {};
+        rows.forEach((row) => { prices[row.product_id] = Number(row.selling_price) || 0; });
+        if (!prices[productId]) throw new Error('এই পণ্যের রিসেলার মূল্য পাওয়া যায়নি।');
+        activeReferralResellerId = resellerId;
+        activeReferralProductId = productId;
+        referralPriceMap = prices;
+        cartItems = [];
+        persistAppState();
+        updateCartBadge();
+        renderCartItems();
+        selectedProductDetailId = productId;
+        navigateTo('productDetail');
+        return true;
+      } catch (error) {
+        activeReferralResellerId = '';
+        activeReferralProductId = '';
+        referralPriceMap = {};
+        console.warn('Reseller share link could not be loaded:', error?.message || error);
+        showToast('রিসেলার লিংকটি সঠিক নয় অথবা এই পণ্যের শেয়ার মূল্য সেট করা নেই।');
+        return false;
+      }
+    }
+
     async function initSupabaseIntegration() {
       try {
         const savedCfgRaw = safeStorageGet(STORAGE_KEYS.supabaseCfg);
@@ -3975,14 +4023,15 @@
         const { data: catalog, error: catalogError } = await supabaseClient.rpc('hatbazar_reseller_pricing_catalog');
         if (catalogError) throw catalogError;
         resellerCatalogCache = Array.isArray(catalog) ? catalog : [];
+        const optionHtml = '<option value="">পণ্য নির্বাচন করুন</option>' + resellerCatalogCache.map((item) =>
+          '<option value="' + escapeHtml(item.product_id) + '">' +
+          escapeHtml(item.product_name_bn || item.product_name) + ' · ন্যূনতম ৳' + formatNum(item.selling_price) + ' · Facebook ৳' + formatNum(item.facebook_selling_price) +
+          '</option>'
+        ).join('');
         const select = document.getElementById('resellerSaleProduct');
-        if (select) {
-          select.innerHTML = '<option value="">পণ্য নির্বাচন করুন</option>' + resellerCatalogCache.map((item) =>
-            '<option value="' + escapeHtml(item.product_id) + '">' +
-            escapeHtml(item.product_name_bn || item.product_name) + ' · আপনার ন্যূনতম ৳' + formatNum(item.selling_price) + ' · Facebook ৳' + formatNum(item.facebook_selling_price) +
-            '</option>'
-          ).join('');
-        }
+        if (select) select.innerHTML = optionHtml;
+        const priceSelect = document.getElementById('resellerPriceProduct');
+        if (priceSelect) priceSelect.innerHTML = optionHtml;
         const { data: sales, error: salesError } = await supabaseClient
           .from('reseller_sales')
           .select('id,product_id,order_reference,base_price,selling_price,quantity,profit_amount,created_at')
@@ -4032,6 +4081,43 @@
         const select = document.getElementById('resellerSaleProduct');
         if (select) select.innerHTML = '<option value="">রিসেলার অনুমোদন ও ডেটাবেস সেটআপ প্রয়োজন</option>';
       }
+    }
+
+    async function handleSaveResellerProductPrice() {
+      const productId = document.getElementById('resellerPriceProduct')?.value || '';
+      const sellingPrice = Number(document.getElementById('resellerPriceAmount')?.value);
+      if (!productId || !Number.isFinite(sellingPrice) || sellingPrice <= 0) {
+        showToast('পণ্য ও সঠিক বিক্রয়মূল্য দিন।');
+        return;
+      }
+      if (!cloudSyncEnabled || !supabaseClient || !supabaseUser?.id) {
+        showToast('প্রথমে অনুমোদিত রিসেলার অ্যাকাউন্টে লগইন করুন।');
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_set_product_price', {
+          p_product_id: productId,
+          p_selling_price: sellingPrice
+        });
+        if (error || !data?.success) throw error || new Error('Price was not saved.');
+        const shareUrl = window.location.origin + window.location.pathname +
+          '?reseller=' + encodeURIComponent(supabaseUser.id) +
+          '&product=' + encodeURIComponent(productId);
+        const input = document.getElementById('resellerShareLink');
+        const wrap = document.getElementById('resellerShareLinkWrap');
+        if (input) input.value = shareUrl;
+        if (wrap) wrap.classList.remove('hidden');
+        showToast('আপনার বিক্রয়মূল্য সংরক্ষিত হয়েছে। এখন এই লিংক কাস্টমারকে পাঠান।');
+      } catch (error) {
+        showToast('দাম সংরক্ষণ হয়নি: ' + (error?.message || 'রিসেলার অনুমোদন পরীক্ষা করুন।'));
+      }
+    }
+
+    function copyResellerShareLink() {
+      const link = document.getElementById('resellerShareLink')?.value || '';
+      if (!link) return;
+      copyTextToClipboard(link);
+      showToast('রিসেলার শেয়ার লিংক কপি হয়েছে।');
     }
 
     async function handleAddResellerSale(e) {
