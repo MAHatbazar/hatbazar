@@ -2022,9 +2022,9 @@ function addBulkRow(v={}){
 
   <input data-field="original_price" type="number" min="0" step="0.01" placeholder="Original / MRP" value="${escapeHTML(v.original_price??'')}">
 
-  <input data-field="original_cost" type="number" min="0" step="0.01" placeholder="Original Cost" value="${escapeHTML(v.original_cost??'')}">
+  <input data-field="original_cost" type="number" min="0" step="0.01" placeholder="Original Cost" value="${escapeHTML(v.original_cost??'')}" style="${currentAdminRole==='admin'?'':'display:none'}">
 
-  <input data-field="facebook_selling_price" type="number" min="0" step="0.01" placeholder="Facebook Price" value="${escapeHTML(v.facebook_selling_price??'')}">
+  <input data-field="facebook_selling_price" type="number" min="0" step="0.01" placeholder="Facebook Price" value="${escapeHTML(v.facebook_selling_price??'')}" style="${currentAdminRole==='admin'?'':'display:none'}">
 
   <input data-field="stock" type="number" min="0" step="1" placeholder="Stock" value="${escapeHTML(v.stock??100)}">
 
