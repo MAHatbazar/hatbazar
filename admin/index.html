@@ -1636,12 +1636,6 @@ async function loadProducts(){
   return;
  }
 
- if(currentAdminRole==='admin'){
-  const {data:baseRows,error:baseError}=await db.rpc('hatbazar_admin_product_base_prices');
-  if(baseError)throw new Error('Base Price লোড হয়নি: '+baseError.message);
-  const baseMap=Object.fromEntries((baseRows||[]).map(x=>[x.product_id,Number(x.base_price)||0]));
-  data.forEach(p=>p.base_price=baseMap[p.id]??null);
- }
  const totalStock=data.reduce((sum,p)=>sum+(Number(p.stock)||0),0);
  const lowStock=data.filter(p=>(Number(p.stock)||0)<=5).length;
  $('stockInventorySummary').textContent='মোট '+data.length+'টি Product · মোট Stock '+totalStock+' ইউনিট · Low/Out of Stock '+lowStock+'টি';
