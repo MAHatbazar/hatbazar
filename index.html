@@ -2856,7 +2856,7 @@
         const prices = {};
         rows.forEach((row) => { prices[row.product_id] = Number(row.selling_price) || 0; });
         if (!prices[productId]) throw new Error('এই পণ্যের রিসেলার মূল্য পাওয়া যায়নি।');
-        activeReferralResellerId = rows.find((row) => row.product_id === productId)?.reseller_id || '';
+        activeReferralResellerId = shareToken;
         activeReferralProductId = productId;
         referralPriceMap = prices;
         cartItems = [];
