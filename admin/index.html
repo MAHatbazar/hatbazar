@@ -2020,7 +2020,9 @@ function addBulkRow(v={}){
 
   <input data-field="original_price" type="number" min="0" step="0.01" placeholder="Original / MRP" value="${escapeHTML(v.original_price??'')}">
 
-  <input class="base-price-column" data-field="base_price" type="number" min="0" step="0.01" placeholder="Base" value="${escapeHTML(v.base_price??'')}">
+  <input data-field="original_cost" type="number" min="0" step="0.01" placeholder="Original Cost" value="${escapeHTML(v.original_cost??'')}">
+
+  <input data-field="facebook_selling_price" type="number" min="0" step="0.01" placeholder="Facebook Price" value="${escapeHTML(v.facebook_selling_price??'')}">
 
   <input data-field="stock" type="number" min="0" step="1" placeholder="Stock" value="${escapeHTML(v.stock??100)}">
 
@@ -2275,7 +2277,9 @@ function importExcel(){
 
     original_price:findIndex(['Original Price','Original','MRP','Regular Price','List Price','Compare At Price','original_price']),
 
-    base_price:findIndex(['Base Price','Base','base_price']),
+    original_cost:findIndex(['Original Cost','Purchase Cost','Cost Price','original_cost']),
+
+    facebook_selling_price:findIndex(['Facebook Selling Price','Facebook Price','FB Price','facebook_selling_price']),
 
     stock:findIndex(['Stock Quantity','Stock','Quantity','stock_quantity']),
 
@@ -2300,7 +2304,8 @@ function importExcel(){
     name_bn:String(get(r,'name_bn')).trim(),
     price:get(r,'price'),
     original_price:get(r,'original_price'),
-    base_price:get(r,'base_price'),
+    original_cost:get(r,'original_cost'),
+    facebook_selling_price:get(r,'facebook_selling_price'),
     stock:get(r,'stock'),
     description:String(get(r,'description')).trim(),
     category:String(get(r,'category')).trim()
@@ -2339,7 +2344,8 @@ function importExcel(){
      name_bn:r.name_bn,
      price:r.price,
      original_price:r.original_price,
-     base_price:r.base_price,
+     original_cost:r.original_cost,
+     facebook_selling_price:r.facebook_selling_price,
      stock:r.stock===''?100:r.stock,
      description:r.description,
      category_id:r.category?findCategoryId(r.category):''
@@ -2488,7 +2494,8 @@ async function importSingleProductLink(){
   $('original_price').value=Number.isFinite(importedOriginalPrice)&&importedOriginalPrice>0?importedOriginalPrice:'';
   const importedBasePrice=p.supplier_price??p.price??p.selling_price;
   const basePrice=importedBasePrice!==''&&localCurrency?Number(importedBasePrice):NaN;
-  $('base_price').value=Number.isFinite(basePrice)&&basePrice>0?basePrice:'';
+  $('original_cost').value='';
+  $('facebook_selling_price').value='';
   $('stock').value='100';
   aiProductMeta={attributes:{...(p.brand?{Brand:p.brand}:{}),...(p.sku?{SKU:p.sku}:{}),...(p.source_url?{'Source URL':p.source_url}:{}),...(p.variants?.length?{'Variant Options':p.variants}:{})},sizes:[],description_en:'',description_bn:''};
   $('aiGeneratedDetails').textContent='লিংক থেকে Product তথ্য এসেছে। AI স্বয়ংক্রিয়ভাবে বাংলা নাম তৈরি ও Category নির্বাচন করবে।';
@@ -2561,7 +2568,8 @@ async function clearSingleProductImport(){
  $('name_bn').value='';
  $('description').value='';
  $('price').value='';
- $('base_price').value='';
+ $('original_cost').value='';
+ $('facebook_selling_price').value='';
  $('stock').value='100';
  $('category_id').value='';
  $('postToFacebook').checked=false;
@@ -2656,7 +2664,8 @@ async function saveBulkProducts(){
   const name_bn=get('name_bn');
   const price=get('price');
   const stock=get('stock');
-  const base=get('base_price');
+  const originalCost=get('original_cost');
+  const facebookPrice=get('facebook_selling_price');
   const original=get('original_price');
   const category_id=get('category_id');
 
@@ -2670,8 +2679,10 @@ async function saveBulkProducts(){
   if(stock===''||!Number.isInteger(Number(stock))||Number(stock)<0)
    errors.push('সারি '+(i+1)+': Stock Quantity পূর্ণসংখ্যা হতে হবে।');
 
-  if(base!==''&&(!Number.isFinite(Number(base))||Number(base)<0))
-   errors.push('সারি '+(i+1)+': Base Price সঠিক নয়।');
+  if(originalCost!==''&&(!Number.isFinite(Number(originalCost))||Number(originalCost)<0))
+   errors.push('সারি '+(i+1)+': Original Cost সঠিক নয়।');
+  if(facebookPrice!==''&&(!Number.isFinite(Number(facebookPrice))||Number(facebookPrice)<0))
+   errors.push('সারি '+(i+1)+': Facebook Selling Price সঠিক নয়।');
   if(original!==''&&(!Number.isFinite(Number(original))||Number(original)<0))
    errors.push('সারি '+(i+1)+': Original Price সঠিক নয়।');
 
@@ -2685,7 +2696,8 @@ async function saveBulkProducts(){
 
   if(name&&price!==''&&Number.isFinite(Number(price))&&Number(price)>=0&&
      stock!==''&&Number.isInteger(Number(stock))&&Number(stock)>=0&&
-     (base===''||(Number.isFinite(Number(base))&&Number(base)>=0))&&
+     (originalCost===''||(Number.isFinite(Number(originalCost))&&Number(originalCost)>=0))&&
+     (facebookPrice===''||(Number.isFinite(Number(facebookPrice))&&Number(facebookPrice)>=0))&&
      (original===''||(Number.isFinite(Number(original))&&Number(original)>=0))&&
      !imageProblem){
 
@@ -2694,7 +2706,8 @@ async function saveBulkProducts(){
     name_bn:name_bn||null,
     price:Number(price),
     original_price:original===''?null:Number(original),
-    base_price:base===''?null:Number(base),
+    original_cost:originalCost===''?null:Number(originalCost),
+    facebook_selling_price:facebookPrice===''?null:Number(facebookPrice),
     stock:Number(stock),
     description:get('description')||null,
     category_id:category_id||null,
@@ -2772,8 +2785,13 @@ async function saveBulkProducts(){
    if(error)throw new Error('Product '+(i+1)+': '+error.message);
 
    if(currentAdminRole==='admin'){
-    const {error:baseError}=await db.rpc('hatbazar_admin_set_product_base_price',{p_product_id:data.id,p_base_price:product.base_price===''||product.base_price==null?null:Number(product.base_price)});
-    if(baseError)throw new Error('Product '+(i+1)+' এর Base Price সংরক্ষণ হয়নি: '+baseError.message);
+    const {error:pricingError}=await db.rpc('hatbazar_admin_set_product_pricing',{
+     p_product_id:data.id,
+     p_original_cost:product.original_cost,
+     p_selling_price:product.price,
+     p_facebook_selling_price:product.facebook_selling_price
+    });
+    if(pricingError)throw new Error('Product '+(i+1)+' এর Pricing সংরক্ষণ হয়নি: '+pricingError.message);
    }
    if(imageUrls.length){
     await saveProductGallery(data.id,imageUrls);
