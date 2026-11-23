@@ -247,8 +247,7 @@ BEGIN
     'message', 'Order created successfully'
   );
 END;
-$function$
-
+$function$;
 
 ALTER TABLE public.reseller_profiles
   ADD COLUMN IF NOT EXISTS public_share_token uuid NOT NULL DEFAULT gen_random_uuid();
