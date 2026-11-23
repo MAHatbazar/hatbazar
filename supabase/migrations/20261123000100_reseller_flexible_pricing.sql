@@ -274,7 +274,7 @@ RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
-AS $
+AS $hatbazar_fn_1$
 DECLARE
   v_floor numeric(12,2);
 BEGIN
@@ -301,7 +301,7 @@ BEGIN
   SET selling_price=EXCLUDED.selling_price,updated_at=now();
   RETURN jsonb_build_object('success',true,'product_id',p_product_id,'minimum_price',v_floor,'selling_price',p_selling_price);
 END;
-$;
+$hatbazar_fn_1$;
 
 CREATE OR REPLACE FUNCTION public.hatbazar_reseller_public_catalog(p_share_token uuid)
 RETURNS TABLE (
@@ -455,7 +455,7 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
-AS $
+AS $hatbazar_fn_2$
 BEGIN
   IF auth.uid() IS NULL OR NOT EXISTS (
     SELECT 1 FROM public.reseller_profiles rp
@@ -470,7 +470,7 @@ BEGIN
   WHERE p.is_active IS TRUE AND p.stock > 0
   ORDER BY p.name;
 END;
-$;
+$hatbazar_fn_2$;
 
 CREATE OR REPLACE FUNCTION public.hatbazar_reseller_record_sale_v2(
   p_product_id uuid,
@@ -552,11 +552,11 @@ RETURNS jsonb
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
-AS $
+AS $hatbazar_fn_3$
   SELECT public.hatbazar_reseller_record_sale_v2(
     p_product_id, p_order_reference, p_selling_price, p_quantity
   );
-$;
+$hatbazar_fn_3$;
 
 REVOKE ALL ON FUNCTION public.hatbazar_reseller_set_product_price(uuid,numeric) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.hatbazar_reseller_public_catalog(uuid) FROM PUBLIC, anon, authenticated;
