@@ -3166,15 +3166,6 @@
           console.error('Hatbazar product sync failed:', error?.message || 'Invalid response');
           return false;
         }
-        if (isAdminSession()) {
-          const { data: basePriceRows, error: basePriceError } = await supabaseClient.rpc('hatbazar_admin_product_base_prices');
-          if (!basePriceError && Array.isArray(basePriceRows)) {
-            const basePriceById = Object.fromEntries(basePriceRows.map((row) => [row.product_id, Number(row.base_price) || 0]));
-            for (const row of data) row.base_price = basePriceById[row.id] || 0;
-          } else if (basePriceError) {
-            console.warn('Private base prices are not available to admin yet:', basePriceError.message);
-          }
-        }
         if (data.length) {
           const productIds = data.map((row) => row.id);
           const { data: imageRows, error: imageError } = await supabaseClient
@@ -3235,12 +3226,14 @@
           return false;
         }
         if (isAdminSession()) {
-          const { error: basePriceError } = await supabaseClient.rpc('hatbazar_admin_set_product_base_price', {
+          const { error: pricingError } = await supabaseClient.rpc('hatbazar_admin_set_product_pricing', {
             p_product_id: itemObj.id,
-            p_base_price: Number(itemObj.basePrice) > 0 ? Number(itemObj.basePrice) : null
+            p_original_cost: Number(itemObj.originalCost) > 0 ? Number(itemObj.originalCost) : null,
+            p_selling_price: Number(itemObj.finalPrice ?? itemObj.price) || 0,
+            p_facebook_selling_price: Number(itemObj.facebookSellingPrice) > 0 ? Number(itemObj.facebookSellingPrice) : null
           });
-          if (basePriceError) {
-            console.error('Hatbazar base price save failed:', basePriceError.message);
+          if (pricingError) {
+            console.error('Hatbazar product pricing save failed:', pricingError.message);
             return false;
           }
         }
