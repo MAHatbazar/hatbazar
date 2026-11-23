@@ -171,7 +171,7 @@ async function publishProduct(req: Request) {
   if (connectionError || !connection) return reply({ error: "Facebook Page is not connected yet." }, 409);
 
   const { data: product, error: productError } = await db.from("products")
-    .select("id,name,name_bn,description,price,is_active,image_url")
+    .select("id,name,name_bn,description,price,facebook_selling_price,is_active,image_url")
     .eq("id", productId).maybeSingle();
   if (productError || !product || !product.is_active) return reply({ error: "Active product not found." }, 404);
 
@@ -190,7 +190,7 @@ async function publishProduct(req: Request) {
   const caption = [
     `🛍️ ${title}`,
     product.name && product.name_bn ? product.name : "",
-    `মূল্য: ৳${Number(product.price || 0).toLocaleString("en-BD")}`,
+    `মূল্য: ৳${Number(product.facebook_selling_price ?? product.price ?? 0).toLocaleString("en-BD")}`,
     product.description || "",
     "অর্ডার করতে ভিজিট করুন: " + SITE_URL,
     "#Hatbazar #OnlineShopping #Bangladesh",

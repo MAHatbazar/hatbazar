@@ -977,10 +977,12 @@
                     <label for="newItemDiscount" class="block text-xs font-bold text-slate-700 mb-1">ডিসকাউন্ট (%)</label>
                     <input id="newItemDiscount" type="number" min="0" max="90" step="1" value="0" class="w-full rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
                   </div>
-                  <div id="newItemBasePriceWrap" class="hidden">
-                    <label for="newItemBasePrice" class="block text-xs font-bold text-slate-700 mb-1">গোপন বেস/হোলসেল মূল্য (৳)</label>
-                    <input id="newItemBasePrice" type="number" min="0" step="0.01" placeholder="অ্যাডমিনের জন্য" class="w-full rounded-xl bg-white border border-amber-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
-                    <p class="text-[10px] text-amber-800 mt-1">এই মূল্য ক্রেতা ও সাধারণ সেলারদের দেখানো হবে না।</p>
+                  <div id="newItemBasePriceWrap" class="hidden space-y-2">
+                    <label for="newItemOriginalCost" class="block text-xs font-bold text-slate-700 mb-1">Original Cost / প্রকৃত ক্রয়মূল্য (৳)</label>
+                    <input id="newItemOriginalCost" type="number" min="0" step="0.01" placeholder="শুধু Super Admin" class="w-full rounded-xl bg-white border border-amber-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+                    <label for="newItemFacebookPrice" class="block text-xs font-bold text-slate-700 mb-1">Facebook Selling Price (৳)</label>
+                    <input id="newItemFacebookPrice" type="number" min="0" step="0.01" placeholder="Facebook পোস্টের দাম" class="w-full rounded-xl bg-white border border-amber-300 px-3.5 py-2 text-xs sm:text-sm outline-none" />
+                    <p class="text-[10px] text-amber-800 mt-1">Original Cost শুধু Super Admin দেখতে পারবেন।</p>
                   </div>
                   <div class="sm:col-span-2">
                     <label for="newItemDesc" class="block text-xs font-bold text-slate-700 mb-1">পণ্যের বিবরণ</label>
@@ -1326,11 +1328,11 @@
           <span data-bn="💼 Reseller Dashboard & Earnings" data-en="💼 Reseller Dashboard & Earnings" class="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200 mb-1">
             💼 Reseller Dashboard & Earnings
           </span>
-          <h2 data-bn="রিসেলার ড্যাশবোর্ড ও কমিশন আয় ম্যানেজমেন্ট" data-en="Reseller Dashboard & Commission Earnings Management" class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-fuchsia-900 via-violet-800 to-amber-600 bg-clip-text text-transparent">
-            রিসেলার ড্যাশবোর্ড ও কমিশন আয় ম্যানেজমেন্ট
+          <h2 data-bn="রিসেলার ড্যাশবোর্ড ও লাভের হিসাব" data-en="Reseller Dashboard & Commission Earnings Management" class="stylish-heading text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-fuchsia-900 via-violet-800 to-amber-600 bg-clip-text text-transparent">
+            রিসেলার ড্যাশবোর্ড ও লাভের হিসাব
           </h2>
-          <p data-bn="রিসেল অর্ডার ট্র্যাক করুন, কমিশন হিসাব দেখুন এবং উইথড্র বা পে-আউট রিকোয়েস্ট পাঠান।" data-en="Track reseller sales, calculate commissions, and submit payout or withdrawal requests." class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
-            রিসেল অর্ডার ট্র্যাক করুন, কমিশন হিসাব দেখুন এবং উইথড্র বা পে-আউট রিকোয়েস্ট পাঠান।
+          <p data-bn="নিজের বিক্রয়মূল্য নির্ধারণ করুন, বিক্রয় ও লাভের হিসাব রাখুন এবং পেআউট রিকোয়েস্ট পাঠান।" data-en="Track reseller sales, calculate commissions, and submit payout or withdrawal requests." class="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
+            নিজের বিক্রয়মূল্য নির্ধারণ করুন, বিক্রয় ও লাভের হিসাব রাখুন এবং পেআউট রিকোয়েস্ট পাঠান।
           </p>
         </div>
         <button
@@ -1346,7 +1348,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
-          <div data-bn="মোট রিসেল কমিশন আয়" data-en="Total Profit Earned" class="text-xs font-bold text-slate-500">মোট রিসেল কমিশন আয়</div>
+          <div data-bn="মোট রিসেলার লাভ" data-en="Total Profit Earned" class="text-xs font-bold text-slate-500">মোট রিসেলার লাভ</div>
           <div id="resellerTotalCommission" class="text-2xl font-black text-fuchsia-700 mt-1">৳০</div>
         </div>
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
@@ -1358,8 +1360,8 @@
           <div id="resellerWithdrawnTotal" class="text-2xl font-black text-amber-600 mt-1">৳০</div>
         </div>
         <div class="bg-white rounded-2xl border border-fuchsia-100 p-4 shadow-2xs">
-          <div data-bn="কমিশন রেট" data-en="Commission Rate" class="text-xs font-bold text-slate-500">কমিশন রেট</div>
-          <div class="text-2xl font-black text-violet-800 mt-1">১২%</div>
+          <div data-bn="লাভের হিসাব" data-en="Commission Rate" class="text-xs font-bold text-slate-500">লাভের হিসাব</div>
+          <div class="text-sm font-black text-violet-800 mt-1">আপনার বিক্রয়মূল্য থেকে বেশি দামের পার্থক্য</div>
         </div>
       </div>
 
@@ -1374,6 +1376,21 @@
               <select id="resellerSaleProduct" required onchange="updateResellerMarginPreview()" class="w-full rounded-xl bg-slate-50 border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-fuchsia-600">
                 <option value="">অনুমোদিত পণ্যের তালিকা লোড হচ্ছে...</option>
               </select>
+            </div>
+            <div class="rounded-2xl border border-fuchsia-200 bg-fuchsia-50/60 p-3 space-y-2">
+              <div class="text-xs font-extrabold text-fuchsia-950">নিজের পণ্যের বিক্রয়মূল্য ও শেয়ার লিংক</div>
+              <label for="resellerPriceProduct" class="block text-xs font-bold text-slate-700">পণ্য নির্বাচন করুন</label>
+              <select id="resellerPriceProduct" class="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-sm">
+                <option value="">পণ্যের তালিকা লোড হচ্ছে...</option>
+              </select>
+              <label for="resellerPriceAmount" class="block text-xs font-bold text-slate-700">আপনার বিক্রয়মূল্য (৳)</label>
+              <input id="resellerPriceAmount" type="number" min="0.01" step="0.01" placeholder="যেমন ৯০০" class="w-full rounded-xl bg-white border border-slate-300 px-3 py-2 text-sm">
+              <button type="button" onclick="handleSaveResellerProductPrice()" class="w-full rounded-xl bg-fuchsia-700 hover:bg-fuchsia-800 text-white py-2 text-xs font-extrabold">দাম সংরক্ষণ করে শেয়ার লিংক তৈরি করুন</button>
+              <div id="resellerShareLinkWrap" class="hidden space-y-2">
+                <div class="text-xs font-bold text-emerald-800">আপনার কাস্টমারের জন্য লিংক</div>
+                <input id="resellerShareLink" readonly class="w-full rounded-lg border border-emerald-200 bg-white px-2 py-2 text-xs">
+                <button type="button" onclick="copyResellerShareLink()" class="rounded-lg bg-emerald-700 text-white px-3 py-2 text-xs font-bold">লিংক কপি করুন</button>
+              </div>
             </div>
             <div>
               <label for="resellerOrderRef" class="block text-xs font-bold text-slate-700 mb-1">আপনার অর্ডার/বিক্রয় রেফারেন্স *</label>
@@ -2591,6 +2608,9 @@
         return;
       }
 
+      if (activeReferralResellerId && referralPriceMap[foundProduct.id]) {
+        foundProduct.finalPrice = Number(referralPriceMap[foundProduct.id]);
+      }
       if (crumbTitle) crumbTitle.textContent = currentLang === 'en' ? (foundProduct.titleEn || CATEGORY_PRODUCT_ENGLISH[ownerCategory?.id] || foundProduct.title) : foundProduct.title;
       const isOutOfStock = (Number(foundProduct.stock) || 0) <= 0;
       const t = LANG_TEXT_MAP[currentLang];
@@ -2823,6 +2843,39 @@
       }
     }
 
+    async function applyResellerReferralFromUrl() {
+      if (!cloudSyncEnabled || !supabaseClient) return false;
+      const params = new URLSearchParams(window.location.search || '');
+      const shareToken = params.get('reseller') || '';
+      const productId = params.get('product') || '';
+      if (!isUuid(shareToken) || !isUuid(productId)) return false;
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_public_catalog', { p_share_token: shareToken });
+        if (error) throw error;
+        const rows = Array.isArray(data) ? data : [];
+        const prices = {};
+        rows.forEach((row) => { prices[row.product_id] = Number(row.selling_price) || 0; });
+        if (!prices[productId]) throw new Error('এই পণ্যের রিসেলার মূল্য পাওয়া যায়নি।');
+        activeReferralResellerId = shareToken;
+        activeReferralProductId = productId;
+        referralPriceMap = prices;
+        cartItems = [];
+        persistAppState();
+        updateCartBadge();
+        renderCartItems();
+        selectedProductDetailId = productId;
+        navigateTo('productDetail');
+        return true;
+      } catch (error) {
+        activeReferralResellerId = '';
+        activeReferralProductId = '';
+        referralPriceMap = {};
+        console.warn('Reseller share link could not be loaded:', error?.message || error);
+        showToast('রিসেলার লিংকটি সঠিক নয় অথবা এই পণ্যের শেয়ার মূল্য সেট করা নেই।');
+        return false;
+      }
+    }
+
     async function initSupabaseIntegration() {
       try {
         const savedCfgRaw = safeStorageGet(STORAGE_KEYS.supabaseCfg);
@@ -2878,6 +2931,7 @@
         await pullDeliveryZoneSettingsFromSupabase();
         await pullCategoryCoversFromSupabase();
         await pullProductsFromSupabase();
+        await applyResellerReferralFromUrl();
         await pullCentralOrdersFromSupabase();
         renderSupabaseStatusBadge();
       } catch (_err) {
@@ -3121,7 +3175,6 @@
           price: Number(row.price) || 0,
           finalPrice: Number(row.price) || 0,
           originalPrice: Number(row.original_price) || 0,
-          basePrice: Number(row.base_price) || 0,
           sellerId: row.seller_id || null,
           discountPercent: Number(row.original_price)>Number(row.price)&&Number(row.original_price)>0?Math.round((Number(row.original_price)-Number(row.price))/Number(row.original_price)*100):0,
           discountAmount: Number(row.original_price)>Number(row.price)?Number(row.original_price)-Number(row.price):0,
@@ -3165,15 +3218,6 @@
         if (error || !Array.isArray(data)) {
           console.error('Hatbazar product sync failed:', error?.message || 'Invalid response');
           return false;
-        }
-        if (isAdminSession()) {
-          const { data: basePriceRows, error: basePriceError } = await supabaseClient.rpc('hatbazar_admin_product_base_prices');
-          if (!basePriceError && Array.isArray(basePriceRows)) {
-            const basePriceById = Object.fromEntries(basePriceRows.map((row) => [row.product_id, Number(row.base_price) || 0]));
-            for (const row of data) row.base_price = basePriceById[row.id] || 0;
-          } else if (basePriceError) {
-            console.warn('Private base prices are not available to admin yet:', basePriceError.message);
-          }
         }
         if (data.length) {
           const productIds = data.map((row) => row.id);
@@ -3235,12 +3279,14 @@
           return false;
         }
         if (isAdminSession()) {
-          const { error: basePriceError } = await supabaseClient.rpc('hatbazar_admin_set_product_base_price', {
+          const { error: pricingError } = await supabaseClient.rpc('hatbazar_admin_set_product_pricing', {
             p_product_id: itemObj.id,
-            p_base_price: Number(itemObj.basePrice) > 0 ? Number(itemObj.basePrice) : null
+            p_original_cost: Number(itemObj.originalCost) > 0 ? Number(itemObj.originalCost) : null,
+            p_selling_price: Number(itemObj.finalPrice ?? itemObj.price) || 0,
+            p_facebook_selling_price: Number(itemObj.facebookSellingPrice) > 0 ? Number(itemObj.facebookSellingPrice) : null
           });
-          if (basePriceError) {
-            console.error('Hatbazar base price save failed:', basePriceError.message);
+          if (pricingError) {
+            console.error('Hatbazar product pricing save failed:', pricingError.message);
             return false;
           }
         }
@@ -3337,7 +3383,7 @@
           p_delivery_zone: orderRecord.deliveryZone,
           p_delivery_fee: Number(orderRecord.deliveryFee) || 0,
           p_payment_trx_id: orderRecord.paymentTrxId || null,
-          p_reseller_id: supabaseProfile?.role === 'reseller' ? (supabaseUser?.id || null) : null
+          p_reseller_id: activeReferralResellerId || (supabaseProfile?.role === 'reseller' ? (supabaseUser?.id || null) : null)
         });
         if (error || !data?.success) {
           console.error('Hatbazar checkout failed:', error?.message || data?.message || 'Unknown error');
@@ -3966,27 +4012,28 @@
       const preview = document.getElementById('resellerMarginPreview');
       if (!preview) return;
       if (!product) { preview.textContent = 'পণ্য নির্বাচন করলে আপনার সম্ভাব্য লাভ দেখাবে।'; return; }
-      const margin = price - Number(product.base_price || 0);
+      const margin = price - Number(product.selling_price || 0);
       const totalProfit = margin * quantity;
       preview.textContent = margin < 0
-        ? 'বিক্রয় মূল্য বেস মূল্যের চেয়ে কম হতে পারবে না।'
-        : 'গোপন বেস মূল্য: ৳' + formatNum(product.base_price) + ' · প্রতি পিস লাভ: ৳' + formatNum(margin) + ' · মোট লাভ: ৳' + formatNum(totalProfit);
+        ? 'আপনার বিক্রয়মূল্য Hatbazar-এর নির্ধারিত মূল্যের চেয়ে কম হতে পারবে না।'
+        : 'Hatbazar Selling Price: ৳' + formatNum(product.selling_price) + ' · প্রতি পিস লাভ: ৳' + formatNum(margin) + ' · মোট লাভ: ৳' + formatNum(totalProfit);
     }
 
     async function refreshResellerCloudData() {
       if (!cloudSyncEnabled || !supabaseClient || Date.now() - resellerCloudLoadedAt < 60000) return;
       try {
-        const { data: catalog, error: catalogError } = await supabaseClient.rpc('hatbazar_reseller_catalog');
+        const { data: catalog, error: catalogError } = await supabaseClient.rpc('hatbazar_reseller_pricing_catalog');
         if (catalogError) throw catalogError;
         resellerCatalogCache = Array.isArray(catalog) ? catalog : [];
+        const optionHtml = '<option value="">পণ্য নির্বাচন করুন</option>' + resellerCatalogCache.map((item) =>
+          '<option value="' + escapeHtml(item.product_id) + '">' +
+          escapeHtml(item.product_name_bn || item.product_name) + ' · ন্যূনতম ৳' + formatNum(item.selling_price) + ' · Facebook ৳' + formatNum(item.facebook_selling_price) +
+          '</option>'
+        ).join('');
         const select = document.getElementById('resellerSaleProduct');
-        if (select) {
-          select.innerHTML = '<option value="">পণ্য নির্বাচন করুন</option>' + resellerCatalogCache.map((item) =>
-            '<option value="' + escapeHtml(item.product_id) + '">' +
-            escapeHtml(item.product_name_bn || item.product_name) + ' · বেস ৳' + formatNum(item.base_price) +
-            '</option>'
-          ).join('');
-        }
+        if (select) select.innerHTML = optionHtml;
+        const priceSelect = document.getElementById('resellerPriceProduct');
+        if (priceSelect) priceSelect.innerHTML = optionHtml;
         const { data: sales, error: salesError } = await supabaseClient
           .from('reseller_sales')
           .select('id,product_id,order_reference,base_price,selling_price,quantity,profit_amount,created_at')
@@ -4038,6 +4085,45 @@
       }
     }
 
+    async function handleSaveResellerProductPrice() {
+      const productId = document.getElementById('resellerPriceProduct')?.value || '';
+      const sellingPrice = Number(document.getElementById('resellerPriceAmount')?.value);
+      if (!productId || !Number.isFinite(sellingPrice) || sellingPrice <= 0) {
+        showToast('পণ্য ও সঠিক বিক্রয়মূল্য দিন।');
+        return;
+      }
+      if (!cloudSyncEnabled || !supabaseClient || !supabaseUser?.id) {
+        showToast('প্রথমে অনুমোদিত রিসেলার অ্যাকাউন্টে লগইন করুন।');
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_set_product_price', {
+          p_product_id: productId,
+          p_selling_price: sellingPrice
+        });
+        if (error || !data?.success) throw error || new Error('Price was not saved.');
+        const { data: shareToken, error: tokenError } = await supabaseClient.rpc('hatbazar_reseller_get_share_token');
+        if (tokenError || !shareToken) throw tokenError || new Error('Share token unavailable.');
+        const shareUrl = window.location.origin + window.location.pathname +
+          '?reseller=' + encodeURIComponent(shareToken) +
+          '&product=' + encodeURIComponent(productId);
+        const input = document.getElementById('resellerShareLink');
+        const wrap = document.getElementById('resellerShareLinkWrap');
+        if (input) input.value = shareUrl;
+        if (wrap) wrap.classList.remove('hidden');
+        showToast('আপনার বিক্রয়মূল্য সংরক্ষিত হয়েছে। এখন এই লিংক কাস্টমারকে পাঠান।');
+      } catch (error) {
+        showToast('দাম সংরক্ষণ হয়নি: ' + (error?.message || 'রিসেলার অনুমোদন পরীক্ষা করুন।'));
+      }
+    }
+
+    function copyResellerShareLink() {
+      const link = document.getElementById('resellerShareLink')?.value || '';
+      if (!link) return;
+      copyTextToClipboard(link);
+      showToast('রিসেলার শেয়ার লিংক কপি হয়েছে।');
+    }
+
     async function handleAddResellerSale(e) {
       e.preventDefault();
       const productId = document.getElementById('resellerSaleProduct')?.value || '';
@@ -4053,7 +4139,7 @@
         return;
       }
       try {
-        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_record_sale', {
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_record_sale_v2', {
           p_product_id: productId,
           p_order_reference: ref,
           p_selling_price: saleAmount,
@@ -5061,12 +5147,12 @@
       'পণ্যের ছবি': 'Product Image',
       '+ যোগ': '+ Add',
       '📋 সেলার আবেদন তালিকা ও স্ট্যাটাস': '📋 Seller Applications & Status',
-      'রিসেলার ড্যাশবোর্ড ও কমিশন আয় ম্যানেজমেন্ট': 'Reseller Dashboard & Earnings Management',
-      'রিসেল অর্ডার ট্র্যাক করুন, কমিশন হিসাব দেখুন এবং উইথড্র বা পে-আউট রিকোয়েস্ট পাঠান।': 'Track reseller orders, review earnings and submit withdrawal or payout requests.',
-      'মোট রিসেল কমিশন আয়': 'Total Reseller Earnings',
+      'রিসেলার ড্যাশবোর্ড ও লাভের হিসাব': 'Reseller Dashboard & Earnings Management',
+      'নিজের বিক্রয়মূল্য নির্ধারণ করুন, বিক্রয় ও লাভের হিসাব রাখুন এবং পেআউট রিকোয়েস্ট পাঠান।': 'Track reseller orders, review earnings and submit withdrawal or payout requests.',
+      'মোট রিসেলার লাভ': 'Total Reseller Earnings',
       'উইথড্রযোগ্য ব্যালেন্স': 'Available Balance',
       'উইথড্রকৃত / পেন্ডিং পে-আউট': 'Withdrawn / Pending Payout',
-      'কমিশন রেট': 'Commission Rate',
+      'লাভের হিসাব': 'Commission Rate',
       '➕ নতুন রিসেল সেলস লগ ও কমিশন যুক্ত করুন': '➕ Record Reseller Sale & Earnings',
       'পণ্য নির্বাচন করুন *': 'Select Product *',
       'অনুমোদিত পণ্যের তালিকা লোড হচ্ছে...': 'Loading approved product list...',
@@ -6955,6 +7041,9 @@
 
     let categoriesData = buildDefaultCategories();
     let cartItems = [];
+    let activeReferralResellerId = '';
+    let activeReferralProductId = '';
+    let referralPriceMap = {};
     let checkoutSubmitting = false;
     let currentSessionUser = null;
     let currentLang = 'bn';
@@ -7338,7 +7427,7 @@
           return {
             id: item.id,
             title: item.title,
-            price: Number(item.finalPrice ?? item.price) || 0,
+            price: activeReferralResellerId && referralPriceMap[item.id] ? Number(referralPriceMap[item.id]) : (Number(item.finalPrice ?? item.price) || 0),
             stock: Number.isFinite(Number(item.stock)) ? Number(item.stock) : 25,
             image: item.image
           };
@@ -7355,6 +7444,10 @@
         return;
       }
 
+      if (cartItems.some((i) => (i.resellerId || null) !== (activeReferralResellerId || null))) {
+        cartItems = [];
+        showToast('নতুন রিসেলার লিংকের অর্ডারের জন্য আগের কার্ট খালি করা হয়েছে।');
+      }
       const existing = cartItems.find((i) => i.id === prod.id);
       if (existing) {
         existing.qty += 1;
@@ -7364,7 +7457,8 @@
           title: prod.title,
           price: prod.price,
           qty: 1,
-          image: prod.image
+          image: prod.image,
+          resellerId: activeReferralResellerId || null
         });
       }
 
@@ -7884,14 +7978,15 @@
             const priceRaw = getValue(row, ['selling price','price']);
             const stockRaw = getValue(row, ['stock quantity','stock']);
             const price = Number(priceRaw);
-            const basePrice = Number(getValue(row, ['base price','wholesale price']) || 0);
+            const originalCost = Number(getValue(row, ['original cost','purchase cost','cost price']) || 0);
+            const facebookSellingPrice = Number(getValue(row, ['facebook selling price','facebook price','fb price']) || 0);
             const stock = Number(stockRaw);
             return {
               rowNumber:index+2, categoryId:category?.id || '', categoryName:category?.name || String(categoryText),
-              titleEn,titleBn,price,basePrice,stock,desc:String(getValue(row,['description'])).trim(),
+              titleEn,titleBn,price,originalCost,facebookSellingPrice,stock,desc:String(getValue(row,['description'])).trim(),
               imageUrl:String(getValue(row,['image url','image'])).trim(),
               galleryUrls:String(getValue(row,['gallery urls','gallery images'])).split(/[\n,;]/).map((url)=>url.trim()).filter(Boolean),
-              valid:Boolean(category && (titleEn || titleBn) && String(priceRaw).trim() !== '' && Number.isFinite(price) && price>0 && String(stockRaw).trim() !== '' && Number.isInteger(stock) && stock>=0 && Number.isFinite(basePrice) && basePrice>=0 && basePrice<=price)
+              valid:Boolean(category && (titleEn || titleBn) && String(priceRaw).trim() !== '' && Number.isFinite(price) && price>0 && String(stockRaw).trim() !== '' && Number.isInteger(stock) && stock>=0 && Number.isFinite(originalCost) && originalCost>=0 && Number.isFinite(facebookSellingPrice) && facebookSellingPrice>=0)
             };
           }).filter((row)=>row.titleEn || row.titleBn || row.categoryName);
           if (!pendingBulkProductRows.length) throw new Error('ফাইলে কোনো পণ্যের সারি পাওয়া যায়নি।');
@@ -7968,7 +8063,7 @@
             if(!category) throw new Error('Category পাওয়া যায়নি।');
             const product={
               id:createUuid(),title:row.titleBn||row.titleEn,titleEn:row.titleEn||row.titleBn,
-              price:row.price,finalPrice:row.price,basePrice:row.basePrice,discountPercent:0,
+              price:row.price,finalPrice:row.price,originalCost:row.originalCost>0?row.originalCost:null,facebookSellingPrice:row.facebookSellingPrice>0?row.facebookSellingPrice:null,discountPercent:0,
               discountAmount:0,stock:row.stock,desc:row.desc,image:uniqueImages[0]||'',
               gallery:uniqueImages,sellerId:null
             };
@@ -8000,7 +8095,8 @@
           const price = Number(document.getElementById('newItemPrice')?.value);
           const stockRaw = Number(document.getElementById('newItemStock')?.value);
           const stock = Number.isFinite(stockRaw) ? Math.max(0, Math.floor(stockRaw)) : 0;
-          const basePrice = isAdminSession() ? Number(document.getElementById('newItemBasePrice')?.value || 0) : 0;
+          const originalCost = isAdminSession() ? Number(document.getElementById('newItemOriginalCost')?.value || 0) : 0;
+          const facebookSellingPrice = isAdminSession() ? Number(document.getElementById('newItemFacebookPrice')?.value || 0) : 0;
           const rawDiscount = Number(document.getElementById('newItemDiscount')?.value || 0);
           const desc = (document.getElementById('newItemDesc')?.value || '').trim();
           const imgInput = document.getElementById('newItemImageFile');
@@ -8011,8 +8107,8 @@
             showToast(currentLang === 'en' ? 'Enter a valid title, price and whole-number stock.' : 'সঠিক নাম, মূল্য ও পূর্ণসংখ্যার স্টক লিখুন।');
             return;
           }
-          if (isAdminSession() && (!Number.isFinite(basePrice) || basePrice < 0 || (basePrice > 0 && basePrice > Math.max(1, price - Math.round((price * Math.min(90, Math.max(0, rawDiscount))) / 100))))) {
-            showToast(currentLang === 'en' ? 'Base price must be zero or less than/equal to the selling price.' : 'বেস মূল্য শূন্য অথবা বিক্রয় মূল্যের সমান/কম হতে হবে।');
+          if (isAdminSession() && (!Number.isFinite(originalCost) || originalCost < 0 || !Number.isFinite(facebookSellingPrice) || facebookSellingPrice < 0)) {
+            showToast('Original Cost ও Facebook Selling Price সঠিকভাবে লিখুন।');
             return;
           }
 
@@ -8093,7 +8189,8 @@
             titleEn: titleEn || title,
             price,
             finalPrice,
-            basePrice: isAdminSession() ? basePrice : 0,
+            originalCost: isAdminSession() && originalCost > 0 ? originalCost : null,
+            facebookSellingPrice: isAdminSession() && facebookSellingPrice > 0 ? facebookSellingPrice : null,
             discountPercent,
             discountAmount,
             stock,

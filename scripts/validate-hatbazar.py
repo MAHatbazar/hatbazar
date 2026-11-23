@@ -7,12 +7,13 @@ html = (root / "index.html").read_text(encoding="utf-8")
 step7 = (root / "supabase/hatbazar_step7_order_safety.sql").read_text(encoding="utf-8")
 step9 = (root / "supabase/hatbazar_step9_district_validation.sql").read_text(encoding="utf-8")
 step10 = (root / "supabase/hatbazar_step10_rate_limits.sql").read_text(encoding="utf-8")
+pricing_migration = (root / "supabase/migrations/20261123000100_reseller_flexible_pricing.sql").read_text(encoding="utf-8")
 
 checks = {
     "checkout uses the server-side checkout RPC": "rpc('hatbazar_checkout_v2'" in html,
     "guest order tracking uses the protected lookup RPC": "rpc('hatbazar_lookup_order'" in html,
     "online payment transaction reference is sent to checkout": "p_payment_trx_id: orderRecord.paymentTrxId || null" in html,
-    "reseller checkout identity comes from the signed-in Supabase user": "p_reseller_id: supabaseProfile?.role === 'reseller' ? (supabaseUser?.id || null) : null" in html,
+    "reseller checkout supports share tokens and signed-in reseller identity": "p_reseller_id: activeReferralResellerId || (supabaseProfile?.role === 'reseller' ? (supabaseUser?.id || null) : null)" in html and "rp.public_share_token = p_reseller_id" in pricing_migration and "v_reseller_id" in pricing_migration,
     "checkout SQL ignores the client delivery fee and reads protected settings": "The submitted client fee is ignored" in step7 and "public.hatbazar_delivery_settings" in step7,
     "checkout SQL locks product rows before stock changes": "FOR UPDATE" in step7 and "UPDATE public.products" in step7,
     "district migration includes server-side district validation": "Unsupported Bangladesh district" in step9,
