@@ -61,9 +61,13 @@ async function analyze(name: string, categories: any[], image?: { mime: string; 
       response = null;
     }
     if (response?.ok) {
-      const geminiJson = await response.json();
-      const raw = geminiJson?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("") || "";
-      try { parsed = JSON.parse(raw); } catch { geminiFailure = "Gemini-এর উত্তর সঠিক JSON নয়।"; }
+      try {
+        const geminiJson = await response.json();
+        const raw = geminiJson?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("") || "";
+        try { parsed = JSON.parse(raw); } catch { geminiFailure = "Gemini-এর উত্তর সঠিক JSON নয়।"; }
+      } catch (e) {
+        geminiFailure = e instanceof Error ? e.message : "Gemini response পড়া যায়নি।";
+      }
     }
   } else geminiFailure = "GEMINI_API_KEY কনফিগার করা নেই।";
 
