@@ -540,6 +540,39 @@ function renderSingleAIImages(){
  });
  $('singleImageNames').textContent=singleProductImages.length?singleProductImages.map((file,i)=>(i+1)+'. '+file.name).join(' | '):'কোনো নতুন ছবি নির্বাচন করা হয়নি।';
 }
+function getSingleProductAIJobIds(){
+ try{return [...new Set(JSON.parse($('productForm').dataset.aiJobIds||'[]').filter(Boolean))];}
+ catch(_){return $('productForm').dataset.aiJobId?[$('productForm').dataset.aiJobId]:[];}
+}
+function trackSingleProductAIJob(jobId){
+ if(!jobId)return;
+ const ids=getSingleProductAIJobIds();
+ if(!ids.includes(jobId))ids.push(jobId);
+ $('productForm').dataset.aiJobIds=JSON.stringify(ids);
+ $('productForm').dataset.aiJobId=jobId;
+}
+async function cleanupSingleProductAIJobs(jobIds){
+ const ids=[...new Set((jobIds||[]).filter(Boolean))];
+ if(!ids.length)return {deleted:0,failed:[]};
+ const {data:jobs,error:readError}=await db.from('hatbazar_ai_jobs').select('id,payload,result').in('id',ids);
+ if(readError)throw new Error('AI কাজের তালিকা পড়া যায়নি: '+readError.message);
+ let deleted=0;const failed=[];
+ for(const job of jobs||[]){
+  try{
+   const paths=[job.payload?.storage_path,job.result?.storage_path,...(job.payload?.items||[]).map(item=>item.storage_path),...(job.result?.results||[]).map(item=>item.storage_path)].filter(Boolean);
+   if(paths.length){
+    const {error:storageError}=await db.storage.from(BUCKET).remove([...new Set(paths)]);
+    if(storageError)throw new Error('AI ছবি মুছতে সমস্যা: '+storageError.message);
+   }
+   const {error:deleteError}=await db.from('hatbazar_ai_jobs').delete().eq('id',job.id);
+   if(deleteError)throw deleteError;
+   aiAppliedJobIds.delete(job.id);
+   if(aiActiveJobId===job.id)aiActiveJobId=null;
+   deleted++;
+  }catch(err){failed.push({id:job.id,error:err.message||'অজানা সমস্যা'});}
+ }
+ return {deleted,failed};
+}
 function clearAIJobResult(job){
  if(job.job_type==='bulk'){
   document.querySelectorAll('.bulk-row').forEach(row=>{
@@ -628,7 +661,7 @@ async function applyAIJob(job){
   }
   return;
  }
- $('productForm').dataset.aiJobId=job.id;
+ trackSingleProductAIJob(job.id);
  applyAIProductResult(result,job.payload?.product_name||'');
  if(job.job_type==='image'&&result.storage_path)await restoreAIImage(result.storage_path,null,job.id);
 }
@@ -738,7 +771,7 @@ async function queueAutomaticCategory(){
   const payload={product_name:productName,description:productDescription,source_name:productName,source_description:productDescription,categories:categories.map(c=>({id:c.id,name:c.name,name_bn:c.name_bn})),purpose:'category_only'};
   const {error:insertError}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:'name',payload});
   if(insertError)throw insertError;
-  aiActiveJobId=jobId;$('autoCategoryStatus').textContent='AI নাম ও Description বিশ্লেষণ করছে। বাংলা নাম ও Category Form-এ বসবে...';
+  aiActiveJobId=jobId;trackSingleProductAIJob(jobId);$('autoCategoryStatus').textContent='AI নাম ও Description বিশ্লেষণ করছে। বাংলা নাম ও Category Form-এ বসবে...';
   await loadAIJobs();
  }catch(err){$('autoCategoryStatus').textContent='স্বয়ংক্রিয় AI বিশ্লেষণ ব্যর্থ: '+(err.message||'আবার চেষ্টা করুন।');autoCategoryLastQueuedName='';}
  finally{
@@ -808,7 +841,7 @@ async function generateAIProductDetails(mode='image'){
   if(mode==='image'&&file)file._aiJobId=jobId;
   const {error}=await db.from('hatbazar_ai_jobs').insert({id:jobId,created_by:user.id,job_type:mode,payload});
   if(error)throw new Error('AI কাজ Queue-তে রাখা যায়নি: '+error.message);
-  aiActiveJobId=jobId;
+  aiActiveJobId=jobId;trackSingleProductAIJob(jobId);
   $('aiStatus').textContent='কাজ সার্ভারে জমা হয়েছে। আপনি অন্য পেজে গেলেও AI কাজ চলতে থাকবে। ফলাফল স্বয়ংক্রিয়ভাবে Form-এ বসবে।';
   await loadAIJobs();
  }catch(err){$('aiStatus').textContent=err.message||'AI কাজ শুরু করা যায়নি.';}
@@ -1849,6 +1882,18 @@ $('productForm').addEventListener('submit',async e=>{
    if(sourceError)throw new Error('BBazar লিংক সংরক্ষণ হয়নি: '+sourceError.message);
   }
 
+  // Product and gallery are saved. Remove AI jobs linked to this form only.
+  const linkedAIJobIds=getSingleProductAIJobIds();
+  let aiCleanupWarning='';
+  if(!wasEditing&&linkedAIJobIds.length){
+   try{
+    const cleanup=await cleanupSingleProductAIJobs(linkedAIJobIds);
+    if(cleanup.failed.length)aiCleanupWarning=' Product সংরক্ষিত হয়েছে, তবে '+cleanup.failed.length+'টি Background AI রেকর্ড মুছতে পারেনি। AI কাজের তালিকা থেকে পরে মুছতে হবে।';
+   }catch(cleanupError){
+    aiCleanupWarning=' Product সংরক্ষিত হয়েছে, কিন্তু Background AI কাজ স্বয়ংক্রিয়ভাবে মুছতে পারেনি: '+(cleanupError.message||'আবার চেষ্টা করুন।');
+   }
+  }
+
   if(!wasEditing && $('postToFacebook').checked && p.is_active){
    const fb=await publishProductToFacebook(productId);
    if(fb.ok)showStatus('নতুন Product যোগ হয়েছে এবং Facebook Page-এ পোস্ট হয়েছে।');
@@ -1870,6 +1915,8 @@ $('productForm').addEventListener('submit',async e=>{
   resetSingleImages();
 
   await loadProducts();
+  $('productForm').dataset.aiJobIds='[]';
+  if(aiCleanupWarning)showStatus('Product সফলভাবে সংরক্ষিত হয়েছে।'+aiCleanupWarning,true);
 
  }catch(err){
   showStatus(err.message||'কাজটি সম্পন্ন হয়নি।',true);
@@ -2449,7 +2496,7 @@ async function importSingleProductLink(){
    purpose:'category_only'
   });
   aiActiveJobId=categoryJobId;
-  $('productForm').dataset.aiJobId=categoryJobId;
+  trackSingleProductAIJob(categoryJobId);
   await loadAIJobs();
   showStatus('Product Import Preview প্রস্তুত। AI Category নির্বাচন করছে।');
   $('productForm').scrollIntoView({behavior:'smooth',block:'start'});
