@@ -33,6 +33,82 @@ END $$;
 REVOKE SELECT (base_price) ON public.products FROM anon, authenticated;
 REVOKE INSERT (base_price), UPDATE (base_price) ON public.products FROM authenticated;
 
+-- Persistent per-reseller price list used by customer share links.
+CREATE TABLE IF NOT EXISTS public.reseller_product_prices (
+  reseller_id uuid NOT NULL REFERENCES public.reseller_profiles(id) ON DELETE CASCADE,
+  product_id uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  selling_price numeric(12,2) NOT NULL CHECK (selling_price > 0),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (reseller_id, product_id)
+);
+ALTER TABLE public.reseller_product_prices ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.reseller_product_prices FROM PUBLIC, anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.hatbazar_reseller_set_product_price(
+  p_product_id uuid,
+  p_selling_price numeric
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $
+DECLARE
+  v_floor numeric(12,2);
+BEGIN
+  IF auth.uid() IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.reseller_profiles rp
+    WHERE rp.id = auth.uid() AND lower(rp.status::text) = 'approved'
+  ) THEN
+    RAISE EXCEPTION 'Only approved resellers can set product prices';
+  END IF;
+  IF p_product_id IS NULL OR p_selling_price IS NULL OR p_selling_price <= 0 THEN
+    RAISE EXCEPTION 'Enter a valid selling price';
+  END IF;
+  SELECT p.price INTO v_floor
+  FROM public.products p
+  WHERE p.id = p_product_id AND p.is_active IS TRUE
+  FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Product is not available'; END IF;
+  IF p_selling_price < v_floor THEN
+    RAISE EXCEPTION 'Reseller price cannot be below Hatbazar Selling Price (৳%)', v_floor;
+  END IF;
+  INSERT INTO public.reseller_product_prices(reseller_id,product_id,selling_price,updated_at)
+  VALUES(auth.uid(),p_product_id,p_selling_price,now())
+  ON CONFLICT(reseller_id,product_id) DO UPDATE
+  SET selling_price=EXCLUDED.selling_price,updated_at=now();
+  RETURN jsonb_build_object('success',true,'product_id',p_product_id,'minimum_price',v_floor,'selling_price',p_selling_price);
+END;
+$;
+
+CREATE OR REPLACE FUNCTION public.hatbazar_reseller_public_catalog(p_reseller_id uuid)
+RETURNS TABLE (
+  product_id uuid,
+  product_name text,
+  product_name_bn text,
+  selling_price numeric,
+  stock integer
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $
+BEGIN
+  IF p_reseller_id IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.reseller_profiles rp
+    WHERE rp.id=p_reseller_id AND lower(rp.status::text)='approved'
+  ) THEN
+    RAISE EXCEPTION 'Reseller share link is invalid or inactive';
+  END IF;
+  RETURN QUERY
+  SELECT p.id,p.name,p.name_bn,rpp.selling_price,p.stock
+  FROM public.reseller_product_prices rpp
+  JOIN public.products p ON p.id=rpp.product_id
+  WHERE rpp.reseller_id=p_reseller_id AND p.is_active IS TRUE AND p.stock>0
+  ORDER BY p.name;
+END;
+$;
+
 CREATE OR REPLACE FUNCTION public.hatbazar_admin_product_pricing()
 RETURNS TABLE (
   product_id uuid,
@@ -239,6 +315,11 @@ AS $
     p_product_id, p_order_reference, p_selling_price, p_quantity
   );
 $;
+
+REVOKE ALL ON FUNCTION public.hatbazar_reseller_set_product_price(uuid,numeric) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.hatbazar_reseller_public_catalog(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_set_product_price(uuid,numeric) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.hatbazar_reseller_public_catalog(uuid) TO anon, authenticated;
 
 REVOKE ALL ON FUNCTION public.hatbazar_admin_product_pricing() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.hatbazar_admin_set_product_pricing(uuid,numeric,numeric,numeric) FROM PUBLIC, anon, authenticated;
