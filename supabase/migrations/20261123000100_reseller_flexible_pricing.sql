@@ -31,6 +31,7 @@ END $$;
 
 -- Close the legacy Base Price column exposure. It is no longer the reseller floor.
 REVOKE SELECT (base_price) ON public.products FROM anon, authenticated;
+REVOKE INSERT (base_price), UPDATE (base_price) ON public.products FROM authenticated;
 
 CREATE OR REPLACE FUNCTION public.hatbazar_admin_product_pricing()
 RETURNS TABLE (
@@ -123,6 +124,36 @@ $$;
 
 -- In reseller manual sales, Hatbazar Selling Price is the minimum.
 -- The reseller keeps the difference between their actual selling price and this floor.
+-- Keep legacy RPC names safe for cached storefront builds: "base_price" now
+-- means the Admin's Selling Price floor, never the private Original Cost.
+CREATE OR REPLACE FUNCTION public.hatbazar_reseller_catalog()
+RETURNS TABLE (
+  product_id uuid,
+  product_name text,
+  product_name_bn text,
+  base_price numeric,
+  stock integer
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $
+BEGIN
+  IF auth.uid() IS NULL OR NOT EXISTS (
+    SELECT 1 FROM public.reseller_profiles rp
+    WHERE rp.id = auth.uid() AND lower(rp.status) = 'approved'
+  ) THEN
+    RAISE EXCEPTION 'Only approved resellers can access reseller prices';
+  END IF;
+
+  RETURN QUERY
+  SELECT p.id, p.name, p.name_bn, p.price, p.stock
+  FROM public.products p
+  WHERE p.is_active IS TRUE AND p.stock > 0
+  ORDER BY p.name;
+END;
+$;
+
 CREATE OR REPLACE FUNCTION public.hatbazar_reseller_record_sale_v2(
   p_product_id uuid,
   p_order_reference text,
@@ -190,6 +221,24 @@ BEGIN
   );
 END;
 $$;
+
+-- Keep the previous sale RPC compatible while changing its floor to
+-- the Admin Selling Price rather than the retired Base Price.
+CREATE OR REPLACE FUNCTION public.hatbazar_reseller_record_sale(
+  p_product_id uuid,
+  p_order_reference text,
+  p_selling_price numeric,
+  p_quantity integer
+)
+RETURNS jsonb
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $
+  SELECT public.hatbazar_reseller_record_sale_v2(
+    p_product_id, p_order_reference, p_selling_price, p_quantity
+  );
+$;
 
 REVOKE ALL ON FUNCTION public.hatbazar_admin_product_pricing() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.hatbazar_admin_set_product_pricing(uuid,numeric,numeric,numeric) FROM PUBLIC, anon, authenticated;
