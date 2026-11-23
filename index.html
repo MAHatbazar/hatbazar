@@ -2844,17 +2844,17 @@
     async function applyResellerReferralFromUrl() {
       if (!cloudSyncEnabled || !supabaseClient) return false;
       const params = new URLSearchParams(window.location.search || '');
-      const resellerId = params.get('reseller') || '';
+      const shareToken = params.get('reseller') || '';
       const productId = params.get('product') || '';
-      if (!isUuid(resellerId) || !isUuid(productId)) return false;
+      if (!isUuid(shareToken) || !isUuid(productId)) return false;
       try {
-        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_public_catalog', { p_reseller_id: resellerId });
+        const { data, error } = await supabaseClient.rpc('hatbazar_reseller_public_catalog', { p_share_token: shareToken });
         if (error) throw error;
         const rows = Array.isArray(data) ? data : [];
         const prices = {};
         rows.forEach((row) => { prices[row.product_id] = Number(row.selling_price) || 0; });
         if (!prices[productId]) throw new Error('এই পণ্যের রিসেলার মূল্য পাওয়া যায়নি।');
-        activeReferralResellerId = resellerId;
+        activeReferralResellerId = rows.find((row) => row.product_id === productId)?.reseller_id || '';
         activeReferralProductId = productId;
         referralPriceMap = prices;
         cartItems = [];
@@ -4100,8 +4100,10 @@
           p_selling_price: sellingPrice
         });
         if (error || !data?.success) throw error || new Error('Price was not saved.');
+        const { data: shareToken, error: tokenError } = await supabaseClient.rpc('hatbazar_reseller_get_share_token');
+        if (tokenError || !shareToken) throw tokenError || new Error('Share token unavailable.');
         const shareUrl = window.location.origin + window.location.pathname +
-          '?reseller=' + encodeURIComponent(supabaseUser.id) +
+          '?reseller=' + encodeURIComponent(shareToken) +
           '&product=' + encodeURIComponent(productId);
         const input = document.getElementById('resellerShareLink');
         const wrap = document.getElementById('resellerShareLinkWrap');
